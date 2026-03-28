@@ -1,0 +1,35 @@
+src/Services/NotificationService/
+│
+├── NotificationService.API/
+│   ├── .env
+│   ├── appsettings.json
+│   ├── launchSettings.json
+│   └── Program.cs
+│
+├── NotificationService.Core/
+│   ├── DTOs/
+│   │   └── EmailDto.cs
+│   ├── Entities/
+│   │   └── NotificationLog.cs
+│   ├── Enums/
+│   │   └── NotificationType.cs
+│   ├── Interfaces/
+│   │   ├── IEmailSender.cs
+│   │   └── INotificationRepository.cs
+│   └── Services/
+│       └── NotificationService.cs
+│
+└── NotificationService.Infrastructure/
+    ├── Data/
+    │   ├── NotificationDbContext.cs
+    │   └── Migrations/
+    ├── Repositories/
+    │   └── NotificationRepository.cs
+    ├── Email/
+    │   └── GmailSmtpEmailSender.cs
+    └── Consumers/
+        ├── UserRegisteredConsumer.cs
+        ├── KycStatusUpdatedConsumer.cs
+        ├── TransactionCompletedConsumer.cs
+        ├── TransactionFailedConsumer.cs
+        └── WalletFrozenConsumer.cs
