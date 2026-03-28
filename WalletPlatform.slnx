@@ -1,0 +1,66 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Gateway/">
+    <Project Path="src/Gateway/ApiGateway/ApiGateway.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/" />
+  <Folder Name="/src/Services/AdminService/">
+    <Project Path="src/Services/AdminService/AdminService.API/AdminService.API.csproj" />
+    <Project Path="src/Services/AdminService/AdminService.Core/AdminService.Core.csproj" />
+    <Project Path="src/Services/AdminService/AdminService.Infrastructure/AdminService.Infrastructure.csproj" />
+    <Project Path="src/Services/AdminService/AdminService.Tests/AdminService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/AuthService/">
+    <Project Path="src/Services/AuthService/AuthService.API/AuthService.API.csproj" />
+    <Project Path="src/Services/AuthService/AuthService.Core/AuthService.Core.csproj" />
+    <Project Path="src/Services/AuthService/AuthService.Infrastructure/AuthService.Infrastructure.csproj" />
+    <Project Path="src/Services/AuthService/AuthService.Tests/AuthService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/CatalogService/">
+    <Project Path="src/Services/CatalogService/CatalogService.API/CatalogService.API.csproj" />
+    <Project Path="src/Services/CatalogService/CatalogService.Core/CatalogService.Core.csproj" />
+    <Project Path="src/Services/CatalogService/CatalogService.Infrastructure/CatalogService.Infrastructure.csproj" />
+    <Project Path="src/Services/CatalogService/CatalogService.Tests/CatalogService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/LedgerService/">
+    <Project Path="src/Services/LedgerService/LedgerService.API/LedgerService.API.csproj" />
+    <Project Path="src/Services/LedgerService/LedgerService.Core/LedgerService.Core.csproj" />
+    <Project Path="src/Services/LedgerService/LedgerService.Infrastructure/LedgerService.Infrastructure.csproj" />
+    <Project Path="src/Services/LedgerService/LedgerService.Tests/LedgerService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/NotificationService/">
+    <Project Path="src/Services/NotificationService/NotificationService.API/NotificationService.API.csproj" />
+    <Project Path="src/Services/NotificationService/NotificationService.Core/NotificationService.Core.csproj" />
+    <Project Path="src/Services/NotificationService/NotificationService.Infrastructure/NotificationService.Infrastructure.csproj" />
+    <Project Path="src/Services/NotificationService/NotificationService.Tests/NotificationService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/ReceiptsService/">
+    <Project Path="src/Services/ReceiptsService/ReceiptsService.API/ReceiptsService.API.csproj" />
+    <Project Path="src/Services/ReceiptsService/ReceiptsService.Core/ReceiptsService.Core.csproj" />
+    <Project Path="src/Services/ReceiptsService/ReceiptsService.Infrastructure/ReceiptsService.Infrastructure.csproj" />
+    <Project Path="src/Services/ReceiptsService/ReceiptsService.Tests/ReceiptsService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/RewardsService/">
+    <Project Path="src/Services/RewardsService/RewardsService.API/RewardsService.API.csproj" />
+    <Project Path="src/Services/RewardsService/RewardsService.Core/RewardsService.Core.csproj" />
+    <Project Path="src/Services/RewardsService/RewardsService.Infrastructure/RewardsService.Infrastructure.csproj" />
+    <Project Path="src/Services/RewardsService/RewardsService.Tests/RewardsService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/UserProfileService/">
+    <Project Path="src/Services/UserProfileService/UserProfileService.API/UserProfileService.API.csproj" />
+    <Project Path="src/Services/UserProfileService/UserProfileService.Core/UserProfileService.Core.csproj" />
+    <Project Path="src/Services/UserProfileService/UserProfileService.Infrastructure/UserProfileService.Infrastructure.csproj" />
+    <Project Path="src/Services/UserProfileService/UserProfileService.Tests/UserProfileService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Services/WalletService/">
+    <Project Path="src/Services/WalletService/WalletService.API/WalletService.API.csproj" />
+    <Project Path="src/Services/WalletService/WalletService.Core/WalletService.Core.csproj" />
+    <Project Path="src/Services/WalletService/WalletService.Infrastructure/WalletService.Infrastructure.csproj" />
+    <Project Path="src/Services/WalletService/WalletService.Tests/WalletService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/src/Shared/">
+    <Project Path="src/Shared/Shared.Common/Shared.Common.csproj" />
+    <Project Path="src/Shared/Shared.Contracts/Shared.Contracts.csproj" />
+    <Project Path="src/Shared/Shared.EventBus/Shared.EventBus.csproj" />
+  </Folder>
+</Solution>
