@@ -1,0 +1,32 @@
+src/Services/RewardsService/
+│
+├── RewardsService.API/
+│   ├── Controllers/
+│   │   └── RewardsController.cs
+│   ├── .env
+│   ├── appsettings.json
+│   ├── launchSettings.json
+│   └── Program.cs
+│
+├── RewardsService.Core/
+│   ├── DTOs/
+│   │   └── RewardsDto.cs
+│   ├── Entities/
+│   │   ├── RewardsAccount.cs
+│   │   └── PointsTransaction.cs
+│   ├── Enums/
+│   │   └── RewardsTier.cs
+│   ├── Interfaces/
+│   │   ├── IRewardsRepository.cs
+│   │   └── IRewardsService.cs
+│   └── Services/
+│       └── RewardsService.cs
+│
+└── RewardsService.Infrastructure/
+    ├── Data/
+    │   ├── RewardsDbContext.cs
+    │   └── Migrations/
+    ├── Repositories/
+    │   └── RewardsRepository.cs
+    └── Consumers/
+        └── TransactionCompletedConsumer.cs
