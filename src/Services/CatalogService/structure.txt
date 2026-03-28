@@ -1,0 +1,36 @@
+src/Services/CatalogService/
+│
+├── CatalogService.API/
+│   ├── Controllers/
+│   │   ├── CatalogController.cs
+│   │   └── RedemptionController.cs
+│   ├── .env
+│   ├── appsettings.json
+│   ├── launchSettings.json
+│   └── Program.cs
+│
+├── CatalogService.Core/
+│   ├── DTOs/
+│   │   ├── CatalogItemDto.cs
+│   │   └── RedemptionDto.cs
+│   ├── Entities/
+│   │   ├── CatalogItem.cs
+│   │   └── Redemption.cs
+│   ├── Enums/
+│   │   └── RedemptionStatus.cs
+│   ├── Interfaces/
+│   │   ├── ICatalogRepository.cs
+│   │   ├── IRedemptionRepository.cs
+│   │   ├── ICatalogService.cs
+│   │   └── IRedemptionService.cs
+│   └── Services/
+│       ├── CatalogService.cs
+│       └── RedemptionService.cs
+│
+└── CatalogService.Infrastructure/
+    ├── Data/
+    │   ├── CatalogDbContext.cs
+    │   └── Migrations/
+    └── Repositories/
+        ├── CatalogRepository.cs
+        └── RedemptionRepository.cs
