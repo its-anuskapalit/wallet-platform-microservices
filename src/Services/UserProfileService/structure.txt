@@ -1,0 +1,40 @@
+src/Services/UserProfileService/
+│
+├── UserProfileService.API/
+│   ├── Controllers/
+│   │   ├── ProfileController.cs
+│   │   └── KycController.cs
+│   ├── .env
+│   ├── appsettings.json
+│   ├── launchSettings.json
+│   └── Program.cs
+│
+├── UserProfileService.Core/
+│   ├── DTOs/
+│   │   ├── ProfileDto.cs
+│   │   ├── UpdateProfileDto.cs
+│   │   ├── KycSubmitDto.cs
+│   │   └── KycReviewDto.cs
+│   ├── Entities/
+│   │   ├── UserProfile.cs
+│   │   └── KycDocument.cs
+│   ├── Enums/
+│   │   └── KycStatus.cs
+│   ├── Interfaces/
+│   │   ├── IProfileRepository.cs
+│   │   ├── IKycRepository.cs
+│   │   ├── IProfileService.cs
+│   │   └── IKycService.cs
+│   └── Services/
+│       ├── ProfileService.cs
+│       └── KycService.cs
+│
+└── UserProfileService.Infrastructure/
+    ├── Data/
+    │   ├── UserProfileDbContext.cs
+    │   └── Migrations/
+    ├── Repositories/
+    │   ├── ProfileRepository.cs
+    │   └── KycRepository.cs
+    └── Consumers/
+        └── UserRegisteredConsumer.cs
