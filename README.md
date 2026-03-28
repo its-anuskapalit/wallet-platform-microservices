@@ -15,15 +15,15 @@ Client (Angular / Postman)
             │
             ▼
 ┌───────────────────────────────────────────────────┐
-│  Auth Service        :5001   JWT + Refresh Tokens  │
-│  UserProfile Service :5002   Profile + KYC         │
-│  Wallet Service      :5003   Balance + Idempotency  │
-│  Ledger Service      :5004   Double-Entry Ledger    │
-│  Rewards Service     :5005   Points + Tiers         │
-│  Catalog Service     :5006   Items + Redemption     │
-│  Notification Service:5007   Gmail SMTP             │
-│  Receipts Service    :5008   History + CSV Export   │
-│  Admin Service       :5009   Fraud + Dashboard      │
+│  Auth Service        :5001   JWT + Refresh Tokens │
+│  UserProfile Service :5002   Profile + KYC        │
+│  Wallet Service      :5003   Balance + Idempotency│
+│  Ledger Service      :5004   Double-Entry Ledger  │
+│  Rewards Service     :5005   Points + Tiers       │
+│  Catalog Service     :5006   Items + Redemption   │
+│  Notification Service:5007   Gmail SMTP           │
+│  Receipts Service    :5008   History + CSV Expor  │
+│  Admin Service       :5009   Fraud + Dashboard    │
 └───────────────────────────────────────────────────┘
             │
             ▼
