@@ -1,0 +1,36 @@
+src/Services/WalletService/
+│
+├── WalletService.API/
+│   ├── Controllers/
+│   │   └── WalletController.cs
+│   ├── .env
+│   ├── appsettings.json
+│   ├── launchSettings.json
+│   └── Program.cs
+│
+├── WalletService.Core/
+│   ├── DTOs/
+│   │   ├── WalletDto.cs
+│   │   ├── TopUpDto.cs
+│   │   └── DeductDto.cs
+│   ├── Entities/
+│   │   ├── Wallet.cs
+│   │   └── IdempotencyKey.cs
+│   ├── Enums/
+│   │   └── WalletStatus.cs
+│   ├── Interfaces/
+│   │   ├── IWalletRepository.cs
+│   │   ├── IIdempotencyRepository.cs
+│   │   └── IWalletService.cs
+│   └── Services/
+│       └── WalletService.cs
+│
+└── WalletService.Infrastructure/
+    ├── Data/
+    │   ├── WalletDbContext.cs
+    │   └── Migrations/
+    ├── Repositories/
+    │   ├── WalletRepository.cs
+    │   └── IdempotencyRepository.cs
+    └── Consumers/
+        └── UserRegisteredConsumer.cs
