@@ -1,0 +1,69 @@
+# ── Build output ─────────────────────────────────────────────────
+bin/
+obj/
+out/
+
+# ── .env files (secrets — never commit) ──────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Visual Studio ─────────────────────────────────────────────────
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# ── Rider ────────────────────────────────────────────────────────
+.idea/
+*.sln.iml
+
+# ── VS Code ───────────────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ── .NET ─────────────────────────────────────────────────────────
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+**/[Pp]ublish/
+**/[Pp]ublish/*
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+*.nupkg
+*.snupkg
+
+# ── EF Core Migrations (keep migrations, ignore snapshots temp) ───
+# Comment this out if you want to commit migrations
+# */Migrations/
+
+# ── Logs ─────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Test results ─────────────────────────────────────────────────
+TestResults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# ── Node / Angular ────────────────────────────────────────────────
+node_modules/
+dist/
+.angular/
+*.js.map
+
+# ── OS files ──────────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini
+.DS_Store
