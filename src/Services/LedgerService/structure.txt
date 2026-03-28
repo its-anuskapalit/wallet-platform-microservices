@@ -1,0 +1,35 @@
+src/Services/LedgerService/
+│
+├── LedgerService.API/
+│   ├── Controllers/
+│   │   └── TransactionController.cs
+│   ├── .env
+│   ├── appsettings.json
+│   ├── launchSettings.json
+│   └── Program.cs
+│
+├── LedgerService.Core/
+│   ├── DTOs/
+│   │   ├── InitiateTransactionDto.cs
+│   │   └── TransactionDto.cs
+│   ├── Entities/
+│   │   ├── Transaction.cs
+│   │   └── LedgerEntry.cs
+│   ├── Enums/
+│   │   ├── TransactionStatus.cs
+│   │   ├── TransactionType.cs
+│   │   └── EntryType.cs
+│   ├── Interfaces/
+│   │   ├── ITransactionRepository.cs
+│   │   ├── ILedgerEntryRepository.cs
+│   │   └── ITransactionService.cs
+│   └── Services/
+│       └── TransactionService.cs
+│
+└── LedgerService.Infrastructure/
+    ├── Data/
+    │   ├── LedgerDbContext.cs
+    │   └── Migrations/
+    └── Repositories/
+        ├── TransactionRepository.cs
+        └── LedgerEntryRepository.cs
