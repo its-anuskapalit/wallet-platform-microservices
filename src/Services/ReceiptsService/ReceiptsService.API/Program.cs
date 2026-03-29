@@ -10,6 +10,7 @@ using ReceiptsService.Infrastructure.Consumers;
 using ReceiptsService.Infrastructure.Data;
 using ReceiptsService.Infrastructure.Repositories;
 using Serilog;
+using Shared.Common.Middleware;
 using Shared.EventBus;
 using Shared.EventBus.Options;
 
@@ -104,6 +105,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Receipts API v1"));
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
