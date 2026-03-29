@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Shared.Common.Middleware;
 using Shared.EventBus;
 using Shared.EventBus.Options;
 using UserProfileService.Core.Interfaces;
@@ -133,7 +134,7 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserProfile API v1"));
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
