@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WalletPlatform API Reference v1.0.0</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --primary: #1a56db;
+    --primary-dark: #1e429f;
+    --success: #057a55;
+    --success-bg: #f3faf7;
+    --danger: #c81e1e;
+    --danger-bg: #fdf2f2;
+    --warning: #92400e;
+    --warning-bg: #fffbeb;
+    --info: #1c64f2;
+    --info-bg: #ebf5ff;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --code-bg: #0f172a;
+    --code-fg: #e2e8f0;
+    --border: #e5e7eb;
+    --radius: 8px;
+    --font: 'Inter', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    color: var(--gray-800);
+    background: #fff;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── PRINT/EXPORT CONTROLS ─── */
+  .controls {
+    position: fixed;
+    top: 16px; right: 16px;
+    display: flex; gap: 8px;
+    z-index: 999;
+    print-color-adjust: exact;
+  }
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none;
+    font-family: var(--font);
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); }
+
+  @media print {
+    .controls, .sidebar { display: none !important; }
+    .main { margin-left: 0 !important; }
+    .page-break { page-break-before: always; }
+    body { font-size: 12px; }
+    pre { white-space: pre-wrap; }
+  }
+
+  /* ─── LAYOUT ─── */
+  .layout { display: block; }
+
+  
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 16px;
+  }
+  .sidebar-logo h2 { color: #fff; font-size: 16px; font-weight: 600; }
+  .sidebar-logo span { color: var(--gray-400); font-size: 11px; }
+  .sidebar-section { padding: 8px 20px 4px; font-size: 10px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .08em; }
+  .sidebar a {
+    display: block; padding: 6px 20px;
+    color: var(--gray-400); text-decoration: none;
+    font-size: 12.5px; transition: all .15s;
+    border-left: 2px solid transparent;
+  }
+  .sidebar a:hover { color: #fff; background: rgba(255,255,255,.05); border-left-color: var(--primary); }
+
+  .main { margin-left: 0;
+  width:100%; }
+
+  /* ─── COVER PAGE ─── */
+  .cover {
+    background: linear-gradient(135deg, var(--gray-900) 0%, #1e3a8a 100%);
+    color: #fff;
+    padding: 80px 60px;
+    min-height: 300px;
+  }
+  .cover {
+  padding: 100px 80px;
+  width: 100%;
+}
+  .cover-tag {
+    display: inline-block;
+    background: rgba(255,255,255,.15);
+    color: rgba(255,255,255,.9);
+    padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+    margin-bottom: 24px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .cover h1 { font-size: 42px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 12px; }
+  .cover p { color: rgba(255,255,255,.7); font-size: 16px; margin-bottom: 32px; }
+  .cover-meta {
+    display: flex; gap: 32px; flex-wrap: wrap;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,.2);
+  }
+  .cover-meta-item label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.5); margin-bottom: 4px; }
+  .cover-meta-item span { font-size: 13px; color: rgba(255,255,255,.9); font-weight: 500; }
+
+  /* ─── CONTENT SECTIONS ─── */
+  
+  .section:last-child { border-bottom: none; }
+.section {
+  padding: 48px 80px;
+  max-width: 1200px;
+  margin: auto;
+}
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 32px; padding-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-number {
+    background: var(--primary);
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 24px; font-weight: 700; color: var(--gray-900); }
+  .section-header p { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+
+  h3 { font-size: 17px; font-weight: 600; color: var(--gray-900); margin: 32px 0 16px; }
+  h4 { font-size: 14px; font-weight: 600; color: var(--gray-700); margin: 20px 0 10px; }
+  p { margin-bottom: 12px; color: var(--gray-600); line-height: 1.7; }
+
+  /* ─── ENDPOINT CARD ─── */
+  .endpoint-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .endpoint-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 10px;
+  }
+  .method {
+    display: inline-flex; align-items: center;
+    padding: 4px 10px; border-radius: 5px;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    min-width: 54px; justify-content: center;
+  }
+  .method.get    { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .method.post   { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .method.put    { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+  .method.delete { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  .method.patch  { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+  .endpoint-path {
+    font-family: var(--mono); font-size: 14px; font-weight: 500;
+    color: var(--gray-800); flex: 1;
+  }
+  .endpoint-desc { font-size: 13px; color: var(--gray-500); width: 100%; margin-top: 0; }
+
+  .auth-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500;
+    background: #fef9c3; color: #854d0e;
+    border: 1px solid #fde047;
+    white-space: nowrap;
+  }
+  .auth-badge.open { background: #f0fdf4; color: #166534; border-color: #86efac; }
+  .role-badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500;
+    background: #ede9fe; color: #5b21b6;
+    border: 1px solid #c4b5fd;
+  }
+
+  .endpoint-body { padding: 20px; }
+
+  /* ─── TABLES ─── */
+  .param-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .param-table th {
+    text-align: left; padding: 8px 12px;
+    background: var(--gray-100); color: var(--gray-600);
+    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .param-table td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+  .param-table tr:last-child td { border-bottom: none; }
+  .param-table tr:hover td { background: var(--gray-50); }
+
+  .param-name { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--primary-dark); }
+  .param-type { font-family: var(--mono); font-size: 11px; color: var(--gray-500); background: var(--gray-100); padding: 1px 5px; border-radius: 3px; }
+  .required { color: var(--danger); font-size: 11px; font-weight: 600; }
+  .optional { color: var(--gray-400); font-size: 11px; }
+
+  /* ─── CODE BLOCKS ─── */
+  pre {
+    background: var(--code-bg);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 10px 0;
+    position: relative;
+  }
+  pre code {
+    font-family: var(--mono); font-size: 12.5px;
+    color: var(--code-fg); line-height: 1.65;
+  }
+  .code-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--gray-500);
+    margin-bottom: 6px;
+  }
+
+  /* JSON syntax highlight */
+  .key   { color: #93c5fd; }
+  .str   { color: #86efac; }
+  .num   { color: #fde68a; }
+  .bool  { color: #f9a8d4; }
+  .null  { color: #fda4af; }
+  .comment { color: #64748b; font-style: italic; }
+
+  /* ─── RESPONSE BLOCKS ─── */
+  .response-tabs { display: flex; gap: 0; margin: 16px 0 0; }
+  .resp-tab {
+    padding: 7px 14px; font-size: 12px; font-weight: 500;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer; border: 1px solid transparent;
+  }
+  .resp-tab.success { background: var(--success-bg); color: var(--success); border-color: #a7f3d0; }
+  .resp-tab.error   { background: var(--danger-bg);  color: var(--danger);  border-color: #fca5a5; margin-left: 6px; }
+
+  .notice {
+    padding: 10px 14px; border-radius: 6px;
+    font-size: 12.5px; margin: 12px 0;
+    display: flex; gap: 8px;
+  }
+  .notice.info  { background: var(--info-bg);    color: var(--info);    border-left: 3px solid var(--info); }
+  .notice.warn  { background: var(--warning-bg); color: var(--warning); border-left: 3px solid #f59e0b; }
+  .notice.success { background: var(--success-bg); color: var(--success); border-left: 3px solid #34d399; }
+
+  /* ─── OVERVIEW CARDS ─── */
+  .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 20px 0; }
+  .service-card {
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; background: var(--gray-50);
+  }
+  .service-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .service-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .service-card h4 { margin: 0; font-size: 14px; font-weight: 600; color: var(--gray-800); }
+  .service-card .port { font-family: var(--mono); font-size: 11px; color: var(--gray-500); }
+  .service-card p  { font-size: 12px; color: var(--gray-500); margin: 0; line-height: 1.5; }
+
+  /* ─── JWT TABLE ─── */
+  .jwt-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  .jwt-table th { padding: 8px 12px; text-align: left; background: var(--gray-100); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray-600); border-bottom: 1px solid var(--border); }
+  .jwt-table td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); }
+  code { font-family: var(--mono); font-size: 12px; background: var(--gray-100); padding: 1px 5px; border-radius: 3px; color: var(--primary-dark); }
+
+  /* ─── ERROR TABLE ─── */
+  .status-200 { color: #065f46; font-weight: 600; }
+  .status-400 { color: #92400e; font-weight: 600; }
+  .status-401 { color: #991b1b; font-weight: 600; }
+  .status-403 { color: #7e22ce; font-weight: 600; }
+  .status-404 { color: #1e40af; font-weight: 600; }
+  .status-500 { color: #881337; font-weight: 600; }
+
+  /* ─── TOC ─── */
+  .toc { columns: 2; column-gap: 40px; }
+  .toc-item { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; break-inside: avoid; }
+  .toc-num  { font-weight: 600; color: var(--primary); min-width: 20px; font-size: 13px; }
+  .toc-title { font-size: 13px; color: var(--gray-700); }
+  .toc-sub   { font-size: 12px; color: var(--gray-400); padding-left: 28px; }
+
+  /* Flow Diagram */
+  .flow-steps { display: flex; gap: 0; align-items: stretch; flex-wrap: wrap; margin: 16px 0; }
+  .flow-step {
+    flex: 1; min-width: 120px;
+    background: var(--info-bg); border: 1px solid #bfdbfe;
+    border-radius: 0; padding: 10px 14px;
+    font-size: 12px; color: var(--info); position: relative;
+  }
+  .flow-step:first-child { border-radius: 6px 0 0 6px; }
+  .flow-step:last-child  { border-radius: 0 6px 6px 0; }
+  .flow-step::after {
+    content: '→';
+    position: absolute; right: -10px; top: 50%; transform: translateY(-50%);
+    color: var(--info); font-weight: 700; z-index: 1;
+  }
+  .flow-step:last-child::after { display: none; }
+  .flow-step .step-num { font-size: 10px; font-weight: 700; opacity: .6; margin-bottom: 3px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="btn btn-secondary" onclick="window.print()">🖨 Export / Print</button>
+  <button class="btn btn-primary" onclick="copyAllText()">📋 Copy as Text</button>
+</div>
+
+<!-- Sidebar -->
+<!-- <nav class="sidebar">
+  <div class="sidebar-logo">
+    <h2>WalletPlatform</h2>
+    <span>API Reference v1.0.0</span>
+  </div>
+  <div class="sidebar-section">Getting Started</div>
+  <a href="#overview">1. Overview & Architecture</a>
+  <a href="#auth-header">2. Authentication</a>
+  <div class="sidebar-section">Services</div>
+  <a href="#auth-service">3. Auth Service</a>
+  <a href="#user-service">4. User Profile Service</a>
+  <a href="#wallet-service">5. Wallet Service</a>
+  <a href="#ledger-service">6. Ledger Service</a>
+  <a href="#rewards-service">7. Rewards Service</a>
+  <a href="#catalog-service">8. Catalog Service</a>
+  <a href="#notification-service">9. Notification Service</a>
+  <a href="#receipts-service">10. Receipts Service</a>
+  <a href="#admin-service">11. Admin Service</a>
+  <div class="sidebar-section">Reference</div>
+  <a href="#events">12. RabbitMQ Events</a>
+  <a href="#errors">13. Error Reference</a>
+</nav> -->
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- ═══ COVER PAGE ═══ -->
+  <div class="cover">
+    <div class="cover-tag">Technical Documentation</div>
+    <h1>WalletPlatform API Reference</h1>
+    <p>Complete API documentation for all 9 microservices. Designed for fintech-grade wallet operations, KYC, rewards, and real-time notifications.</p>
+    <div class="cover-meta">
+      <div class="cover-meta-item"><label>Version</label><span>1.0.0</span></div>
+      <div class="cover-meta-item"><label>Base URL</label><span>http://localhost:5000</span></div>
+      <div class="cover-meta-item"><label>Protocol</label><span>HTTP / HTTPS</span></div>
+      <div class="cover-meta-item"><label>Authentication</label><span>JWT Bearer Token</span></div>
+      <div class="cover-meta-item"><label>Architecture</label><span>.NET 10 Microservices</span></div>
+      <div class="cover-meta-item"><label>Date</label><span>March 2026</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 1: OVERVIEW ═══ -->
+  <div class="section" id="overview">
+    <div class="section-header">
+      <div class="section-number">1</div>
+      <div>
+        <h2>Overview & Architecture</h2>
+        <p>System design, service map, and routing conventions</p>
+      </div>
+    </div>
+
+    <p>WalletPlatform is a production-grade, .NET 10 microservices fintech system. All client requests are routed through an <strong>Ocelot API Gateway</strong> on port 5000, which handles JWT validation and downstream routing. Each service owns its dedicated SQL Server Express database, communicates asynchronously via RabbitMQ, and delivers notifications through MailKit.</p>
+
+    <h3>Service Registry</h3>
+    <div class="service-grid">
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#1a56db"></div>
+          <h4>API Gateway (Ocelot)</h4>
+          <span class="port">:5000</span>
+        </div>
+        <p>Single entry point. JWT validation, rate limiting, request routing to all downstream services.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#059669"></div>
+          <h4>Auth Service</h4>
+          <span class="port">:5001</span>
+        </div>
+        <p>User registration, login, JWT issuance, KYC submission. Publishes UserRegistered &amp; KYCStatusUpdated events.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#7c3aed"></div>
+          <h4>User Profile Service</h4>
+          <span class="port">:5002</span>
+        </div>
+        <p>User profile retrieval and management. Reads user data from Auth DB context or its own store.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#d97706"></div>
+          <h4>Wallet Service</h4>
+          <span class="port">:5003</span>
+        </div>
+        <p>Wallet CRUD, balance management, P2P transfers, top-up, transaction history. Publishes TransactionCompleted &amp; TransactionFailed.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#db2777"></div>
+          <h4>Ledger Service</h4>
+          <span class="port">:5004</span>
+        </div>
+        <p>Immutable double-entry accounting ledger. Subscribes to transaction events, records debits/credits.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#0891b2"></div>
+          <h4>Rewards Service</h4>
+          <span class="port">:5005</span>
+        </div>
+        <p>Points accrual, tier management (Bronze/Silver/Gold), reward history. Subscribes to TransactionCompleted.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#65a30d"></div>
+          <h4>Catalog Service</h4>
+          <span class="port">:5006</span>
+        </div>
+        <p>Redeemable offers, deals, and catalog items. Manages product listings available for reward redemption.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#be185d"></div>
+          <h4>Notification Service</h4>
+          <span class="port">:5007</span>
+        </div>
+        <p>Multi-channel notifications (in-app + MailKit/Gmail SMTP). Subscribes to all platform events.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#b45309"></div>
+          <h4>Receipts Service</h4>
+          <span class="port">:5008</span>
+        </div>
+        <p>Generates and stores transaction receipts. Subscribes to TransactionCompleted events.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-dot" style="background:#64748b"></div>
+          <h4>Admin Service</h4>
+          <span class="port">:5009</span>
+        </div>
+        <p>KYC review & approval, user management, wallet freeze/unfreeze. Role-gated to Admin JWT claims.</p>
+      </div>
+    </div>
+
+    <h3>URL Routing</h3>
+    <p>All requests must target the Gateway base URL: <code>http://localhost:5000</code>. The gateway forwards by URL prefix:</p>
+    <table class="param-table">
+      <thead><tr><th>URL Prefix</th><th>Downstream Service</th><th>Port</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><code>/auth/...</code></td><td>Auth Service</td><td>:5001</td><td><code>POST /auth/register</code></td></tr>
+        <tr><td><code>/users/...</code></td><td>User Profile Service</td><td>:5002</td><td><code>GET /users/profile</code></td></tr>
+        <tr><td><code>/wallet/...</code></td><td>Wallet Service</td><td>:5003</td><td><code>POST /wallet/transfer</code></td></tr>
+        <tr><td><code>/ledger/...</code></td><td>Ledger Service</td><td>:5004</td><td><code>GET /ledger/entries</code></td></tr>
+        <tr><td><code>/rewards/...</code></td><td>Rewards Service</td><td>:5005</td><td><code>GET /rewards/balance</code></td></tr>
+        <tr><td><code>/catalog/...</code></td><td>Catalog Service</td><td>:5006</td><td><code>GET /catalog/items</code></td></tr>
+        <tr><td><code>/notifications/...</code></td><td>Notification Service</td><td>:5007</td><td><code>GET /notifications</code></td></tr>
+        <tr><td><code>/receipts/...</code></td><td>Receipts Service</td><td>:5008</td><td><code>GET /receipts/{id}</code></td></tr>
+        <tr><td><code>/admin/...</code></td><td>Admin Service</td><td>:5009</td><td><code>PUT /admin/kyc/{id}/approve</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══ SECTION 2: AUTHENTICATION ═══ -->
+  <div class="section" id="auth-header">
+    <div class="section-header">
+      <div class="section-number">2</div>
+      <div>
+        <h2>Authentication</h2>
+        <p>JWT Bearer token scheme used across all protected endpoints</p>
+      </div>
+    </div>
+
+    <p>WalletPlatform uses <strong>JWT (JSON Web Token) Bearer authentication</strong>. Upon successful registration or login, you receive a signed token that must be included in the <code>Authorization</code> header of every protected request. The Ocelot Gateway validates the token signature before forwarding.</p>
+
+    <h3>Request Header</h3>
+    <pre><code>Authorization: Bearer &lt;your_jwt_token&gt;</code></pre>
+
+    <h3>JWT Token Claims</h3>
+    <table class="jwt-table">
+      <thead><tr><th>Claim</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>nameidentifier</code></td><td>Guid</td><td>Unique user ID across all services</td></tr>
+        <tr><td><code>FullName</code></td><td>string</td><td>User's full display name</td></tr>
+        <tr><td><code>Email</code></td><td>string</td><td>User's registered email address</td></tr>
+        <tr><td><code>Role</code></td><td><code>User</code> | <code>Admin</code></td><td>Authorization role — controls access to admin endpoints</td></tr>
+        <tr><td><code>status</code></td><td><code>Pending</code> | <code>Active</code> | <code>Rejected</code></td><td>KYC approval status — Active required for wallet ops</td></tr>
+        <tr><td><code>exp</code></td><td>Unix timestamp</td><td>Token expiry — 8 hours from time of issue</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Standard Response Wrapper</h3>
+    <p>Every endpoint returns a consistent JSON envelope regardless of success or failure:</p>
+    <div class="code-label">Success</div>
+    <pre><code><span class="comment">// HTTP 200 OK</span>
+{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Operation successful."</span>,
+  <span class="key">"data"</span>: { <span class="comment">/* response payload */</span> }
+}</code></pre>
+    <div class="code-label">Failure</div>
+    <pre><code><span class="comment">// HTTP 4xx / 5xx</span>
+{
+  <span class="key">"success"</span>: <span class="bool">false</span>,
+  <span class="key">"message"</span>: <span class="str">"Descriptive error message here."</span>,
+  <span class="key">"data"</span>: <span class="null">null</span>
+}</code></pre>
+
+    <div class="notice info">
+      ℹ️ Token is valid for <strong>8 hours</strong>. Re-authenticate via <code>POST /auth/login</code> when expired (HTTP 401 returned).
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 3: AUTH SERVICE ═══ -->
+  <div class="section page-break" id="auth-service">
+    <div class="section-header">
+      <div class="section-number">3</div>
+      <div>
+        <h2>Auth Service</h2>
+        <p>Port :5001 — Registration, login, JWT issuance, KYC, profile</p>
+      </div>
+    </div>
+
+    <!-- POST /auth/register -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/auth/register</span>
+        <span class="auth-badge open">🔓 Public</span>
+        <div class="endpoint-desc">Register a new user account. Returns a JWT token immediately upon success.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">fullName</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Max 200 characters</td></tr>
+            <tr><td><span class="param-name">email</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Valid email format — must be unique</td></tr>
+            <tr><td><span class="param-name">phoneNumber</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Must be unique across the platform</td></tr>
+            <tr><td><span class="param-name">password</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Plain text — hashed with BCrypt at rest</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"fullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+  <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+  <span class="key">"phoneNumber"</span>: <span class="str">"9876543210"</span>,
+  <span class="key">"password"</span>: <span class="str">"SecurePass@123"</span>
+}</code></pre>
+        <div class="response-tabs">
+          <span class="resp-tab success">✓ 200 Success</span>
+        </div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Registration successful."</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"token"</span>: <span class="str">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"fullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+    <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+    <span class="key">"role"</span>: <span class="str">"User"</span>,
+    <span class="key">"status"</span>: <span class="str">"Pending"</span>
+  }
+}</code></pre>
+        <div class="response-tabs">
+          <span class="resp-tab error">✗ 400 Errors</span>
+        </div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Email already registered."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Phone number already registered."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="notice info">ℹ️ On registration, a <code>UserRegistered</code> event is published to RabbitMQ. Notification Service delivers a welcome email via Gmail SMTP.</div>
+      </div>
+    </div>
+
+    <!-- POST /auth/login -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/auth/login</span>
+        <span class="auth-badge open">🔓 Public</span>
+        <div class="endpoint-desc">Authenticate user credentials and receive a fresh JWT token.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">email</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Registered email address</td></tr>
+            <tr><td><span class="param-name">password</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Account password (plain text, compared against BCrypt hash)</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+  <span class="key">"password"</span>: <span class="str">"SecurePass@123"</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Login successful."</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"token"</span>: <span class="str">"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."</span>,
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"fullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+    <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+    <span class="key">"role"</span>: <span class="str">"User"</span>,
+    <span class="key">"status"</span>: <span class="str">"Active"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ 400 / 401 Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Invalid email or password."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- POST /auth/kyc -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/auth/kyc</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Submit KYC identity document for admin review. Required to activate wallet.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Allowed Values</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">documentType</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td><code>national_id</code> | <code>passport</code> | <code>driving_license</code></td></tr>
+            <tr><td><span class="param-name">documentNumber</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Official document identification number</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"documentType"</span>: <span class="str">"national_id"</span>,
+  <span class="key">"documentNumber"</span>: <span class="str">"ABCD1234567"</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"KYC submitted. Awaiting admin review."</span>,
+  <span class="key">"data"</span>: <span class="null">null</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ 400 / 401 Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"KYC already approved."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"KYC already submitted and under review."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Unauthorized."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="notice warn">⚠️ A <code>KYCStatusUpdated</code> event is published to RabbitMQ after submission. Users with <code>Approved</code> KYC cannot resubmit. Users with <code>Rejected</code> KYC may resubmit.</div>
+      </div>
+    </div>
+
+    <!-- GET /auth/profile -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/auth/profile</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve the authenticated user's full profile including KYC status.</div>
+      </div>
+      <div class="endpoint-body">
+        <p>No request body. The user is identified from the JWT token claims.</p>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"fullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+    <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+    <span class="key">"phoneNumber"</span>: <span class="str">"9876543210"</span>,
+    <span class="key">"role"</span>: <span class="str">"User"</span>,
+    <span class="key">"status"</span>: <span class="str">"Active"</span>,
+    <span class="key">"kyc"</span>: {
+      <span class="key">"documentType"</span>: <span class="str">"national_id"</span>,
+      <span class="key">"documentNumber"</span>: <span class="str">"ABCD1234567"</span>,
+      <span class="key">"status"</span>: <span class="str">"Approved"</span>,
+      <span class="key">"adminNote"</span>: <span class="null">null</span>,
+      <span class="key">"submittedAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>,
+      <span class="key">"reviewedAt"</span>: <span class="str">"2026-03-19T11:00:00Z"</span>
+    }
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ 401 Error</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Unauthorized."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 4: USER PROFILE SERVICE ═══ -->
+  <div class="section page-break" id="user-service">
+    <div class="section-header">
+      <div class="section-number">4</div>
+      <div>
+        <h2>User Profile Service</h2>
+        <p>Port :5002 — Profile retrieval and user management</p>
+      </div>
+    </div>
+
+    <!-- GET /users/profile -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/users/profile</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Get the authenticated user's profile details.</div>
+      </div>
+      <div class="endpoint-body">
+        <p>No request body. User identity resolved from JWT claims.</p>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"fullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+    <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+    <span class="key">"phoneNumber"</span>: <span class="str">"9876543210"</span>,
+    <span class="key">"status"</span>: <span class="str">"Active"</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:00:00Z"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ 401 / 404 Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Unauthorized."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"User not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- PUT /users/profile -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/users/profile</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Update the authenticated user's profile information.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">fullName</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>Updated full name (max 200 chars)</td></tr>
+            <tr><td><span class="param-name">phoneNumber</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>New phone number — must be unique</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"fullName"</span>: <span class="str">"Aaryan R. Sharma"</span>,
+  <span class="key">"phoneNumber"</span>: <span class="str">"9876543211"</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Profile updated successfully."</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"fullName"</span>: <span class="str">"Aaryan R. Sharma"</span>,
+    <span class="key">"phoneNumber"</span>: <span class="str">"9876543211"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Phone number already registered."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- GET /users/{userId} -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/users/{userId}</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Retrieve any user's profile by ID. Admin access only.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Path Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">userId</span></td><td><span class="param-type">Guid</span></td><td><span class="required">Yes</span></td><td>Target user's unique ID</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"fullName"</span>: <span class="str">"Jane Doe"</span>,
+    <span class="key">"email"</span>: <span class="str">"jane@example.com"</span>,
+    <span class="key">"status"</span>: <span class="str">"Active"</span>,
+    <span class="key">"role"</span>: <span class="str">"User"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"User not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Forbidden."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 5: WALLET SERVICE ═══ -->
+  <div class="section page-break" id="wallet-service">
+    <div class="section-header">
+      <div class="section-number">5</div>
+      <div>
+        <h2>Wallet Service</h2>
+        <p>Port :5003 — Balance, transfers, top-up, transaction history</p>
+      </div>
+    </div>
+    <div class="notice warn">⚠️ All wallet operations require an <strong>Active</strong> account status (KYC approved). Pending or Rejected users will receive <code>HTTP 403</code>.</div>
+
+    <!-- GET /wallet -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/wallet</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve wallet balance and details for the authenticated user.</div>
+      </div>
+      <div class="endpoint-body">
+        <p>No request body required. Wallet is resolved from the user ID in JWT claims.</p>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"e56b112f-5f1c-45a8-818d-ac17e66fcb3a"</span>,
+    <span class="key">"balance"</span>: <span class="num">5000.00</span>,
+    <span class="key">"currency"</span>: <span class="str">"INR"</span>,
+    <span class="key">"isLocked"</span>: <span class="bool">false</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Wallet not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Your account is not active."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- POST /wallet/topup -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/wallet/topup</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Add funds to the wallet via mock payment gateway. Replace with Razorpay/Stripe in production.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Top-Up Flow</h4>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">STEP 1</div>Payment record created (Pending)</div>
+          <div class="flow-step"><div class="step-num">STEP 2</div>MockGateway processes (auto-approves)</div>
+          <div class="flow-step"><div class="step-num">STEP 3</div>Wallet balance credited</div>
+          <div class="flow-step"><div class="step-num">STEP 4</div>Payment record → Success</div>
+          <div class="flow-step"><div class="step-num">STEP 5</div>TransactionCompleted event published</div>
+        </div>
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">amount</span></td><td><span class="param-type">decimal</span></td><td><span class="required">Yes</span></td><td>Min: ₹1 — Max: ₹1,00,000</td></tr>
+            <tr><td><span class="param-name">note</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>Description e.g. "Monthly savings"</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"amount"</span>: <span class="num">2000.00</span>,
+  <span class="key">"note"</span>: <span class="str">"Monthly savings"</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Top-up successful. ₹2000.00 added to your wallet."</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"transactionId"</span>: <span class="str">"TU20260319ABCD1234"</span>,
+    <span class="key">"amount"</span>: <span class="num">2000.00</span>,
+    <span class="key">"balanceAfter"</span>: <span class="num">7000.00</span>,
+    <span class="key">"type"</span>: <span class="str">"topup"</span>,
+    <span class="key">"status"</span>: <span class="str">"Success"</span>,
+    <span class="key">"note"</span>: <span class="str">"Monthly savings"</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Amount must be greater than zero."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Maximum top-up amount is ₹1,00,000."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Your account is not active."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- POST /wallet/transfer -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/wallet/transfer</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Transfer funds to another active user's wallet. Triggers reward points and notifications.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Constraints</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">toEmail</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Recipient must be an Active user</td></tr>
+            <tr><td><span class="param-name">amount</span></td><td><span class="param-type">decimal</span></td><td><span class="required">Yes</span></td><td>Min: ₹1 — Max: ₹1,00,000</td></tr>
+            <tr><td><span class="param-name">note</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>Transfer description e.g. "Rent payment"</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"toEmail"</span>: <span class="str">"jane@example.com"</span>,
+  <span class="key">"amount"</span>: <span class="num">500.00</span>,
+  <span class="key">"note"</span>: <span class="str">"Dinner split"</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Transfer successful. Reference: TF20260319ABC123"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"reference"</span>: <span class="str">"TF20260319ABC123"</span>,
+    <span class="key">"amount"</span>: <span class="num">500.00</span>,
+    <span class="key">"balanceAfter"</span>: <span class="num">4500.00</span>,
+    <span class="key">"toEmail"</span>: <span class="str">"jane@example.com"</span>,
+    <span class="key">"status"</span>: <span class="str">"Success"</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Insufficient balance."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Receiver not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Cannot transfer to yourself."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Wallet is locked. Contact support."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="notice success">✓ On success: <code>TransactionCompleted</code> published → Rewards Service awards 10 points to sender, Receipts Service generates receipt, both sender &amp; receiver get push + email notifications.</div>
+      </div>
+    </div>
+
+    <!-- GET /wallet/history -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/wallet/history</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Paginated transaction history for the authenticated user's wallet.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">page</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>1</td><td>Page number</td></tr>
+            <tr><td><span class="param-name">pageSize</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>10 (Max: 50)</td><td>Records per page</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request URL example</div>
+        <pre><code>GET /wallet/history?page=1&pageSize=10</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"transactions"</span>: [
+      {
+        <span class="key">"id"</span>: <span class="str">"txn-abc123"</span>,
+        <span class="key">"type"</span>: <span class="str">"transfer_out"</span>,
+        <span class="key">"amount"</span>: <span class="num">500.00</span>,
+        <span class="key">"balanceAfter"</span>: <span class="num">4500.00</span>,
+        <span class="key">"status"</span>: <span class="str">"Success"</span>,
+        <span class="key">"reference"</span>: <span class="str">"TF20260319ABC123_OUT"</span>,
+        <span class="key">"note"</span>: <span class="str">"Dinner split"</span>,
+        <span class="key">"toEmail"</span>: <span class="str">"jane@example.com"</span>,
+        <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+      }
+    ],
+    <span class="key">"totalCount"</span>: <span class="num">25</span>,
+    <span class="key">"page"</span>: <span class="num">1</span>,
+    <span class="key">"pageSize"</span>: <span class="num">10</span>
+  }
+}</code></pre>
+        <h4>Transaction Types</h4>
+        <table class="param-table">
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>topup</code></td><td>Money added to wallet via top-up</td></tr>
+            <tr><td><code>transfer_out</code></td><td>Money sent to another user (debit)</td></tr>
+            <tr><td><code>transfer_in</code></td><td>Money received from another user (credit)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 6: LEDGER SERVICE ═══ -->
+  <div class="section page-break" id="ledger-service">
+    <div class="section-header">
+      <div class="section-number">6</div>
+      <div>
+        <h2>Ledger Service</h2>
+        <p>Port :5004 — Immutable double-entry accounting ledger</p>
+      </div>
+    </div>
+    <div class="notice info">ℹ️ The Ledger Service maintains an <strong>immutable audit trail</strong>. Entries are created automatically by subscribing to <code>TransactionCompleted</code> events — they cannot be created or modified via the API directly.</div>
+
+    <!-- GET /ledger/entries -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/ledger/entries</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve paginated ledger entries for the authenticated user.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">page</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>1</td></tr>
+            <tr><td><span class="param-name">pageSize</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>20 (Max: 100)</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"entries"</span>: [
+      {
+        <span class="key">"id"</span>: <span class="str">"ldg-abc123"</span>,
+        <span class="key">"transactionReference"</span>: <span class="str">"TF20260319ABC123"</span>,
+        <span class="key">"entryType"</span>: <span class="str">"debit"</span>,
+        <span class="key">"amount"</span>: <span class="num">500.00</span>,
+        <span class="key">"currency"</span>: <span class="str">"INR"</span>,
+        <span class="key">"description"</span>: <span class="str">"Transfer to jane@example.com"</span>,
+        <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+      }
+    ],
+    <span class="key">"totalCount"</span>: <span class="num">50</span>,
+    <span class="key">"page"</span>: <span class="num">1</span>,
+    <span class="key">"pageSize"</span>: <span class="num">20</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- GET /ledger/entries/{reference} -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/ledger/entries/{reference}</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve a specific ledger entry by transaction reference number.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Path Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">reference</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Transaction reference e.g. <code>TF20260319ABC123</code></td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"ldg-abc123"</span>,
+    <span class="key">"transactionReference"</span>: <span class="str">"TF20260319ABC123"</span>,
+    <span class="key">"entryType"</span>: <span class="str">"debit"</span>,
+    <span class="key">"amount"</span>: <span class="num">500.00</span>,
+    <span class="key">"currency"</span>: <span class="str">"INR"</span>,
+    <span class="key">"description"</span>: <span class="str">"Transfer to jane@example.com"</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Ledger entry not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 7: REWARDS SERVICE ═══ -->
+  <div class="section page-break" id="rewards-service">
+    <div class="section-header">
+      <div class="section-number">7</div>
+      <div>
+        <h2>Rewards Service</h2>
+        <p>Port :5005 — Points accrual, tier progression, reward history</p>
+      </div>
+    </div>
+
+    <h3>Loyalty Tier Structure</h3>
+    <table class="param-table">
+      <thead><tr><th>Tier</th><th>Points Range</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>🥉 Bronze</strong></td><td>0 – 999 points</td><td>Starting tier for all new users</td></tr>
+        <tr><td><strong>🥈 Silver</strong></td><td>1,000 – 4,999 points</td><td>Auto-upgraded when balance reaches 1,000</td></tr>
+        <tr><td><strong>🥇 Gold</strong></td><td>5,000+ points</td><td>Auto-upgraded when balance reaches 5,000</td></tr>
+      </tbody>
+    </table>
+    <div class="notice info">ℹ️ Points are awarded automatically by subscribing to <code>TransactionCompleted</code> events from RabbitMQ. Each successful P2P transfer awards <strong>10 points</strong> to the sender.</div>
+
+    <!-- GET /rewards/balance -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/rewards/balance</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Get current points balance, tier status, and progress to next tier.</div>
+      </div>
+      <div class="endpoint-body">
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"rwd-abc123"</span>,
+    <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+    <span class="key">"pointsBalance"</span>: <span class="num">150</span>,
+    <span class="key">"totalEarned"</span>: <span class="num">150</span>,
+    <span class="key">"tier"</span>: <span class="str">"Bronze"</span>,
+    <span class="key">"nextTier"</span>: <span class="str">"Silver"</span>,
+    <span class="key">"pointsToNext"</span>: <span class="num">850</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- GET /rewards/history -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/rewards/history</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Get full reward point transaction history.</div>
+      </div>
+      <div class="endpoint-body">
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"rt-abc123"</span>,
+      <span class="key">"points"</span>: <span class="num">10</span>,
+      <span class="key">"reason"</span>: <span class="str">"transfer_completed"</span>,
+      <span class="key">"reference"</span>: <span class="str">"TF20260319ABC123_OUT"</span>,
+      <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+    }
+  ]
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Reward account not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 8: CATALOG SERVICE ═══ -->
+  <div class="section page-break" id="catalog-service">
+    <div class="section-header">
+      <div class="section-number">8</div>
+      <div>
+        <h2>Catalog Service</h2>
+        <p>Port :5006 — Redeemable offers, deals, and catalog items</p>
+      </div>
+    </div>
+
+    <!-- GET /catalog/items -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/catalog/items</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve all active catalog items available for reward redemption.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">category</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>Filter by category e.g. <code>voucher</code>, <code>cashback</code></td></tr>
+            <tr><td><span class="param-name">page</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>Page number. Default: 1</td></tr>
+            <tr><td><span class="param-name">pageSize</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>Items per page. Default: 20, Max: 50</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"items"</span>: [
+      {
+        <span class="key">"id"</span>: <span class="str">"cat-item-abc123"</span>,
+        <span class="key">"name"</span>: <span class="str">"Amazon ₹100 Voucher"</span>,
+        <span class="key">"description"</span>: <span class="str">"Redeemable on Amazon.in orders above ₹500"</span>,
+        <span class="key">"category"</span>: <span class="str">"voucher"</span>,
+        <span class="key">"pointsRequired"</span>: <span class="num">500</span>,
+        <span class="key">"isActive"</span>: <span class="bool">true</span>,
+        <span class="key">"createdAt"</span>: <span class="str">"2026-01-01T00:00:00Z"</span>
+      }
+    ],
+    <span class="key">"totalCount"</span>: <span class="num">12</span>,
+    <span class="key">"page"</span>: <span class="num">1</span>,
+    <span class="key">"pageSize"</span>: <span class="num">20</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- GET /catalog/items/{id} -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/catalog/items/{id}</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Get details of a specific catalog item by ID.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Path Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">id</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Catalog item ID</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"cat-item-abc123"</span>,
+    <span class="key">"name"</span>: <span class="str">"Amazon ₹100 Voucher"</span>,
+    <span class="key">"description"</span>: <span class="str">"Redeemable on Amazon.in orders above ₹500"</span>,
+    <span class="key">"category"</span>: <span class="str">"voucher"</span>,
+    <span class="key">"pointsRequired"</span>: <span class="num">500</span>,
+    <span class="key">"isActive"</span>: <span class="bool">true</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Catalog item not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- POST /catalog/items (Admin) -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/catalog/items</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Create a new catalog item. Admin only.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">name</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Item display name</td></tr>
+            <tr><td><span class="param-name">description</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Item description shown to users</td></tr>
+            <tr><td><span class="param-name">category</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>e.g. <code>voucher</code>, <code>cashback</code>, <code>subscription</code></td></tr>
+            <tr><td><span class="param-name">pointsRequired</span></td><td><span class="param-type">int</span></td><td><span class="required">Yes</span></td><td>Points needed to redeem. Min: 1</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"name"</span>: <span class="str">"Flipkart ₹200 Voucher"</span>,
+  <span class="key">"description"</span>: <span class="str">"Valid on Flipkart.com for 30 days"</span>,
+  <span class="key">"category"</span>: <span class="str">"voucher"</span>,
+  <span class="key">"pointsRequired"</span>: <span class="num">800</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 201 Created</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"Catalog item created."</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"cat-item-xyz456"</span>,
+    <span class="key">"name"</span>: <span class="str">"Flipkart ₹200 Voucher"</span>,
+    <span class="key">"pointsRequired"</span>: <span class="num">800</span>,
+    <span class="key">"isActive"</span>: <span class="bool">true</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- DELETE /catalog/items/{id} -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method delete">DELETE</span>
+        <span class="endpoint-path">/catalog/items/{id}</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Deactivate a catalog item (soft delete). Admin only.</div>
+      </div>
+      <div class="endpoint-body">
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"Catalog item deactivated."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Catalog item not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 9: NOTIFICATION SERVICE ═══ -->
+  <div class="section page-break" id="notification-service">
+    <div class="section-header">
+      <div class="section-number">9</div>
+      <div>
+        <h2>Notification Service</h2>
+        <p>Port :5007 — In-app and email notifications via MailKit/Gmail SMTP</p>
+      </div>
+    </div>
+    <div class="notice info">ℹ️ Notifications are created automatically when RabbitMQ events arrive. Users read and mark them via these endpoints. Email delivery uses <strong>MailKit with Gmail SMTP</strong>.</div>
+
+    <h3>Notification Types</h3>
+    <table class="param-table">
+      <thead><tr><th>Type</th><th>Triggered By</th><th>Example Message</th></tr></thead>
+      <tbody>
+        <tr><td><code>welcome</code></td><td>UserRegistered event</td><td>"Welcome to WalletPlatform! Your account is ready."</td></tr>
+        <tr><td><code>kyc_submitted</code></td><td>KYCStatusUpdated event</td><td>"Your KYC has been submitted. Awaiting review."</td></tr>
+        <tr><td><code>kyc_approved</code></td><td>Admin KYC approval</td><td>"Your KYC has been approved! Your wallet is active."</td></tr>
+        <tr><td><code>kyc_rejected</code></td><td>Admin KYC rejection</td><td>"Your KYC was rejected. Reason: Document unclear."</td></tr>
+        <tr><td><code>transfer_sent</code></td><td>TransactionCompleted event</td><td>"You sent ₹500 to jane@example.com. Ref: TF20260319"</td></tr>
+        <tr><td><code>transfer_received</code></td><td>TransactionCompleted event</td><td>"You received ₹500 from aaryan@example.com."</td></tr>
+        <tr><td><code>wallet_frozen</code></td><td>WalletFrozen event</td><td>"Your wallet has been frozen. Contact support."</td></tr>
+        <tr><td><code>transaction_failed</code></td><td>TransactionFailed event</td><td>"Transfer failed. Your balance was not charged."</td></tr>
+      </tbody>
+    </table>
+
+    <!-- GET /notifications -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/notifications</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve paginated notifications for the authenticated user.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">page</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>1</td></tr>
+            <tr><td><span class="param-name">pageSize</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>20 (Max: 50)</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"notifications"</span>: [
+      {
+        <span class="key">"id"</span>: <span class="str">"notif-abc123"</span>,
+        <span class="key">"title"</span>: <span class="str">"Transfer Sent"</span>,
+        <span class="key">"message"</span>: <span class="str">"You sent ₹500 to jane@example.com. Ref: TF20260319ABC123"</span>,
+        <span class="key">"type"</span>: <span class="str">"transfer_sent"</span>,
+        <span class="key">"isRead"</span>: <span class="bool">false</span>,
+        <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+      }
+    ],
+    <span class="key">"totalCount"</span>: <span class="num">10</span>,
+    <span class="key">"unreadCount"</span>: <span class="num">3</span>,
+    <span class="key">"page"</span>: <span class="num">1</span>,
+    <span class="key">"pageSize"</span>: <span class="num">20</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- PUT /notifications/{id}/read -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/notifications/{id}/read</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Mark a single notification as read by its ID.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Path Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">id</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Notification ID</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"Notification marked as read."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Notification not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- PUT /notifications/read-all -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/notifications/read-all</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Mark all notifications for the authenticated user as read.</div>
+      </div>
+      <div class="endpoint-body">
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"All notifications marked as read."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 10: RECEIPTS SERVICE ═══ -->
+  <div class="section page-break" id="receipts-service">
+    <div class="section-header">
+      <div class="section-number">10</div>
+      <div>
+        <h2>Receipts Service</h2>
+        <p>Port :5008 — Transaction receipt generation and storage</p>
+      </div>
+    </div>
+    <div class="notice info">ℹ️ Receipts are generated automatically when a <code>TransactionCompleted</code> event is received from RabbitMQ. Users can retrieve receipts for any of their transactions.</div>
+
+    <!-- GET /receipts -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/receipts</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Retrieve all receipts for the authenticated user.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">page</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>1</td></tr>
+            <tr><td><span class="param-name">pageSize</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>20 (Max: 50)</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"receipts"</span>: [
+      {
+        <span class="key">"id"</span>: <span class="str">"rcpt-abc123"</span>,
+        <span class="key">"transactionReference"</span>: <span class="str">"TF20260319ABC123"</span>,
+        <span class="key">"type"</span>: <span class="str">"transfer_out"</span>,
+        <span class="key">"amount"</span>: <span class="num">500.00</span>,
+        <span class="key">"currency"</span>: <span class="str">"INR"</span>,
+        <span class="key">"fromEmail"</span>: <span class="str">"aaryan@example.com"</span>,
+        <span class="key">"toEmail"</span>: <span class="str">"jane@example.com"</span>,
+        <span class="key">"note"</span>: <span class="str">"Dinner split"</span>,
+        <span class="key">"status"</span>: <span class="str">"Success"</span>,
+        <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+      }
+    ],
+    <span class="key">"totalCount"</span>: <span class="num">5</span>,
+    <span class="key">"page"</span>: <span class="num">1</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- GET /receipts/{id} -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/receipts/{id}</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <div class="endpoint-desc">Get a specific receipt by ID.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Path Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">id</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Receipt ID</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"id"</span>: <span class="str">"rcpt-abc123"</span>,
+    <span class="key">"transactionReference"</span>: <span class="str">"TF20260319ABC123"</span>,
+    <span class="key">"type"</span>: <span class="str">"transfer_out"</span>,
+    <span class="key">"amount"</span>: <span class="num">500.00</span>,
+    <span class="key">"currency"</span>: <span class="str">"INR"</span>,
+    <span class="key">"fromEmail"</span>: <span class="str">"aaryan@example.com"</span>,
+    <span class="key">"toEmail"</span>: <span class="str">"jane@example.com"</span>,
+    <span class="key">"note"</span>: <span class="str">"Dinner split"</span>,
+    <span class="key">"status"</span>: <span class="str">"Success"</span>,
+    <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+  }
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Receipt not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 11: ADMIN SERVICE ═══ -->
+  <div class="section page-break" id="admin-service">
+    <div class="section-header">
+      <div class="section-number">11</div>
+      <div>
+        <h2>Admin Service</h2>
+        <p>Port :5009 — KYC review, user management, wallet controls</p>
+      </div>
+    </div>
+    <div class="notice warn">⚠️ All endpoints in this section require a JWT token with <code>Role = Admin</code>. Regular users will receive <code>HTTP 403 Forbidden</code>.</div>
+
+    <!-- GET /admin/kyc/pending -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/admin/kyc/pending</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Retrieve all KYC submissions with Pending status awaiting admin review.</div>
+      </div>
+      <div class="endpoint-body">
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="str">"kyc-abc123"</span>,
+      <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+      <span class="key">"userFullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+      <span class="key">"userEmail"</span>: <span class="str">"aaryan@example.com"</span>,
+      <span class="key">"documentType"</span>: <span class="str">"national_id"</span>,
+      <span class="key">"documentNumber"</span>: <span class="str">"ABCD1234567"</span>,
+      <span class="key">"status"</span>: <span class="str">"Pending"</span>,
+      <span class="key">"adminNote"</span>: <span class="null">null</span>,
+      <span class="key">"submittedAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>,
+      <span class="key">"reviewedAt"</span>: <span class="null">null</span>
+    }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- PUT /admin/kyc/{userId}/approve -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/admin/kyc/{userId}/approve</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Approve a user's KYC submission. Activates account, creates wallet, notifies user.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Approval Flow</h4>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="step-num">STEP 1</div>KYC status → Approved</div>
+          <div class="flow-step"><div class="step-num">STEP 2</div>User status → Active</div>
+          <div class="flow-step"><div class="step-num">STEP 3</div>Wallet created</div>
+          <div class="flow-step"><div class="step-num">STEP 4</div>KYCStatusUpdated event published</div>
+          <div class="flow-step"><div class="step-num">STEP 5</div>Email notification sent</div>
+        </div>
+        <h4>Path Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">userId</span></td><td><span class="param-type">Guid</span></td><td><span class="required">Yes</span></td><td>The user ID whose KYC is being approved</td></tr>
+          </tbody>
+        </table>
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">adminNote</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>Internal note e.g. "Documents verified successfully"</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"adminNote"</span>: <span class="str">"All documents verified and clear."</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"KYC approved. User account activated and wallet created."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"User not found."</span>, <span class="key">"data"</span>: <span class="null">null</span> }
+{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"KYC is not in Pending status."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- PUT /admin/kyc/{userId}/reject -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/admin/kyc/{userId}/reject</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Reject a user's KYC submission with a mandatory reason.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">adminNote</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Rejection reason shown to the user</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"adminNote"</span>: <span class="str">"Document image is blurry. Please resubmit a clear photo."</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"KYC rejected. User has been notified."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+
+    <!-- GET /admin/users -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/admin/users</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Retrieve a paginated list of all platform users.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Query Parameters</h4>
+        <table class="param-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">status</span></td><td><span class="param-type">string</span></td><td><span class="optional">Optional</span></td><td>Filter by <code>Pending</code>, <code>Active</code>, or <code>Rejected</code></td></tr>
+            <tr><td><span class="param-name">page</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>Default: 1</td></tr>
+            <tr><td><span class="param-name">pageSize</span></td><td><span class="param-type">int</span></td><td><span class="optional">Optional</span></td><td>Default: 20, Max: 100</td></tr>
+          </tbody>
+        </table>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{
+  <span class="key">"success"</span>: <span class="bool">true</span>,
+  <span class="key">"message"</span>: <span class="str">"OK"</span>,
+  <span class="key">"data"</span>: {
+    <span class="key">"users"</span>: [
+      {
+        <span class="key">"userId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+        <span class="key">"fullName"</span>: <span class="str">"Aaryan Sharma"</span>,
+        <span class="key">"email"</span>: <span class="str">"aaryan@example.com"</span>,
+        <span class="key">"status"</span>: <span class="str">"Active"</span>,
+        <span class="key">"role"</span>: <span class="str">"User"</span>,
+        <span class="key">"createdAt"</span>: <span class="str">"2026-03-19T10:00:00Z"</span>
+      }
+    ],
+    <span class="key">"totalCount"</span>: <span class="num">150</span>,
+    <span class="key">"page"</span>: <span class="num">1</span>,
+    <span class="key">"pageSize"</span>: <span class="num">20</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- PUT /admin/wallet/{userId}/freeze -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/admin/wallet/{userId}/freeze</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Freeze a user's wallet to block all transactions. Publishes WalletFrozen event.</div>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <table class="param-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="param-name">reason</span></td><td><span class="param-type">string</span></td><td><span class="required">Yes</span></td><td>Reason for freeze (logged internally and sent to user)</td></tr>
+          </tbody>
+        </table>
+        <div class="code-label">Request</div>
+        <pre><code>{
+  <span class="key">"reason"</span>: <span class="str">"Suspicious transaction pattern detected."</span>
+}</code></pre>
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"Wallet frozen. User has been notified."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="notice warn">⚠️ A <code>WalletFrozen</code> event is published to RabbitMQ. Notification Service sends an email to the user. All subsequent transfers will return 403 until unfrozen.</div>
+      </div>
+    </div>
+
+    <!-- PUT /admin/wallet/{userId}/unfreeze -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/admin/wallet/{userId}/unfreeze</span>
+        <span class="auth-badge">🔐 Bearer Token</span>
+        <span class="role-badge">Admin</span>
+        <div class="endpoint-desc">Unfreeze a previously frozen wallet, restoring full transaction capability.</div>
+      </div>
+      <div class="endpoint-body">
+        <div class="response-tabs"><span class="resp-tab success">✓ 200 Success</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">true</span>, <span class="key">"message"</span>: <span class="str">"Wallet unfrozen. User has been notified."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+        <div class="response-tabs"><span class="resp-tab error">✗ Errors</span></div>
+        <pre><code>{ <span class="key">"success"</span>: <span class="bool">false</span>, <span class="key">"message"</span>: <span class="str">"Wallet is not currently frozen."</span>, <span class="key">"data"</span>: <span class="null">null</span> }</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 12: RABBITMQ EVENTS ═══ -->
+  <div class="section page-break" id="events">
+    <div class="section-header">
+      <div class="section-number">12</div>
+      <div>
+        <h2>RabbitMQ Event Reference</h2>
+        <p>Async event-driven communication between services</p>
+      </div>
+    </div>
+
+    <p>WalletPlatform uses RabbitMQ for asynchronous inter-service communication. Services publish events to named exchanges; downstream services subscribe and react independently.</p>
+
+    <h3>Platform Events</h3>
+    <table class="param-table">
+      <thead><tr><th>Event Name</th><th>Exchange</th><th>Published By</th><th>Consumed By</th><th>Trigger</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>UserRegistered</code></td>
+          <td><code>user.exchange</code></td>
+          <td>Auth Service</td>
+          <td>Notification Service</td>
+          <td>New user registers via <code>POST /auth/register</code></td>
+        </tr>
+        <tr>
+          <td><code>KYCStatusUpdated</code></td>
+          <td><code>kyc.exchange</code></td>
+          <td>Auth Service, Admin Service</td>
+          <td>Notification Service</td>
+          <td>KYC submitted or reviewed (approved/rejected)</td>
+        </tr>
+        <tr>
+          <td><code>TransactionCompleted</code></td>
+          <td><code>transaction.exchange</code></td>
+          <td>Wallet Service</td>
+          <td>Rewards, Receipts, Notification, Ledger</td>
+          <td>Successful P2P transfer or top-up</td>
+        </tr>
+        <tr>
+          <td><code>TransactionFailed</code></td>
+          <td><code>transaction.exchange</code></td>
+          <td>Wallet Service</td>
+          <td>Notification Service, Ledger Service</td>
+          <td>Failed transfer attempt (insufficient funds, locked wallet)</td>
+        </tr>
+        <tr>
+          <td><code>WalletFrozen</code></td>
+          <td><code>wallet.exchange</code></td>
+          <td>Admin Service</td>
+          <td>Notification Service</td>
+          <td>Admin freezes a user wallet</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>TransactionCompleted Event Payload</h3>
+    <div class="code-label">RabbitMQ Message Body</div>
+    <pre><code>{
+  <span class="key">"eventType"</span>: <span class="str">"TransactionCompleted"</span>,
+  <span class="key">"transactionReference"</span>: <span class="str">"TF20260319ABC123"</span>,
+  <span class="key">"fromUserId"</span>: <span class="str">"2f98d809-147b-4db5-8a62-0d5491734bb9"</span>,
+  <span class="key">"fromEmail"</span>: <span class="str">"aaryan@example.com"</span>,
+  <span class="key">"toUserId"</span>: <span class="str">"8b12c901-234a-5678-bcde-1a2b3c4d5e6f"</span>,
+  <span class="key">"toEmail"</span>: <span class="str">"jane@example.com"</span>,
+  <span class="key">"amount"</span>: <span class="num">500.00</span>,
+  <span class="key">"currency"</span>: <span class="str">"INR"</span>,
+  <span class="key">"type"</span>: <span class="str">"transfer"</span>,
+  <span class="key">"note"</span>: <span class="str">"Dinner split"</span>,
+  <span class="key">"occurredAt"</span>: <span class="str">"2026-03-19T10:30:00Z"</span>
+}</code></pre>
+  </div>
+
+  <!-- ═══ SECTION 13: ERRORS ═══ -->
+  <div class="section page-break" id="errors">
+    <div class="section-header">
+      <div class="section-number">13</div>
+      <div>
+        <h2>Error Reference</h2>
+        <p>HTTP status codes and common error messages across all services</p>
+      </div>
+    </div>
+
+    <h3>HTTP Status Codes</h3>
+    <table class="param-table">
+      <thead><tr><th>Status</th><th>Meaning</th><th>Common Causes</th></tr></thead>
+      <tbody>
+        <tr><td><span class="status-200">200 OK</span></td><td>Success</td><td>Request processed successfully</td></tr>
+        <tr><td><span class="status-400">400 Bad Request</span></td><td>Validation Failed</td><td>Missing required fields, invalid format, duplicate email/phone, amount out of range</td></tr>
+        <tr><td><span class="status-401">401 Unauthorized</span></td><td>Not Authenticated</td><td>Missing or expired JWT token in Authorization header</td></tr>
+        <tr><td><span class="status-403">403 Forbidden</span></td><td>Insufficient Access</td><td>User accessing Admin endpoint, or Pending user accessing wallet operations</td></tr>
+        <tr><td><span class="status-404">404 Not Found</span></td><td>Resource Missing</td><td>User not found, wallet not found, transaction reference invalid</td></tr>
+        <tr><td><span class="status-500">500 Internal Error</span></td><td>Server Error</td><td>Database connection failure, RabbitMQ down, MailKit SMTP error</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Common Error Messages by Service</h3>
+    <table class="param-table">
+      <thead><tr><th>Service</th><th>Error Message</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr><td>Auth</td><td>"Email already registered."</td><td>Use a different email address</td></tr>
+        <tr><td>Auth</td><td>"Phone number already registered."</td><td>Use a different phone number</td></tr>
+        <tr><td>Auth</td><td>"Invalid email or password."</td><td>Verify credentials and retry</td></tr>
+        <tr><td>Auth</td><td>"KYC already approved."</td><td>No action needed — user is already active</td></tr>
+        <tr><td>Auth</td><td>"KYC already submitted and under review."</td><td>Wait for admin to review the submission</td></tr>
+        <tr><td>Wallet</td><td>"Wallet not found."</td><td>Create wallet or wait for KYC approval flow to complete</td></tr>
+        <tr><td>Wallet</td><td>"Insufficient balance."</td><td>Top up the wallet before attempting transfer</td></tr>
+        <tr><td>Wallet</td><td>"Receiver not found."</td><td>Confirm recipient's email is correct and account is Active</td></tr>
+        <tr><td>Wallet</td><td>"Cannot transfer to yourself."</td><td>Provide a different recipient email</td></tr>
+        <tr><td>Wallet</td><td>"Wallet is locked. Contact support."</td><td>Contact admin to unfreeze the wallet</td></tr>
+        <tr><td>Wallet/Payment</td><td>"Your account is not active."</td><td>Complete KYC and wait for admin approval</td></tr>
+        <tr><td>Wallet/Payment</td><td>"Amount must be greater than zero."</td><td>Enter a valid amount greater than ₹0</td></tr>
+        <tr><td>Wallet/Payment</td><td>"Maximum transfer amount is ₹1,00,000."</td><td>Split into multiple smaller transfers</td></tr>
+        <tr><td>Rewards</td><td>"Points already awarded for this transaction."</td><td>Duplicate reward prevention — normal behaviour, not an error</td></tr>
+        <tr><td>Admin</td><td>"KYC is not in Pending status."</td><td>KYC was already reviewed — check current status</td></tr>
+        <tr><td>Admin</td><td>"Wallet is not currently frozen."</td><td>Cannot unfreeze a wallet that is not locked</td></tr>
+        <tr><td>Gateway</td><td>"Unauthorized."</td><td>Include a valid <code>Authorization: Bearer &lt;token&gt;</code> header</td></tr>
+        <tr><td>Gateway</td><td>"Forbidden."</td><td>Ensure the JWT role matches the required role for the endpoint</td></tr>
+      </tbody>
+    </table>
+
+    <hr>
+    <p style="text-align:center; color:var(--gray-400); font-size:12px; margin-top:32px;">
+      WalletPlatform API Reference v1.0.0 &nbsp;·&nbsp; .NET 10 Microservices &nbsp;·&nbsp; Base URL: http://localhost:5000 &nbsp;·&nbsp; Generated March 2026
+    </p>
+  </div>
+
+</div><!-- end main -->
+
+<script>
+function copyAllText() {
+  const el = document.createElement('textarea');
+  el.value = document.body.innerText;
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
+  const btn = event.target;
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy as Text', 2000);
+}
+</script>
+</body>
+</html>
