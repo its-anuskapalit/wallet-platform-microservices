@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Shared.Common.Middleware;
 using Shared.EventBus;
 using Shared.EventBus.Options;
 
@@ -120,7 +121,7 @@ if (app.Environment.IsDevelopment())
 // ── Pipeline ──────────────────────────────────────────────────────
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1"));
-
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
