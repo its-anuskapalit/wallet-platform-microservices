@@ -8,6 +8,7 @@ using NotificationService.Infrastructure.Data;
 using NotificationService.Infrastructure.Email;
 using NotificationService.Infrastructure.Repositories;
 using Serilog;
+using Shared.Common.Middleware;
 using Shared.EventBus;
 using Shared.EventBus.Options;
 
@@ -67,6 +68,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Notification API v1"));
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSerilogRequestLogging();
 app.MapControllers();
 
