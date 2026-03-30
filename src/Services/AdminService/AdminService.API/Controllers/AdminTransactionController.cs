@@ -18,15 +18,16 @@ public class AdminTransactionController : ControllerBase
         _adminService = adminService;
     }
 
-    private Guid CurrentUserId =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")!);
+    private Guid CurrentUserId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
 
     [HttpPost("{transactionId}/flag")]
     public async Task<IActionResult> FlagTransaction(Guid transactionId, [FromBody] FraudFlagDto dto)
     {
         var result = await _adminService.FlagTransactionAsync(transactionId, dto, CurrentUserId);
-        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new { error = result.Error });
+        }
         return Ok(result.Data);
     }
 
