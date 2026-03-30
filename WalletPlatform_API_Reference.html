@@ -28,13 +28,15 @@
     --gray-700: #374151;
     --gray-800: #1f2937;
     --gray-900: #111827;
-    --code-bg: #0f172a;
-    --code-fg: #e2e8f0;
+    --code-bg: #353e67; 
+    --code-fg:  #f8fafc;
+    
     --border: #e5e7eb;
     --radius: 8px;
     --font: 'Inter', -apple-system, sans-serif;
     --mono: 'JetBrains Mono', 'Courier New', monospace;
   }
+
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -242,13 +244,18 @@
   }
 
   /* JSON syntax highlight */
-  .key   { color: #93c5fd; }
+  /* .key   { color: #93c5fd; }
   .str   { color: #86efac; }
   .num   { color: #fde68a; }
   .bool  { color: #f9a8d4; }
   .null  { color: #fda4af; }
-  .comment { color: #64748b; font-style: italic; }
-
+  .comment { color: #64748b; font-style: italic; } */
+.key   { color: #1d75e1; }   /* bright blue */
+.str   { color: #15e261; }   /* bright green */
+.num   { color: #f1cb32; }   /* yellow */
+.bool  { color: #f472b6; }   /* pink */
+.null  { color: #d01c37; }   /* red */
+.comment { color: #b7cbe7; }
   /* ─── RESPONSE BLOCKS ─── */
   .response-tabs { display: flex; gap: 0; margin: 16px 0 0; }
   .resp-tab {
