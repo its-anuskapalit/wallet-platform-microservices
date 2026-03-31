@@ -28,7 +28,7 @@
     --gray-700: #374151;
     --gray-800: #1f2937;
     --gray-900: #111827;
-    --code-bg: #353e67; 
+    --code-bg: #5161a4; 
     --code-fg:  #f8fafc;
     
     --border: #e5e7eb;
@@ -233,10 +233,14 @@
     margin: 10px 0;
     position: relative;
   }
-  pre code {
-    font-family: var(--mono); font-size: 12.5px;
-    color: var(--code-fg); line-height: 1.65;
-  }
+
+ 
+   pre code {
+  color: #000;              /* Text color */
+  background-color: #f4f4f4; /* Background */
+  display: block;
+  padding: 10px;
+}
   .code-label {
     font-size: 10px; font-weight: 600; text-transform: uppercase;
     letter-spacing: .07em; color: var(--gray-500);
@@ -250,12 +254,13 @@
   .bool  { color: #f9a8d4; }
   .null  { color: #fda4af; }
   .comment { color: #64748b; font-style: italic; } */
-.key   { color: #1d75e1; }   /* bright blue */
-.str   { color: #15e261; }   /* bright green */
-.num   { color: #f1cb32; }   /* yellow */
-.bool  { color: #f472b6; }   /* pink */
-.null  { color: #d01c37; }   /* red */
-.comment { color: #b7cbe7; }
+.key   { color: #0a5fc8; }   /* bright blue */
+.str   { color: #038f36; }   /* bright green */
+.num   { color: #987a04; }   /* yellow */
+.bool  { color: #e30778; }   /* pink */
+.null  { color: #e9092b; }   /* red */
+.comment { color: #0d131a; font-style: italic}
+
   /* ─── RESPONSE BLOCKS ─── */
   .response-tabs { display: flex; gap: 0; margin: 16px 0 0; }
   .resp-tab {
@@ -340,29 +345,7 @@
   <button class="btn btn-primary" onclick="copyAllText()">📋 Copy as Text</button>
 </div>
 
-<!-- Sidebar -->
-<!-- <nav class="sidebar">
-  <div class="sidebar-logo">
-    <h2>WalletPlatform</h2>
-    <span>API Reference v1.0.0</span>
-  </div>
-  <div class="sidebar-section">Getting Started</div>
-  <a href="#overview">1. Overview & Architecture</a>
-  <a href="#auth-header">2. Authentication</a>
-  <div class="sidebar-section">Services</div>
-  <a href="#auth-service">3. Auth Service</a>
-  <a href="#user-service">4. User Profile Service</a>
-  <a href="#wallet-service">5. Wallet Service</a>
-  <a href="#ledger-service">6. Ledger Service</a>
-  <a href="#rewards-service">7. Rewards Service</a>
-  <a href="#catalog-service">8. Catalog Service</a>
-  <a href="#notification-service">9. Notification Service</a>
-  <a href="#receipts-service">10. Receipts Service</a>
-  <a href="#admin-service">11. Admin Service</a>
-  <div class="sidebar-section">Reference</div>
-  <a href="#events">12. RabbitMQ Events</a>
-  <a href="#errors">13. Error Reference</a>
-</nav> -->
+
 
 <!-- Main Content -->
 <div class="main">
