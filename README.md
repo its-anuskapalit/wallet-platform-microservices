@@ -316,8 +316,9 @@ All services are also accessible via the API Gateway at `http://localhost:5000/g
 - [x] Receipts & Statements Service
 - [x] Admin Service
 - [x] API Gateway (Ocelot)
-- [ ] Fix RabbitMQ end-to-end bindings
-- [ ] Unit Tests (xUnit + Moq)
+- [x] Fix RabbitMQ end-to-end bindings
+- [x] Unit Tests (xUnit + Moq)
+- [x] ChatBot integrated 
 - [ ] Angular Frontend
 - [ ] Docker Compose
 - [ ] CI/CD Pipeline
