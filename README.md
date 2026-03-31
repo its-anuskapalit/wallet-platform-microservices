@@ -23,7 +23,8 @@ Client (Angular / Postman)
 │  Catalog Service     :5006   Items + Redemption   │
 │  Notification Service:5007   Gmail SMTP           │
 │  Receipts Service    :5008   History + CSV Expor  │
-│  Admin Service       :5009   Fraud + Dashboard    │
+│  Admin Service       :5009   Fraud + Dashboard    |
+|  ChatBot Servic      :5010   Ai Assistane         │
 └───────────────────────────────────────────────────┘
             │
             ▼
@@ -104,6 +105,8 @@ Only 5 events use RabbitMQ — everything else is REST.
 
 ```
 WalletPlatform/
+├── chatbot_service
+|  ├──main.py
 ├── src/
 │   ├── Services/
 │   │   ├── AuthService/
