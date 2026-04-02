@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthService.API.Controllers;
 
+/// <summary>
+/// Exposes authentication endpoints for user registration, login, token refresh, and revocation.
+/// </summary>
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
@@ -12,12 +15,20 @@ public class AuthController : ControllerBase
     private readonly IAuthService _auth;
     private readonly ILogger<AuthController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthController"/>.
+    /// </summary>
+    /// <param name="auth">The authentication domain service.</param>
+    /// <param name="logger">Logger for recording auth events.</param>
     public AuthController(IAuthService auth, ILogger<AuthController> logger)
     {
         _auth = auth;
         _logger = logger;
     }
 
+    /// <summary>Registers a new user account and returns auth tokens.</summary>
+    /// <param name="dto">Registration payload.</param>
+    /// <returns>201 with auth tokens on success; 409 if the email is already registered.</returns>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
     {
@@ -30,6 +41,9 @@ public class AuthController : ControllerBase
         return CreatedAtAction(nameof(Register), result.Data);
     }
 
+    /// <summary>Authenticates a user and returns access and refresh tokens.</summary>
+    /// <param name="dto">Login credentials.</param>
+    /// <returns>200 with tokens on success; 401 on invalid credentials or deactivated account.</returns>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
@@ -42,6 +56,9 @@ public class AuthController : ControllerBase
         return Ok(result.Data);
     }
 
+    /// <summary>Rotates a refresh token and issues a new token pair.</summary>
+    /// <param name="dto">The current refresh token.</param>
+    /// <returns>200 with new tokens; 401 if the token is invalid or expired.</returns>
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto dto)
     {
@@ -51,6 +68,9 @@ public class AuthController : ControllerBase
         return Ok(result.Data);
     }
 
+    /// <summary>Revokes a refresh token, preventing it from being used for future token exchanges.</summary>
+    /// <param name="dto">The refresh token to revoke.</param>
+    /// <returns>204 on success; 400 if the token was not found or already revoked.</returns>
     [Authorize]
     [HttpPost("revoke")]
     public async Task<IActionResult> Revoke([FromBody] RefreshTokenRequestDto dto)
@@ -61,6 +81,8 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Returns the identity claims of the currently authenticated user.</summary>
+    /// <returns>200 with user id, email, role, and full name extracted from the JWT.</returns>
     [Authorize]
     [HttpGet("me")]
     public IActionResult Me()
@@ -75,6 +97,8 @@ public class AuthController : ControllerBase
         });
     }
 
+    /// <summary>Verifies that the caller has the Admin role. Used to test admin-level authorization.</summary>
+    /// <returns>200 with a confirmation message if the caller is an admin; 403 otherwise.</returns>
     [Authorize(Roles = "Admin")]
     [HttpGet("admin-only")]
     public IActionResult AdminOnly() => Ok(new { message = "You are an admin." });

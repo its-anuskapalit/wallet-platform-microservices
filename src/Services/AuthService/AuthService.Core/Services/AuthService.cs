@@ -9,12 +9,22 @@ using Shared.Contracts;
 
 namespace AuthService.Core.Services;
 
+/// <summary>
+/// Implements authentication business logic including user registration, login,
+/// token rotation, and token revocation. Publishes a <c>UserRegisteredEvent</c> on successful registration.
+/// </summary>
 public class AuthDomainService : IAuthService
 {
     private readonly IUserRepository _users;
     private readonly ITokenService _tokens;
     private readonly IEventPublisher _publisher;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthDomainService"/>.
+    /// </summary>
+    /// <param name="users">Repository for user and refresh-token persistence.</param>
+    /// <param name="tokens">Service for generating access and refresh tokens.</param>
+    /// <param name="publisher">Event publisher for broadcasting domain events.</param>
     public AuthDomainService(
         IUserRepository users,
         ITokenService tokens,
@@ -25,6 +35,15 @@ public class AuthDomainService : IAuthService
         _publisher = publisher;
     }
 
+    /// <summary>
+    /// Registers a new user, creates an initial refresh token, persists both,
+    /// and publishes a <c>UserRegisteredEvent</c> to notify downstream services.
+    /// </summary>
+    /// <param name="dto">Registration payload containing email, password, full name, and phone.</param>
+    /// <returns>
+    /// A successful result with auth tokens if registration succeeds;
+    /// a failure result if the email is already taken.
+    /// </returns>
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto dto)
     {
         if (await _users.ExistsByEmailAsync(dto.Email))
@@ -61,6 +80,14 @@ public class AuthDomainService : IAuthService
         return Result<AuthResponseDto>.Success(BuildResponse(user, refreshToken.Token));
     }
 
+    /// <summary>
+    /// Validates the user's credentials, issues a new refresh token, and returns auth tokens.
+    /// </summary>
+    /// <param name="dto">Login credentials containing email and password.</param>
+    /// <returns>
+    /// A successful result with auth tokens on valid credentials;
+    /// a failure result if credentials are incorrect or the account is deactivated.
+    /// </returns>
     public async Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto dto)
     {
         var user = await _users.GetByEmailAsync(dto.Email.ToLowerInvariant().Trim());
@@ -78,6 +105,15 @@ public class AuthDomainService : IAuthService
         return Result<AuthResponseDto>.Success(BuildResponse(user, refreshToken.Token));
     }
 
+    /// <summary>
+    /// Rotates the provided refresh token: revokes it and issues a replacement,
+    /// then returns a fresh set of auth tokens.
+    /// </summary>
+    /// <param name="token">The current, unexpired refresh token.</param>
+    /// <returns>
+    /// A successful result with new auth tokens;
+    /// a failure result if the token does not exist or is already revoked/expired.
+    /// </returns>
     public async Task<Result<AuthResponseDto>> RefreshTokenAsync(string token)
     {
         var existing = await _users.GetRefreshTokenAsync(token);
@@ -93,6 +129,12 @@ public class AuthDomainService : IAuthService
         return Result<AuthResponseDto>.Success(BuildResponse(existing.User, newRefreshToken.Token));
     }
 
+    /// <summary>Marks the specified refresh token as revoked so it cannot be used again.</summary>
+    /// <param name="token">The refresh token to revoke.</param>
+    /// <returns>
+    /// A success result if the token was revoked;
+    /// a failure result if the token was not found or is already inactive.
+    /// </returns>
     public async Task<Result> RevokeTokenAsync(string token)
     {
         var existing = await _users.GetRefreshTokenAsync(token);
@@ -108,6 +150,8 @@ public class AuthDomainService : IAuthService
 
     // ── Helpers ──────────────────────────────────────────────────
 
+    /// <summary>Creates a new <see cref="RefreshToken"/> entity with a generated token and expiry for the given user.</summary>
+    /// <param name="userId">The ID of the user the token is issued for.</param>
     private RefreshToken CreateRefreshToken(Guid userId) => new()
     {
         Token = _tokens.GenerateRefreshToken(),
@@ -115,6 +159,9 @@ public class AuthDomainService : IAuthService
         UserId = userId
     };
 
+    /// <summary>Builds the <see cref="AuthResponseDto"/> returned to the caller after a successful auth operation.</summary>
+    /// <param name="user">The authenticated user.</param>
+    /// <param name="refreshToken">The newly issued refresh token string.</param>
     private AuthResponseDto BuildResponse(User user, string refreshToken) => new()
     {
         UserId = user.Id,
