@@ -8,17 +8,31 @@ using NotificationService.Core.Interfaces;
 
 namespace NotificationService.Infrastructure.Email;
 
+/// <summary>
+/// <see cref="IEmailSender"/> implementation that delivers HTML emails via Gmail SMTP
+/// using MailKit with STARTTLS on port 587. Credentials are read from application configuration.
+/// </summary>
 public class GmailSmtpEmailSender : IEmailSender
 {
     private readonly IConfiguration _config;
     private readonly ILogger<GmailSmtpEmailSender> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="GmailSmtpEmailSender"/>.
+    /// </summary>
+    /// <param name="config">Application configuration supplying SMTP credentials and sender identity.</param>
+    /// <param name="logger">Logger for recording send outcomes.</param>
     public GmailSmtpEmailSender(IConfiguration config, ILogger<GmailSmtpEmailSender> logger)
     {
         _config = config;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Connects to Gmail SMTP, authenticates, and sends the specified email as an HTML message.
+    /// </summary>
+    /// <param name="email">The email payload including recipient, subject, and HTML body.</param>
+    /// <returns><c>true</c> if the email was delivered successfully; <c>false</c> on any error.</returns>
     public async Task<bool> SendAsync(EmailDto email)
     {
         try

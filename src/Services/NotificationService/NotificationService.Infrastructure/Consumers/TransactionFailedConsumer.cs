@@ -10,6 +10,10 @@ using Shared.EventBus.Options;
 
 namespace NotificationService.Infrastructure.Consumers;
 
+/// <summary>
+/// RabbitMQ consumer that listens for <c>transaction.failed</c> events and sends
+/// a failure notification email to the sender.
+/// </summary>
 public class TransactionFailedConsumer : BaseConsumer<TransactionFailedEvent>
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -18,6 +22,12 @@ public class TransactionFailedConsumer : BaseConsumer<TransactionFailedEvent>
     protected override string ExchangeName => EventQueues.TransactionExchange;
     protected override string RoutingKey   => "transaction.failed";
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TransactionFailedConsumer"/>.
+    /// </summary>
+    /// <param name="options">RabbitMQ connection options.</param>
+    /// <param name="logger">Logger for this consumer.</param>
+    /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
     public TransactionFailedConsumer(
         IOptions<RabbitMqOptions> options,
         ILogger<TransactionFailedConsumer> logger,
@@ -27,6 +37,9 @@ public class TransactionFailedConsumer : BaseConsumer<TransactionFailedEvent>
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>Sends a transaction failure notification email to the sender.</summary>
+    /// <param name="message">The transaction-failed event payload.</param>
+    /// <param name="ct">Cancellation token.</param>
     protected override async Task HandleAsync(TransactionFailedEvent message, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();

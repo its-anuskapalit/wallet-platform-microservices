@@ -10,6 +10,10 @@ using Shared.EventBus.Options;
 
 namespace NotificationService.Infrastructure.Consumers;
 
+/// <summary>
+/// RabbitMQ consumer that listens for <c>kyc.status.updated</c> events and sends
+/// an approval or rejection email to the affected user.
+/// </summary>
 public class KycStatusUpdatedConsumer : BaseConsumer<KYCStatusUpdatedEvent>
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -18,6 +22,12 @@ public class KycStatusUpdatedConsumer : BaseConsumer<KYCStatusUpdatedEvent>
     protected override string ExchangeName => EventQueues.UserExchange;
     protected override string RoutingKey   => "kyc.status.updated";
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="KycStatusUpdatedConsumer"/>.
+    /// </summary>
+    /// <param name="options">RabbitMQ connection options.</param>
+    /// <param name="logger">Logger for this consumer.</param>
+    /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
     public KycStatusUpdatedConsumer(
         IOptions<RabbitMqOptions> options,
         ILogger<KycStatusUpdatedConsumer> logger,
@@ -27,6 +37,9 @@ public class KycStatusUpdatedConsumer : BaseConsumer<KYCStatusUpdatedEvent>
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>Sends a KYC approval or rejection email to the user.</summary>
+    /// <param name="message">The KYC status updated event payload.</param>
+    /// <param name="ct">Cancellation token.</param>
     protected override async Task HandleAsync(KYCStatusUpdatedEvent message, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();

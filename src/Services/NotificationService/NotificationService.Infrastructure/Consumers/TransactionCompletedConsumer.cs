@@ -10,6 +10,10 @@ using Shared.EventBus.Options;
 
 namespace NotificationService.Infrastructure.Consumers;
 
+/// <summary>
+/// RabbitMQ consumer that listens for <c>transaction.completed</c> events and sends
+/// a transaction success notification email to the sender.
+/// </summary>
 public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEvent>
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -18,6 +22,12 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
     protected override string ExchangeName => EventQueues.TransactionExchange;
     protected override string RoutingKey   => "transaction.completed";
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TransactionCompletedConsumer"/>.
+    /// </summary>
+    /// <param name="options">RabbitMQ connection options.</param>
+    /// <param name="logger">Logger for this consumer.</param>
+    /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
     public TransactionCompletedConsumer(
         IOptions<RabbitMqOptions> options,
         ILogger<TransactionCompletedConsumer> logger,
@@ -27,6 +37,9 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>Sends a transaction success notification email to the sender.</summary>
+    /// <param name="message">The transaction-completed event payload.</param>
+    /// <param name="ct">Cancellation token.</param>
     protected override async Task HandleAsync(TransactionCompletedEvent message, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();

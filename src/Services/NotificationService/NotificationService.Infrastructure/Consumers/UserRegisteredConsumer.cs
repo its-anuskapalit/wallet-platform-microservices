@@ -10,6 +10,10 @@ using Shared.EventBus.Options;
 
 namespace NotificationService.Infrastructure.Consumers;
 
+/// <summary>
+/// RabbitMQ consumer that listens for <c>user.registered</c> events and sends
+/// a welcome email to the newly registered user.
+/// </summary>
 public class UserRegisteredConsumer : BaseConsumer<UserRegisteredEvent>
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -18,6 +22,12 @@ public class UserRegisteredConsumer : BaseConsumer<UserRegisteredEvent>
     protected override string ExchangeName => EventQueues.UserExchange;
     protected override string RoutingKey   => "user.registered";
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="UserRegisteredConsumer"/>.
+    /// </summary>
+    /// <param name="options">RabbitMQ connection options.</param>
+    /// <param name="logger">Logger for this consumer.</param>
+    /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
     public UserRegisteredConsumer(
         IOptions<RabbitMqOptions> options,
         ILogger<UserRegisteredConsumer> logger,
@@ -27,6 +37,9 @@ public class UserRegisteredConsumer : BaseConsumer<UserRegisteredEvent>
         _scopeFactory = scopeFactory;
     }
 
+    /// <summary>Sends a welcome email to the newly registered user.</summary>
+    /// <param name="message">The user-registered event payload.</param>
+    /// <param name="ct">Cancellation token.</param>
     protected override async Task HandleAsync(UserRegisteredEvent message, CancellationToken ct)
     {
         using var scope = _scopeFactory.CreateScope();
