@@ -1,5 +1,9 @@
 namespace Shared.Common;
 
+/// <summary>
+/// Provides common audit and identity properties for all domain entities.
+/// Serves as the base class for every persisted entity in the platform.
+/// </summary>
 public abstract class BaseEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
