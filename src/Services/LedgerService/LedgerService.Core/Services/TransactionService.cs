@@ -9,12 +9,23 @@ using Shared.EventBus;
 
 namespace LedgerService.Core.Services;
 
+/// <summary>
+/// Implements the transaction lifecycle: validates, persists a <see cref="Transaction"/> with
+/// double-entry <see cref="LedgerEntry"/> records, marks it completed, and publishes a
+/// <c>TransactionCompletedEvent</c>. Supports idempotent submission via an idempotency key.
+/// </summary>
 public class TransactionService : ITransactionService
 {
     private readonly ITransactionRepository _transactions;
     private readonly ILedgerEntryRepository _ledgerEntries;
     private readonly IEventPublisher _publisher;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TransactionService"/>.
+    /// </summary>
+    /// <param name="transactions">Repository for transaction persistence.</param>
+    /// <param name="ledgerEntries">Repository for ledger entry persistence.</param>
+    /// <param name="publisher">Event publisher for broadcasting domain events.</param>
     public TransactionService(
         ITransactionRepository transactions,
         ILedgerEntryRepository ledgerEntries,
@@ -25,6 +36,16 @@ public class TransactionService : ITransactionService
         _publisher     = publisher;
     }
 
+    /// <summary>
+    /// Initiates a new transaction: validates the request, applies double-entry ledger entries,
+    /// marks the transaction as completed, and publishes a <c>TransactionCompletedEvent</c>.
+    /// Returns the cached result if the idempotency key has been seen before.
+    /// </summary>
+    /// <param name="dto">Transaction initiation payload.</param>
+    /// <returns>
+    /// A successful result with the transaction details; or a failure on validation errors
+    /// such as invalid amount, same sender/receiver, or unrecognised transaction type.
+    /// </returns>
     public async Task<Result<TransactionDto>> InitiateAsync(InitiateTransactionDto dto)
     {
         if (dto.Amount <= 0)
@@ -109,6 +130,9 @@ public class TransactionService : ITransactionService
         return Result<TransactionDto>.Success(MapToDto(transaction));
     }
 
+    /// <summary>Retrieves a single transaction by its unique identifier.</summary>
+    /// <param name="transactionId">The transaction's unique identifier.</param>
+    /// <returns>A successful result with the transaction; or a failure if not found.</returns>
     public async Task<Result<TransactionDto>> GetByIdAsync(Guid transactionId)
     {
         var transaction = await _transactions.GetByIdAsync(transactionId);
@@ -118,12 +142,16 @@ public class TransactionService : ITransactionService
         return Result<TransactionDto>.Success(MapToDto(transaction));
     }
 
+    /// <summary>Retrieves all transactions initiated by the specified user.</summary>
+    /// <param name="userId">The sender user's unique identifier.</param>
+    /// <returns>A successful result containing the user's outbound transactions.</returns>
     public async Task<Result<IEnumerable<TransactionDto>>> GetMyTransactionsAsync(Guid userId)
     {
         var transactions = await _transactions.GetBySenderUserIdAsync(userId);
         return Result<IEnumerable<TransactionDto>>.Success(transactions.Select(MapToDto));
     }
 
+    /// <summary>Maps a <see cref="Transaction"/> entity to a <see cref="TransactionDto"/> for API responses.</summary>
     private static TransactionDto MapToDto(Transaction t) => new()
     {
         Id               = t.Id,
