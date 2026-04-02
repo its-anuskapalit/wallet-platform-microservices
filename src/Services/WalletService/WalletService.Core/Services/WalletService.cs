@@ -10,12 +10,23 @@ using WalletService.Core.Interfaces;
 
 namespace WalletService.Core.Services;
 
+/// <summary>
+/// Implements wallet business logic including balance enquiry, top-up, deduction,
+/// and freeze/unfreeze operations. Uses idempotency keys to make mutating operations safe to retry.
+/// Publishes a <c>WalletFrozenEvent</c> when a wallet is frozen.
+/// </summary>
 public class WalletDomainService : IWalletService
 {
     private readonly IWalletRepository _wallets;
     private readonly IIdempotencyRepository _idempotency;
     private readonly IEventPublisher _publisher;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="WalletDomainService"/>.
+    /// </summary>
+    /// <param name="wallets">Repository for wallet persistence.</param>
+    /// <param name="idempotency">Repository for idempotency-key tracking.</param>
+    /// <param name="publisher">Event publisher for broadcasting domain events.</param>
     public WalletDomainService(
         IWalletRepository wallets,
         IIdempotencyRepository idempotency,
@@ -26,6 +37,9 @@ public class WalletDomainService : IWalletService
         _publisher    = publisher;
     }
 
+    /// <summary>Retrieves the wallet belonging to the specified user.</summary>
+    /// <param name="userId">The user's unique identifier.</param>
+    /// <returns>A successful result with wallet details, or a failure if the wallet does not exist.</returns>
     public async Task<Result<WalletDto>> GetWalletAsync(Guid userId)
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
@@ -35,6 +49,15 @@ public class WalletDomainService : IWalletService
         return Result<WalletDto>.Success(MapToDto(wallet));
     }
 
+    /// <summary>
+    /// Adds funds to the user's wallet. Returns a cached response if the idempotency key was seen before.
+    /// </summary>
+    /// <param name="userId">The user whose wallet will be credited.</param>
+    /// <param name="dto">Top-up payload including amount and idempotency key.</param>
+    /// <returns>
+    /// A successful result with the updated wallet; or a failure if the amount is invalid,
+    /// the wallet is not found, or the wallet is frozen.
+    /// </returns>
     public async Task<Result<WalletDto>> TopUpAsync(Guid userId, TopUpDto dto)
     {
         if (dto.Amount <= 0)
@@ -67,6 +90,15 @@ public class WalletDomainService : IWalletService
         return Result<WalletDto>.Success(response);
     }
 
+    /// <summary>
+    /// Deducts funds from the user's wallet. Returns a cached response if the idempotency key was seen before.
+    /// </summary>
+    /// <param name="userId">The user whose wallet will be debited.</param>
+    /// <param name="dto">Deduction payload including amount and idempotency key.</param>
+    /// <returns>
+    /// A successful result with the updated wallet; or a failure if the amount is invalid,
+    /// the wallet is not found, the wallet is frozen, or there is insufficient balance.
+    /// </returns>
     public async Task<Result<WalletDto>> DeductAsync(Guid userId, DeductDto dto)
     {
         if (dto.Amount <= 0)
@@ -102,6 +134,13 @@ public class WalletDomainService : IWalletService
         return Result<WalletDto>.Success(response);
     }
 
+    /// <summary>
+    /// Freezes the user's wallet, preventing any further debit or credit operations,
+    /// and publishes a <c>WalletFrozenEvent</c> to notify downstream services.
+    /// </summary>
+    /// <param name="userId">The user whose wallet will be frozen.</param>
+    /// <param name="dto">Freeze payload containing the reason for freezing.</param>
+    /// <returns>A successful result with the updated wallet; or a failure if already frozen or not found.</returns>
     public async Task<Result<WalletDto>> FreezeAsync(Guid userId, FreezeDto dto)
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
@@ -132,6 +171,9 @@ public class WalletDomainService : IWalletService
         return Result<WalletDto>.Success(MapToDto(wallet));
     }
 
+    /// <summary>Restores a frozen wallet to active status and clears the freeze reason.</summary>
+    /// <param name="userId">The user whose wallet will be unfrozen.</param>
+    /// <returns>A successful result with the updated wallet; or a failure if not frozen or not found.</returns>
     public async Task<Result<WalletDto>> UnfreezeAsync(Guid userId)
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
@@ -149,6 +191,7 @@ public class WalletDomainService : IWalletService
         return Result<WalletDto>.Success(MapToDto(wallet));
     }
 
+    /// <summary>Maps a <see cref="Wallet"/> entity to a <see cref="WalletDto"/> for API responses.</summary>
     private static WalletDto MapToDto(Wallet w) => new()
     {
         Id       = w.Id,
