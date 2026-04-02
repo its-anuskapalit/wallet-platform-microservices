@@ -23,7 +23,8 @@ Client (Angular / Postman)
 │  Catalog Service     :5006   Items + Redemption   │
 │  Notification Service:5007   Gmail SMTP           │
 │  Receipts Service    :5008   History + CSV Expor  │
-│  Admin Service       :5009   Fraud + Dashboard    │
+│  Admin Service       :5009   Fraud + Dashboard    |
+|  ChatBot Servic      :5010   Ai Assistane         │
 └───────────────────────────────────────────────────┘
             │
             ▼
@@ -104,6 +105,8 @@ Only 5 events use RabbitMQ — everything else is REST.
 
 ```
 WalletPlatform/
+├── chatbot_service
+|  ├──main.py
 ├── src/
 │   ├── Services/
 │   │   ├── AuthService/
@@ -316,8 +319,9 @@ All services are also accessible via the API Gateway at `http://localhost:5000/g
 - [x] Receipts & Statements Service
 - [x] Admin Service
 - [x] API Gateway (Ocelot)
-- [ ] Fix RabbitMQ end-to-end bindings
-- [ ] Unit Tests (xUnit + Moq)
+- [x] Fix RabbitMQ end-to-end bindings
+- [x] Unit Tests (xUnit + Moq)
+- [x] ChatBot integrated 
 - [ ] Angular Frontend
 - [ ] Docker Compose
 - [ ] CI/CD Pipeline
