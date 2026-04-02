@@ -24,10 +24,12 @@ model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Request model (ONLY MESSAGE)
 class ChatRequest(BaseModel):
+    """Payload for a single chat turn containing the user's message."""
     message: str
 
 # Response model
 class ChatResponse(BaseModel):
+    """Response payload containing the AI-generated reply."""
     reply: str
 
 # System prompt
@@ -46,6 +48,18 @@ Be concise, clear, and professional.
 # Chat endpoint
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
+    """
+    Accepts a user message, prepends the system prompt, and returns the Gemini-generated reply.
+
+    Args:
+        req: The chat request containing the user's message.
+
+    Returns:
+        A ``ChatResponse`` with the AI-generated reply text.
+
+    Raises:
+        HTTPException: 502 if the Gemini API call fails.
+    """
     try:
         full_prompt = f"""
 {SYSTEM_PROMPT}
@@ -66,5 +80,11 @@ Answer:
 # Health
 @app.get("/health")
 async def health():
+    """
+    Returns a simple health-check payload confirming the service is running.
+
+    Returns:
+        A dict with ``{"status": "ok"}``.
+    """
     return {"status": "ok"}
 
