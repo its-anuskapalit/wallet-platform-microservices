@@ -35,7 +35,6 @@ class ChatResponse(BaseModel):
 # System prompt
 SYSTEM_PROMPT = """
 You are WalletBot, a fintech assistant.
-
 Help with:
 - Rewards
 - Wallet
