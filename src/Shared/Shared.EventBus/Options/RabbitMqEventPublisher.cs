@@ -82,12 +82,23 @@ using Shared.EventBus.Options;
 
 namespace Shared.EventBus;
 
+/// <summary>
+/// RabbitMQ implementation of <see cref="IEventPublisher"/> that serializes events to JSON
+/// and publishes them to a durable direct exchange. Declares a dead-letter exchange and queue
+/// on construction to capture undeliverable messages.
+/// </summary>
 public class RabbitMqEventPublisher : IEventPublisher, IDisposable
 {
     private readonly IConnection _connection;
     private readonly IModel _channel;
     private readonly ILogger<RabbitMqEventPublisher> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="RabbitMqEventPublisher"/>, opens a connection to RabbitMQ,
+    /// and declares the dead-letter exchange and queue.
+    /// </summary>
+    /// <param name="options">RabbitMQ connection options.</param>
+    /// <param name="logger">Logger for publish operations.</param>
     public RabbitMqEventPublisher(IOptions<RabbitMqOptions> options, ILogger<RabbitMqEventPublisher> logger)
     {
         _logger = logger;
@@ -121,6 +132,15 @@ public class RabbitMqEventPublisher : IEventPublisher, IDisposable
         _channel.QueueBind("dead.letter.queue", "dead.letter.exchange", string.Empty);
     }
 
+    /// <summary>
+    /// Serializes <paramref name="message"/> to JSON and publishes it as a persistent message
+    /// to the specified exchange and routing key.
+    /// </summary>
+    /// <typeparam name="T">The event payload type.</typeparam>
+    /// <param name="message">The event payload to publish.</param>
+    /// <param name="exchange">The RabbitMQ exchange to publish to.</param>
+    /// <param name="routingKey">The routing key for message delivery.</param>
+    /// <returns>A completed <see cref="Task"/>.</returns>
     public Task PublishAsync<T>(T message, string exchange, string routingKey) where T : class
     {
         // Always declare the exchange before publishing
@@ -152,6 +172,7 @@ public class RabbitMqEventPublisher : IEventPublisher, IDisposable
         return Task.CompletedTask;
     }
 
+    /// <summary>Closes the RabbitMQ channel and connection, releasing all broker resources.</summary>
     public void Dispose()
     {
         _channel?.Close();

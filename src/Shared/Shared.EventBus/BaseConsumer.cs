@@ -9,23 +9,50 @@ using Shared.EventBus.Options;
 
 namespace Shared.EventBus;
 
+/// <summary>
+/// Abstract base class for RabbitMQ message consumers.
+/// Establishes a durable queue bound to a direct exchange with a dead-letter queue on startup,
+/// then dispatches deserialized messages to <see cref="HandleAsync"/> one at a time.
+/// </summary>
+/// <typeparam name="T">The event payload type this consumer handles.</typeparam>
 public abstract class BaseConsumer<T> : BackgroundService where T : class
 {
     private readonly ILogger _logger;
     private IConnection? _connection;
     private IModel? _channel;
     private readonly RabbitMqOptions _options;
+
+    /// <summary>Gets the name of the queue to consume from.</summary>
     protected abstract string QueueName { get; }
+
+    /// <summary>Gets the name of the exchange to bind the queue to.</summary>
     protected abstract string ExchangeName { get; }
+
+    /// <summary>Gets the routing key used when binding the queue to the exchange.</summary>
     protected abstract string RoutingKey { get; }
+
+    /// <summary>
+    /// Processes a deserialized message received from the queue.
+    /// </summary>
+    /// <param name="message">The deserialized event payload.</param>
+    /// <param name="cancellationToken">Token signalling that the host is shutting down.</param>
     protected abstract Task HandleAsync(T message, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="BaseConsumer{T}"/>.
+    /// </summary>
+    /// <param name="options">RabbitMQ connection options.</param>
+    /// <param name="logger">Logger for this consumer instance.</param>
     protected BaseConsumer(IOptions<RabbitMqOptions> options, ILogger logger)
     {
         _options = options.Value;
         _logger = logger;
     }
 
+    /// <summary>
+    /// Connects to RabbitMQ, declares the exchange and queue topology, and begins consuming messages.
+    /// </summary>
+    /// <param name="stoppingToken">Token signalling that the background service should stop.</param>
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var factory = new ConnectionFactory
@@ -86,6 +113,7 @@ public abstract class BaseConsumer<T> : BackgroundService where T : class
         return Task.CompletedTask;
     }
 
+    /// <summary>Closes the RabbitMQ channel and connection before releasing managed resources.</summary>
     public override void Dispose()
     {
         _channel?.Close();
