@@ -1,6 +1,5 @@
 // IUserRepository.cs
 using AuthService.Core.Entities;
-
 namespace AuthService.Core.Interfaces;
 
 /// <summary>

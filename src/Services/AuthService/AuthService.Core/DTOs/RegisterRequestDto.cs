@@ -1,5 +1,5 @@
 namespace AuthService.Core.DTOs;
-
+// client sends
 public class RegisterRequestDto
 {
     public string Email { get; set; } = string.Empty;

@@ -8,7 +8,6 @@ using Shared.EventBus;
 using Shared.Contracts;
 
 namespace AuthService.Core.Services;
-
 /// <summary>
 /// Implements authentication business logic including user registration, login,
 /// token rotation, and token revocation. Publishes a <c>UserRegisteredEvent</c> on successful registration.
@@ -18,17 +17,13 @@ public class AuthDomainService : IAuthService
     private readonly IUserRepository _users;
     private readonly ITokenService _tokens;
     private readonly IEventPublisher _publisher;
-
     /// <summary>
     /// Initializes a new instance of <see cref="AuthDomainService"/>.
     /// </summary>
     /// <param name="users">Repository for user and refresh-token persistence.</param>
     /// <param name="tokens">Service for generating access and refresh tokens.</param>
     /// <param name="publisher">Event publisher for broadcasting domain events.</param>
-    public AuthDomainService(
-        IUserRepository users,
-        ITokenService tokens,
-        IEventPublisher publisher)
+    public AuthDomainService(IUserRepository users, ITokenService tokens, IEventPublisher publisher)
     {
         _users = users;
         _tokens = tokens;
@@ -44,11 +39,14 @@ public class AuthDomainService : IAuthService
     /// A successful result with auth tokens if registration succeeds;
     /// a failure result if the email is already taken.
     /// </returns>
+    /// step 1 - business rule: check for duplicate email 
     public async Task<Result<AuthResponseDto>> RegisterAsync(RegisterRequestDto dto)
     {
         if (await _users.ExistsByEmailAsync(dto.Email))
+        {
             return Result<AuthResponseDto>.Failure("Email already registered.");
-
+        }
+        //step 2 - map DTO  → entity, apply business logic during mapping
         var user = new User
         {
             Email = dto.Email.ToLowerInvariant().Trim(),
@@ -74,9 +72,7 @@ public class AuthDomainService : IAuthService
                 Phone = user.Phone,
                 RegisteredAt = DateTime.UtcNow
             },
-            EventQueues.UserExchange,
-            routingKey: "user.registered");
-
+            EventQueues.UserExchange,routingKey: "user.registered");
         return Result<AuthResponseDto>.Success(BuildResponse(user, refreshToken.Token));
     }
 
@@ -93,15 +89,16 @@ public class AuthDomainService : IAuthService
         var user = await _users.GetByEmailAsync(dto.Email.ToLowerInvariant().Trim());
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        {
             return Result<AuthResponseDto>.Failure("Invalid email or password.");
-
+        }
         if (!user.IsActive)
+        {
             return Result<AuthResponseDto>.Failure("Account is deactivated.");
-
+        }
         var refreshToken = CreateRefreshToken(user.Id);
         await _users.AddRefreshTokenAsync(refreshToken);
         await _users.SaveChangesAsync();
-
         return Result<AuthResponseDto>.Success(BuildResponse(user, refreshToken.Token));
     }
 
@@ -119,8 +116,9 @@ public class AuthDomainService : IAuthService
         var existing = await _users.GetRefreshTokenAsync(token);
 
         if (existing is null || !existing.IsActive)
+        {
             return Result<AuthResponseDto>.Failure("Invalid or expired refresh token.");
-
+        }
         var newRefreshToken = CreateRefreshToken(existing.UserId);
         await _users.RevokeRefreshTokenAsync(existing, replacedBy: newRefreshToken.Token);
         await _users.AddRefreshTokenAsync(newRefreshToken);
@@ -140,8 +138,9 @@ public class AuthDomainService : IAuthService
         var existing = await _users.GetRefreshTokenAsync(token);
 
         if (existing is null || !existing.IsActive)
+        {
             return Result.Failure("Token not found or already revoked.");
-
+        }
         await _users.RevokeRefreshTokenAsync(existing);
         await _users.SaveChangesAsync();
 

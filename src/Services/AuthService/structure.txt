@@ -36,3 +36,73 @@ src/Services/AuthService/
     │   └── UserRepository.cs
     └── Publishers/
         └── AuthEventPublisher.cs
+
+----------------------------------------------------------------------------------------------------------------------
+
+HTTP POST /api/auth/register
+{ "email": "aaryan@test.com", "password": "Password123" }
+        │
+        ▼
+[Ocelot Gateway :5000]
+  - routes /api/auth/* to AuthService :5001
+  - no auth required for /register
+        │
+        ▼
+[GlobalExceptionMiddleware]
+  - wraps entire pipeline in try/catch
+        │
+        ▼
+[AuthController.Register()]
+  - deserialises JSON → RegisterRequest DTO
+  - validates Data Annotations (email format, min length)
+  - calls _authService.RegisterAsync(request)
+        │
+        ▼
+[AuthService.RegisterAsync()]
+  - calls _repo.EmailExistsAsync()  ──→ [AuthRepository]
+                                          - _ctx.Users.AnyAsync()
+                                          - EF → SQL: SELECT EXISTS WHERE Email=?
+                                          - returns false (new user)
+  - creates User entity
+    - Id = new Guid
+    - Email = "aaryan@test.com"
+    - PasswordHash = BCrypt.HashPassword("Password123")
+    - Role = "User"
+    - CreatedAt = DateTime.UtcNow
+  - calls _repo.CreateUserAsync(user)  ──→ [AuthRepository]
+                                            - _ctx.Users.AddAsync(user)
+                                            - _ctx.SaveChangesAsync()
+                                            - EF → SQL: INSERT INTO Users...
+                                            - Row stored in AuthDb
+  - calls _publisher.PublishAsync()  ──→ [RabbitMQPublisher]
+                                          - serialises UserRegisteredEvent to JSON
+                                          - publishes to "user.exchange"
+                                          - routing key: "user.registered"
+  - returns Result<RegisterResponse>.Success(...)
+        │
+        ▼
+[AuthController]
+  - result.IsSuccess = true
+  - returns 200 OK + RegisterResponse JSON
+        │
+        ▼
+HTTP 200 OK
+{
+  "userId": "3fa85f64-...",
+  "email": "aaryan@test.com",
+  "message": "Registration successful"
+}
+        │
+        ▼ (simultaneously, async)
+[RabbitMQ user.exchange]
+  - delivers UserRegisteredEvent to 3 queues
+        │
+        ├──→ userprofile.user.queue
+        │       UserProfile service creates profile record in UserProfileDb
+        │
+        ├──→ notification.user.queue
+        │       Notification service sends welcome email via MailKit/Gmail
+        │
+        └──→ rewards.user.queue
+                Rewards service creates reward account in RewardsDb
+                

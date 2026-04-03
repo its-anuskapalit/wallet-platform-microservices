@@ -2,7 +2,7 @@ using AuthService.Core.DTOs;
 using AuthService.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
+//Http- Service - maps result to http response
 namespace AuthService.API.Controllers;
 
 /// <summary>
@@ -14,7 +14,6 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
     private readonly ILogger<AuthController> _logger;
-
     /// <summary>
     /// Initializes a new instance of <see cref="AuthController"/>.
     /// </summary>
@@ -64,10 +63,10 @@ public class AuthController : ControllerBase
     {
         var result = await _auth.RefreshTokenAsync(dto.RefreshToken);
         if (!result.IsSuccess)
-            return Unauthorized(new { error = result.Error });
+           { return Unauthorized(new { error = result.Error });
+           }
         return Ok(result.Data);
     }
-
     /// <summary>Revokes a refresh token, preventing it from being used for future token exchanges.</summary>
     /// <param name="dto">The refresh token to revoke.</param>
     /// <returns>204 on success; 400 if the token was not found or already revoked.</returns>
@@ -77,7 +76,9 @@ public class AuthController : ControllerBase
     {
         var result = await _auth.RevokeTokenAsync(dto.RefreshToken);
         if (!result.IsSuccess)
-            return BadRequest(new { error = result.Error });
+        {
+         return BadRequest(new { error = result.Error });
+        }
         return NoContent();
     }
 
@@ -89,8 +90,7 @@ public class AuthController : ControllerBase
     {
         return Ok(new
         {
-            UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                  ?? User.FindFirst("sub")?.Value,
+            UserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value,
             Email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value,
             Role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value,
             FullName = User.FindFirst("fullName")?.Value

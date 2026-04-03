@@ -1,7 +1,6 @@
 // IAuthService.cs
 using AuthService.Core.DTOs;
 using Shared.Common;
-
 namespace AuthService.Core.Interfaces;
 
 /// <summary>

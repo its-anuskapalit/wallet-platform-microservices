@@ -1,5 +1,5 @@
 namespace AuthService.Core.DTOs;
-
+// client gets
 public class AuthResponseDto
 {
     public Guid UserId { get; set; }

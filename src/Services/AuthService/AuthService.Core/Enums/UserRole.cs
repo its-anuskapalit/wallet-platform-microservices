@@ -1,5 +1,4 @@
 namespace AuthService.Core.Enums;
-
 public enum UserRole
 {
     User = 1,
