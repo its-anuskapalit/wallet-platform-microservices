@@ -27,8 +27,8 @@ public class KycService : IKycService
     /// <param name="publisher">Event publisher for broadcasting KYC status events.</param>
     public KycService(IProfileRepository profiles, IKycRepository kyc, IEventPublisher publisher)
     {
-        _profiles  = profiles;
-        _kyc       = kyc;
+        _profiles = profiles;
+        _kyc = kyc;
         _publisher = publisher;
     }
 
@@ -42,17 +42,19 @@ public class KycService : IKycService
     {
         var profile = await _profiles.GetByUserIdAsync(userId);
         if (profile is null)
+        {
             return Result<string>.Failure("Profile not found.");
-
+        }
         if (profile.KycDocument is not null)
+        {
             return Result<string>.Failure("KYC already submitted.");
-
+        }
         var doc = new KycDocument
         {
-            UserProfileId  = profile.Id,
-            DocumentType   = dto.DocumentType,
+            UserProfileId = profile.Id,
+            DocumentType = dto.DocumentType,
             DocumentNumber = dto.DocumentNumber,
-            Status         = KycStatus.Pending
+            Status = KycStatus.Pending
         };
 
         await _kyc.AddAsync(doc);
@@ -73,31 +75,32 @@ public class KycService : IKycService
     {
         var profile = await _profiles.GetByUserIdAsync(userProfileId);
         if (profile is null)
+        {
             return Result<string>.Failure("Profile not found.");
-
+        }
         if (profile.KycDocument is null)
+        {
             return Result<string>.Failure("No KYC document found.");
-
-        profile.KycDocument.Status     = dto.Approve ? KycStatus.Approved : KycStatus.Rejected;
+        }
+        profile.KycDocument.Status = dto.Approve ? KycStatus.Approved : KycStatus.Rejected;
         profile.KycDocument.ReviewedAt = DateTime.UtcNow;
         profile.KycDocument.ReviewedBy = reviewedBy;
         profile.KycDocument.RejectionReason = dto.Approve ? null : dto.RejectionReason;
-        profile.KycDocument.UpdatedAt  = DateTime.UtcNow;
+        profile.KycDocument.UpdatedAt = DateTime.UtcNow;
 
         await _kyc.SaveChangesAsync();
 
         await _publisher.PublishAsync(
             new KYCStatusUpdatedEvent
             {
-                UserId          = profile.UserId,
-                Email           = profile.Email,
-                FullName        = profile.FullName,
-                Status          = profile.KycDocument.Status.ToString(),
+                UserId = profile.UserId,
+                Email = profile.Email,
+                FullName = profile.FullName,
+                Status = profile.KycDocument.Status.ToString(),
                 RejectionReason = profile.KycDocument.RejectionReason,
-                UpdatedAt       = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow
             },
-            EventQueues.UserExchange,
-            routingKey: "kyc.status.updated");
+            EventQueues.UserExchange, routingKey: "kyc.status.updated");
 
         return Result<string>.Success($"KYC {(dto.Approve ? "approved" : "rejected")} successfully.");
     }

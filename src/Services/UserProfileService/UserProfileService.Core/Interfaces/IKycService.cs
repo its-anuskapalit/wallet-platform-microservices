@@ -1,8 +1,6 @@
 using Shared.Common;
 using UserProfileService.Core.DTOs;
-
 namespace UserProfileService.Core.Interfaces;
-
 /// <summary>
 /// Defines KYC (Know Your Customer) submission and admin review operations.
 /// </summary>

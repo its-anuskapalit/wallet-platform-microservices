@@ -27,14 +27,10 @@ public class KycController : ControllerBase
     }
 
     /// <summary>Gets the unique identifier of the currently authenticated user from JWT claims.</summary>
-    private Guid CurrentUserId =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")!);
+    private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
 
     /// <summary>Gets the email of the currently authenticated user from JWT claims.</summary>
-    private string CurrentUserEmail =>
-        User.FindFirstValue(ClaimTypes.Email)
-            ?? User.FindFirstValue("email")!;
+    private string CurrentUserEmail => User.FindFirstValue(ClaimTypes.Email)?? User.FindFirstValue("email")!;
 
     /// <summary>Submits a KYC document for the currently authenticated user.</summary>
     /// <param name="dto">KYC document payload containing document type and number.</param>

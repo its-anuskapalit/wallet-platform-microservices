@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UserProfileService.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using UserProfileService.Infrastructure.Data;
 namespace UserProfileService.Infrastructure.Migrations
 {
     [DbContext(typeof(UserProfileDbContext))]
-    partial class UserProfileDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404131215_UpdateUserProfile")]
+    partial class UpdateUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

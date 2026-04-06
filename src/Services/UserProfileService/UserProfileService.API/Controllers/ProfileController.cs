@@ -27,9 +27,7 @@ public class ProfileController : ControllerBase
     }
 
     /// <summary>Gets the unique identifier of the currently authenticated user from JWT claims.</summary>
-    private Guid CurrentUserId =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")!);
+    private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
 
     /// <summary>Retrieves the profile of the currently authenticated user.</summary>
     /// <returns>200 with profile data including KYC status; 404 if not found.</returns>
