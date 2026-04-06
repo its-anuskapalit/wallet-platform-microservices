@@ -29,8 +29,9 @@ public class RewardsDomainService : IRewardsService
     {
         var account = await _rewards.GetByUserIdAsync(userId);
         if (account is null)
+        {
             return Result<RewardsDto>.Failure("Rewards account not found.");
-
+        }
         return Result<RewardsDto>.Success(MapToDto(account));
     }
 
@@ -41,18 +42,18 @@ public class RewardsDomainService : IRewardsService
     {
         var account = await _rewards.GetByUserIdAsync(userId);
         if (account is null)
+        {
             return Result<IEnumerable<PointsTransactionDto>>.Failure("Rewards account not found.");
-
+        }
         var history = account.PointsTransactions
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new PointsTransactionDto
             {
                 TransactionId = p.TransactionId,
-                Points        = p.Points,
-                Description   = p.Description,
-                CreatedAt     = p.CreatedAt
+                Points = p.Points,
+                Description = p.Description,
+                CreatedAt = p.CreatedAt
             });
-
         return Result<IEnumerable<PointsTransactionDto>>.Success(history);
     }
 
@@ -66,7 +67,7 @@ public class RewardsDomainService : IRewardsService
     {
         >= 5000 => RewardsTier.Gold,
         >= 1000 => RewardsTier.Silver,
-        _       => RewardsTier.Bronze
+        _ => RewardsTier.Bronze
     };
 
     /// <summary>
@@ -74,17 +75,16 @@ public class RewardsDomainService : IRewardsService
     /// </summary>
     /// <param name="amount">The transaction amount in the local currency.</param>
     /// <returns>The number of points to award, floored to the nearest integer.</returns>
-    public static int CalculatePoints(decimal amount) =>
-        (int)Math.Floor(amount / 10);
+    public static int CalculatePoints(decimal amount) => (int)Math.Floor(amount / 10);
 
     /// <summary>Maps a <see cref="Entities.RewardsAccount"/> entity to a <see cref="RewardsDto"/> for API responses.</summary>
     private static RewardsDto MapToDto(Entities.RewardsAccount a) => new()
     {
-        UserId          = a.UserId,
-        Email           = a.Email,
-        TotalPoints     = a.TotalPoints,
-        RedeemedPoints  = a.RedeemedPoints,
+        UserId = a.UserId,
+        Email = a.Email,
+        TotalPoints = a.TotalPoints,
+        RedeemedPoints = a.RedeemedPoints,
         AvailablePoints = a.AvailablePoints,
-        Tier            = a.Tier.ToString()
+        Tier = a.Tier.ToString()
     };
 }
