@@ -12,7 +12,7 @@ namespace CatalogService.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/redemptions")]
-[Authorize]
+[Authorize] //all redemption ops need jwt
 public class RedemptionController : ControllerBase
 {
     private readonly IRedemptionService _redemptionService;
@@ -28,8 +28,7 @@ public class RedemptionController : ControllerBase
 
     /// <summary>Gets the unique identifier of the currently authenticated user from JWT claims.</summary>
     private Guid CurrentUserId =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")!);
+        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
 
     /// <summary>Redeems a catalog item for the currently authenticated user.</summary>
     /// <param name="dto">Redemption request containing the catalog item identifier.</param>
@@ -39,7 +38,9 @@ public class RedemptionController : ControllerBase
     {
         var result = await _redemptionService.RedeemAsync(CurrentUserId, dto);
         if (!result.IsSuccess) return BadRequest(new { error = result.Error });
-        return Ok(result.Data);
+        {
+            return Ok(result.Data);
+        }
     }
 
     /// <summary>Retrieves the redemption history of the currently authenticated user.</summary>

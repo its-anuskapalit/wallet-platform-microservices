@@ -71,8 +71,7 @@ public class RedemptionDomainService : IRedemptionService
     public async Task<Result<IEnumerable<RedemptionDto>>> GetMyRedemptionsAsync(Guid userId)
     {
         var redemptions = await _redemptions.GetByUserIdAsync(userId);
-        return Result<IEnumerable<RedemptionDto>>.Success(
-            redemptions.Select(r => MapToDto(r, r.CatalogItem.Name)));
+        return Result<IEnumerable<RedemptionDto>>.Success(redemptions.Select(r => MapToDto(r, r.CatalogItem.Name)));
     }
 
     /// <summary>Maps a <see cref="Redemption"/> entity and item name to a <see cref="RedemptionDto"/> for API responses.</summary>

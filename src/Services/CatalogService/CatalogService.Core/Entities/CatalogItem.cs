@@ -6,8 +6,8 @@ public class CatalogItem : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public int PointsRequired { get; set; }
-    public string Category { get; set; } = string.Empty;
+    public int PointsRequired { get; set; } // cost in points to redeem
+    public string Category { get; set; } = string.Empty;  // GiftCard | Voucher | Cashback
     public bool IsActive { get; set; } = true;
-    public int Stock { get; set; } = 0;
+    public int Stock { get; set; } = 0; // available quantity — decrements on redemption
 }
