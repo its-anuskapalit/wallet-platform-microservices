@@ -63,7 +63,8 @@ public class AuthController : ControllerBase
     {
         var result = await _auth.RefreshTokenAsync(dto.RefreshToken);
         if (!result.IsSuccess)
-           { return Unauthorized(new { error = result.Error });
+           { 
+            return Unauthorized(new { error = result.Error });
            }
         return Ok(result.Data);
     }

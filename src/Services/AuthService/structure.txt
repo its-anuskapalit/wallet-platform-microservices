@@ -105,4 +105,116 @@ HTTP 200 OK
         │
         └──→ rewards.user.queue
                 Rewards service creates reward account in RewardsDb
-                
+
+Flow 1 — Register POST /api/auth/register
+Client sends → { email, password }
+
+RegisterRequest DTO
+    │
+    ▼
+AuthController.Register()
+    │
+    ▼
+AuthService.RegisterAsync()
+    ├── repo.EmailExistsAsync()
+    │       EF → SELECT EXISTS WHERE Email = ?
+    │       if true → return Failure("Email already registered") → 400
+    │
+    ├── Create User entity
+    │       Id         = Guid.NewGuid()
+    │       Email      = email.ToLower().Trim()
+    │       PasswordHash = BCrypt.HashPassword(password)
+    │       Role       = "User"          ← always server-set
+    │       IsKycVerified = false
+    │       CreatedAt  = DateTime.UtcNow
+    │
+    ├── repo.CreateUserAsync(user)
+    │       EF → INSERT INTO Users VALUES (...)
+    │
+    └── publisher.PublishAsync("user.exchange", "user.registered", UserRegisteredEvent)
+            RabbitMQ fans out to → UserProfile, Notification, Rewards
+
+200 OK → { userId, email, message: "Registration successful" }
+Key rules: Role is always server-set. Password is hashed before the entity is even created. Event is published after DB save — user exists before downstream services reference them.
+
+Flow 2 — Login POST /api/auth/login
+Client sends → { email, password }
+
+LoginRequest DTO
+    │
+    ▼
+AuthService.LoginAsync()
+    ├── repo.GetByEmailAsync(email)
+    │       EF → SELECT * FROM Users WHERE Email = ?
+    │       if null → return Failure("Invalid credentials") → 400
+    │       ← same error for wrong email OR wrong password (security: don't reveal which)
+    │
+    ├── BCrypt.Verify(request.Password, user.PasswordHash)
+    │       if false → return Failure("Invalid credentials") → 400
+    │
+    ├── tokenService.GenerateAccessToken(user)
+    │       Creates JWT:
+    │       Header  → { alg: HS256, typ: JWT }
+    │       Payload → { userId, email, role, exp: now+60min, iat: now }
+    │       Signature → HMAC-SHA256(header.payload, JWT_SECRET)
+    │
+    ├── tokenService.GenerateRefreshToken()
+    │       Creates random 64-byte string → base64 encoded
+    │
+    ├── repo.SaveRefreshTokenAsync()
+    │       EF → INSERT INTO RefreshTokens
+    │            { Id, UserId, TokenHash: BCrypt(refreshToken), ExpiresAt: now+7days }
+    │            ← stored HASHED, never plain text
+    │
+    └── return Success(LoginResponse)
+
+200 OK → { accessToken, refreshToken, expiresIn: 3600 }
+Key rules: Same error message for wrong email and wrong password — never tell the attacker which one failed. Refresh token stored hashed — breach of DB doesn't expose tokens.
+
+Flow 3 — Refresh POST /api/auth/refresh
+Client sends → { refreshToken }
+(called when accessToken expires after 60 min)
+
+AuthService.RefreshAsync()
+    ├── Hash incoming refreshToken
+    │       tokenHash = BCrypt.Hash(refreshToken)
+    │
+    ├── repo.GetRefreshTokenAsync(tokenHash)
+    │       EF → SELECT * FROM RefreshTokens WHERE TokenHash = ?
+    │       if null     → Failure("Invalid token") → 400
+    │       if IsRevoked → Failure("Token already used") → 400
+    │       if ExpiresAt < now → Failure("Token expired") → 400
+    │
+    ├── ROTATE — invalidate old token immediately
+    │       stored.IsRevoked = true
+    │       repo.UpdateRefreshTokenAsync(stored)
+    │       EF → UPDATE RefreshTokens SET IsRevoked = 1 WHERE Id = ?
+    │
+    ├── Get user → repo.GetUserByIdAsync(stored.UserId)
+    │
+    ├── Generate new accessToken + new refreshToken
+    │
+    ├── Save new refreshToken (hashed) to DB
+    │       EF → INSERT INTO RefreshTokens (new record)
+    │
+    └── return Success(LoginResponse)
+
+200 OK → { accessToken (new), refreshToken (new), expiresIn: 3600 }
+Flow 4 — Logout POST /api/auth/logout
+Client sends → { refreshToken }
+Header → Authorization: Bearer <accessToken>
+
+[Authorize] — Ocelot validates JWT first, request only reaches here if valid
+
+AuthService.LogoutAsync()
+    ├── Hash incoming refreshToken
+    │
+    ├── repo.GetRefreshTokenAsync(tokenHash)
+    │       if null → still return Success (idempotent logout)
+    │
+    ├── stored.IsRevoked = true
+    │       EF → UPDATE RefreshTokens SET IsRevoked = 1 WHERE Id = ?
+    │
+    └── return Success
+
+200 OK → { message: "Logged out successfully" }

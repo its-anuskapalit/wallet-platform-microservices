@@ -14,9 +14,10 @@ namespace AuthService.Core.Services;
 /// </summary>
 public class AuthDomainService : IAuthService
 {
-    private readonly IUserRepository _users;
+    private readonly IUserRepository _users; //interface not AuthRepo
     private readonly ITokenService _tokens;
     private readonly IEventPublisher _publisher;
+    // Core has ZERO knowledge of SQL Server, EF, or RabbitMQ
     /// <summary>
     /// Initializes a new instance of <see cref="AuthDomainService"/>.
     /// </summary>
@@ -75,7 +76,7 @@ public class AuthDomainService : IAuthService
             EventQueues.UserExchange,routingKey: "user.registered");
         return Result<AuthResponseDto>.Success(BuildResponse(user, refreshToken.Token));
     }
-
+    
     /// <summary>
     /// Validates the user's credentials, issues a new refresh token, and returns auth tokens.
     /// </summary>
