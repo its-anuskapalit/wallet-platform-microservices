@@ -4,7 +4,7 @@ namespace ReceiptsService.Core.Entities;
 
 public class Receipt : BaseEntity
 {
-    public Guid TransactionId { get; set; }
+    public Guid TransactionId { get; set; }  // UNIQUE — one account per user
     public Guid SenderUserId { get; set; }
     public Guid ReceiverUserId { get; set; }
     public Guid SenderWalletId { get; set; }

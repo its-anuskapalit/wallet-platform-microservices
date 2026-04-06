@@ -28,11 +28,7 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
     /// <param name="options">RabbitMQ connection options.</param>
     /// <param name="logger">Logger for this consumer.</param>
     /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
-    public TransactionCompletedConsumer(
-        IOptions<RabbitMqOptions> options,
-        ILogger<TransactionCompletedConsumer> logger,
-        IServiceScopeFactory scopeFactory)
-        : base(options, logger)
+    public TransactionCompletedConsumer(IOptions<RabbitMqOptions> options,ILogger<TransactionCompletedConsumer> logger,IServiceScopeFactory scopeFactory): base(options, logger)
     {
         _scopeFactory = scopeFactory;
     }
@@ -49,8 +45,8 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
         var repo = scope.ServiceProvider.GetRequiredService<IReceiptRepository>();
 
         if (await repo.ExistsByTransactionIdAsync(message.TransactionId))
-            return;
-
+          {  return;
+          }
         await repo.AddAsync(new Receipt
         {
             TransactionId    = message.TransactionId,

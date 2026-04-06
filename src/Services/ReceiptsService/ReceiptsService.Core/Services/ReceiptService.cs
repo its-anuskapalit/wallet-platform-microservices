@@ -29,8 +29,9 @@ public class ReceiptDomainService : IReceiptService
     {
         var receipt = await _receipts.GetByTransactionIdAsync(transactionId);
         if (receipt is null)
+        {
             return Result<ReceiptDto>.Failure("Receipt not found.");
-
+        }
         return Result<ReceiptDto>.Success(MapToDto(receipt));
     }
 
@@ -57,8 +58,9 @@ public class ReceiptDomainService : IReceiptService
         sb.AppendLine("TransactionId,Amount,Currency,Type,Date");
 
         foreach (var r in receipts)
+        {
             sb.AppendLine($"{r.TransactionId},{r.Amount},{r.Currency},{r.TransactionType},{r.TransactionDate:yyyy-MM-dd HH:mm:ss}");
-
+        }
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());
         return Result<byte[]>.Success(bytes);
     }
@@ -66,15 +68,15 @@ public class ReceiptDomainService : IReceiptService
     /// <summary>Maps a <see cref="Entities.Receipt"/> entity to a <see cref="ReceiptDto"/> for API responses.</summary>
     private static ReceiptDto MapToDto(Entities.Receipt r) => new()
     {
-        Id               = r.Id,
-        TransactionId    = r.TransactionId,
-        SenderUserId     = r.SenderUserId,
-        ReceiverUserId   = r.ReceiverUserId,
-        SenderWalletId   = r.SenderWalletId,
+        Id = r.Id,
+        TransactionId = r.TransactionId,
+        SenderUserId = r.SenderUserId,
+        ReceiverUserId = r.ReceiverUserId,
+        SenderWalletId = r.SenderWalletId,
         ReceiverWalletId = r.ReceiverWalletId,
-        Amount           = r.Amount,
-        Currency         = r.Currency,
-        TransactionType  = r.TransactionType,
-        TransactionDate  = r.TransactionDate
+        Amount = r.Amount,
+        Currency = r.Currency,
+        TransactionType = r.TransactionType,
+        TransactionDate = r.TransactionDate
     };
 }
