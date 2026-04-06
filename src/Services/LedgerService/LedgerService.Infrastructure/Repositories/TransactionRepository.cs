@@ -25,9 +25,7 @@ public class TransactionRepository : ITransactionRepository
     /// <param name="id">The transaction's unique identifier.</param>
     /// <returns>The matching <see cref="Transaction"/> with ledger entries, or <c>null</c> if not found.</returns>
     public async Task<Transaction?> GetByIdAsync(Guid id) =>
-        await _db.Transactions
-            .Include(t => t.LedgerEntries)
-            .FirstOrDefaultAsync(t => t.Id == id);
+        await _db.Transactions.Include(t => t.LedgerEntries).FirstOrDefaultAsync(t => t.Id == id);
 
     /// <summary>Retrieves a transaction by its idempotency key, used to prevent duplicate submissions.</summary>
     /// <param name="key">The idempotency key string.</param>
@@ -42,10 +40,7 @@ public class TransactionRepository : ITransactionRepository
     /// <param name="userId">The user's unique identifier.</param>
     /// <returns>An ordered list of transactions involving the user.</returns>
     public async Task<IEnumerable<Transaction>> GetBySenderUserIdAsync(Guid userId) =>
-        await _db.Transactions
-            .Where(t => t.SenderUserId == userId || t.ReceiverUserId == userId)
-            .OrderByDescending(t => t.CreatedAt)
-            .ToListAsync();
+        await _db.Transactions.Where(t => t.SenderUserId == userId || t.ReceiverUserId == userId).OrderByDescending(t => t.CreatedAt).ToListAsync();
 
     /// <summary>Stages a new <see cref="Transaction"/> entity for insertion.</summary>
     /// <param name="transaction">The transaction to add.</param>

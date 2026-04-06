@@ -33,12 +33,8 @@ public class LedgerEntryRepository : ILedgerEntryRepository
     /// <param name="walletId">The wallet's unique identifier.</param>
     /// <returns>An ordered list of ledger entries for the wallet.</returns>
     public async Task<IEnumerable<LedgerEntry>> GetByWalletIdAsync(Guid walletId) =>
-        await _db.LedgerEntries
-            .Where(l => l.WalletId == walletId)
-            .OrderByDescending(l => l.CreatedAt)
-            .ToListAsync();
+        await _db.LedgerEntries.Where(l => l.WalletId == walletId).OrderByDescending(l => l.CreatedAt).ToListAsync();
 
     /// <summary>Persists all pending changes to the database.</summary>
-    public async Task SaveChangesAsync() =>
-        await _db.SaveChangesAsync();
+    public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
 }

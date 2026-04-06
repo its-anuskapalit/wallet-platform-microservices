@@ -12,6 +12,7 @@ public class LedgerDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
+        // Transactions — idempotency key must be unique
         mb.Entity<Transaction>(e =>
         {
             e.HasKey(t => t.Id);
@@ -28,7 +29,7 @@ public class LedgerDbContext : DbContext
              .HasForeignKey(l => l.TransactionId)
              .OnDelete(DeleteBehavior.Restrict);
         });
-
+        // LedgerEntries — restrict delete to prevent orphan entries
         mb.Entity<LedgerEntry>(e =>
         {
             e.HasKey(l => l.Id);

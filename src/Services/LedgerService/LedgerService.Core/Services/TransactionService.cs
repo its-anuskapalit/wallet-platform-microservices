@@ -26,14 +26,11 @@ public class TransactionService : ITransactionService
     /// <param name="transactions">Repository for transaction persistence.</param>
     /// <param name="ledgerEntries">Repository for ledger entry persistence.</param>
     /// <param name="publisher">Event publisher for broadcasting domain events.</param>
-    public TransactionService(
-        ITransactionRepository transactions,
-        ILedgerEntryRepository ledgerEntries,
-        IEventPublisher publisher)
+    public TransactionService(ITransactionRepository transactions, ILedgerEntryRepository ledgerEntries, IEventPublisher publisher)
     {
-        _transactions  = transactions;
+        _transactions = transactions;
         _ledgerEntries = ledgerEntries;
-        _publisher     = publisher;
+        _publisher = publisher;
     }
 
     /// <summary>
@@ -49,30 +46,34 @@ public class TransactionService : ITransactionService
     public async Task<Result<TransactionDto>> InitiateAsync(InitiateTransactionDto dto)
     {
         if (dto.Amount <= 0)
+        {
             return Result<TransactionDto>.Failure("Amount must be greater than zero.");
-
+        }
         if (dto.SenderWalletId == dto.ReceiverWalletId)
+        {
             return Result<TransactionDto>.Failure("Sender and receiver cannot be the same.");
-
+        }
         // Idempotency check
         var existing = await _transactions.GetByIdempotencyKeyAsync(dto.IdempotencyKey);
         if (existing is not null)
+        {
             return Result<TransactionDto>.Success(MapToDto(existing));
-
+        }
         if (!Enum.TryParse<TransactionType>(dto.Type, out var txType))
+        {
             return Result<TransactionDto>.Failure("Invalid transaction type.");
-
+        }
         var transaction = new Transaction
         {
-            SenderWalletId   = dto.SenderWalletId,
+            SenderWalletId = dto.SenderWalletId,
             ReceiverWalletId = dto.ReceiverWalletId,
-            SenderUserId     = dto.SenderUserId,
-            ReceiverUserId   = dto.ReceiverUserId,
-            Amount           = dto.Amount,
-            Currency         = dto.Currency,
-            Type             = txType,
-            Status           = TransactionStatus.Pending,
-            IdempotencyKey   = dto.IdempotencyKey
+            SenderUserId = dto.SenderUserId,
+            ReceiverUserId = dto.ReceiverUserId,
+            Amount = dto.Amount,
+            Currency = dto.Currency,
+            Type = txType,
+            Status = TransactionStatus.Pending,
+            IdempotencyKey = dto.IdempotencyKey
         };
 
         await _transactions.AddAsync(transaction);
@@ -105,7 +106,7 @@ public class TransactionService : ITransactionService
         await _ledgerEntries.AddRangeAsync(entries);
 
         // Mark completed
-        transaction.Status    = TransactionStatus.Completed;
+        transaction.Status = TransactionStatus.Completed;
         transaction.UpdatedAt = DateTime.UtcNow;
 
         await _transactions.SaveChangesAsync();
@@ -114,15 +115,15 @@ public class TransactionService : ITransactionService
         await _publisher.PublishAsync(
             new TransactionCompletedEvent
             {
-                TransactionId    = transaction.Id,
-                SenderWalletId   = transaction.SenderWalletId,
+                TransactionId = transaction.Id,
+                SenderWalletId = transaction.SenderWalletId,
                 ReceiverWalletId = transaction.ReceiverWalletId,
-                SenderUserId     = transaction.SenderUserId,
-                ReceiverUserId   = transaction.ReceiverUserId,
-                Amount           = transaction.Amount,
-                Currency         = transaction.Currency,
-                TransactionType  = transaction.Type.ToString(),
-                CompletedAt      = DateTime.UtcNow
+                SenderUserId = transaction.SenderUserId,
+                ReceiverUserId = transaction.ReceiverUserId,
+                Amount = transaction.Amount,
+                Currency = transaction.Currency,
+                TransactionType = transaction.Type.ToString(),
+                CompletedAt = DateTime.UtcNow
             },
             EventQueues.TransactionExchange,
             routingKey: "transaction.completed");
@@ -137,8 +138,9 @@ public class TransactionService : ITransactionService
     {
         var transaction = await _transactions.GetByIdAsync(transactionId);
         if (transaction is null)
+        {
             return Result<TransactionDto>.Failure("Transaction not found.");
-
+        }
         return Result<TransactionDto>.Success(MapToDto(transaction));
     }
 
@@ -154,14 +156,14 @@ public class TransactionService : ITransactionService
     /// <summary>Maps a <see cref="Transaction"/> entity to a <see cref="TransactionDto"/> for API responses.</summary>
     private static TransactionDto MapToDto(Transaction t) => new()
     {
-        Id               = t.Id,
-        SenderWalletId   = t.SenderWalletId,
+        Id = t.Id,
+        SenderWalletId = t.SenderWalletId,
         ReceiverWalletId = t.ReceiverWalletId,
-        Amount           = t.Amount,
-        Currency         = t.Currency,
-        Type             = t.Type.ToString(),
-        Status           = t.Status.ToString(),
-        FailureReason    = t.FailureReason,
-        CreatedAt        = t.CreatedAt
+        Amount = t.Amount,
+        Currency = t.Currency,
+        Type = t.Type.ToString(),
+        Status = t.Status.ToString(),
+        FailureReason = t.FailureReason,
+        CreatedAt = t.CreatedAt
     };
 }

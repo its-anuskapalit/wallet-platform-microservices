@@ -27,9 +27,7 @@ public class TransactionController : ControllerBase
     }
 
     /// <summary>Gets the unique identifier of the currently authenticated user from JWT claims.</summary>
-    private Guid CurrentUserId =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")!);
+    private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
 
     /// <summary>Initiates a new financial transaction between two wallets.</summary>
     /// <param name="dto">Transaction initiation payload including sender/receiver wallets and amount.</param>
