@@ -1,7 +1,5 @@
 using Shared.Common;
-
 namespace AdminService.Core.Entities;
-
 public class FraudFlag : BaseEntity
 {
     public Guid TransactionId { get; set; }
