@@ -27,9 +27,7 @@ public class WalletController : ControllerBase
     }
 
     /// <summary>Gets the unique identifier of the currently authenticated user from JWT claims.</summary>
-    private Guid CurrentUserId =>
-        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue("sub")!);
+    private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
 
     /// <summary>Retrieves the wallet of the currently authenticated user.</summary>
     /// <returns>200 with wallet details; 404 if no wallet exists for the user.</returns>

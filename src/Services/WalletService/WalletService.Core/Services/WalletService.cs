@@ -27,16 +27,12 @@ public class WalletDomainService : IWalletService
     /// <param name="wallets">Repository for wallet persistence.</param>
     /// <param name="idempotency">Repository for idempotency-key tracking.</param>
     /// <param name="publisher">Event publisher for broadcasting domain events.</param>
-    public WalletDomainService(
-        IWalletRepository wallets,
-        IIdempotencyRepository idempotency,
-        IEventPublisher publisher)
+    public WalletDomainService(IWalletRepository wallets, IIdempotencyRepository idempotency, IEventPublisher publisher)
     {
-        _wallets      = wallets;
-        _idempotency  = idempotency;
-        _publisher    = publisher;
+        _wallets = wallets;
+        _idempotency = idempotency;
+        _publisher = publisher;
     }
-
     /// <summary>Retrieves the wallet belonging to the specified user.</summary>
     /// <param name="userId">The user's unique identifier.</param>
     /// <returns>A successful result with wallet details, or a failure if the wallet does not exist.</returns>
@@ -44,8 +40,9 @@ public class WalletDomainService : IWalletService
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
         if (wallet is null)
+        {
             return Result<WalletDto>.Failure("Wallet not found.");
-
+        }
         return Result<WalletDto>.Success(MapToDto(wallet));
     }
 
@@ -61,28 +58,31 @@ public class WalletDomainService : IWalletService
     public async Task<Result<WalletDto>> TopUpAsync(Guid userId, TopUpDto dto)
     {
         if (dto.Amount <= 0)
+        {
             return Result<WalletDto>.Failure("Amount must be greater than zero.");
-
+        }
         var cached = await _idempotency.GetAsync(dto.IdempotencyKey);
         if (cached is not null)
-            return Result<WalletDto>.Success(
-                JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
-
+        {
+            return Result<WalletDto>.Success(JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
+        }
         var wallet = await _wallets.GetByUserIdAsync(userId);
         if (wallet is null)
+        {
             return Result<WalletDto>.Failure("Wallet not found.");
-
+        }
         if (wallet.Status == WalletStatus.Frozen)
+        {
             return Result<WalletDto>.Failure("Wallet is frozen.");
-
-        wallet.Balance   += dto.Amount;
-        wallet.UpdatedAt  = DateTime.UtcNow;
+        }
+        wallet.Balance += dto.Amount;
+        wallet.UpdatedAt = DateTime.UtcNow;
 
         var response = MapToDto(wallet);
 
         await _idempotency.AddAsync(new IdempotencyKey
         {
-            Key      = dto.IdempotencyKey,
+            Key = dto.IdempotencyKey,
             Response = JsonSerializer.Serialize(response)
         });
 
@@ -102,31 +102,35 @@ public class WalletDomainService : IWalletService
     public async Task<Result<WalletDto>> DeductAsync(Guid userId, DeductDto dto)
     {
         if (dto.Amount <= 0)
+        {
             return Result<WalletDto>.Failure("Amount must be greater than zero.");
-
+        }
         var cached = await _idempotency.GetAsync(dto.IdempotencyKey);
         if (cached is not null)
-            return Result<WalletDto>.Success(
-                JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
-
+        {
+            return Result<WalletDto>.Success(JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
+        }
         var wallet = await _wallets.GetByUserIdAsync(userId);
         if (wallet is null)
+        {
             return Result<WalletDto>.Failure("Wallet not found.");
-
+        }
         if (wallet.Status == WalletStatus.Frozen)
+        {
             return Result<WalletDto>.Failure("Wallet is frozen.");
-
+        }
         if (wallet.Balance < dto.Amount)
+        {
             return Result<WalletDto>.Failure("Insufficient balance.");
-
-        wallet.Balance   -= dto.Amount;
-        wallet.UpdatedAt  = DateTime.UtcNow;
+        }
+        wallet.Balance -= dto.Amount;
+        wallet.UpdatedAt = DateTime.UtcNow;
 
         var response = MapToDto(wallet);
 
         await _idempotency.AddAsync(new IdempotencyKey
         {
-            Key      = dto.IdempotencyKey,
+            Key = dto.IdempotencyKey,
             Response = JsonSerializer.Serialize(response)
         });
 
@@ -145,24 +149,25 @@ public class WalletDomainService : IWalletService
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
         if (wallet is null)
+        {
             return Result<WalletDto>.Failure("Wallet not found.");
-
+        }
         if (wallet.Status == WalletStatus.Frozen)
+        {
             return Result<WalletDto>.Failure("Wallet is already frozen.");
-
-        wallet.Status      = WalletStatus.Frozen;
+        }
+        wallet.Status = WalletStatus.Frozen;
         wallet.FreezeReason = dto.Reason;
-        wallet.UpdatedAt   = DateTime.UtcNow;
+        wallet.UpdatedAt = DateTime.UtcNow;
 
         await _wallets.SaveChangesAsync();
-
         await _publisher.PublishAsync(
             new WalletFrozenEvent
             {
                 WalletId = wallet.Id,
-                UserId   = wallet.UserId,
-                Email    = wallet.Email,
-                Reason   = dto.Reason,
+                UserId = wallet.UserId,
+                Email = wallet.Email,
+                Reason = dto.Reason,
                 FrozenAt = DateTime.UtcNow
             },
             EventQueues.WalletExchange,
@@ -178,14 +183,16 @@ public class WalletDomainService : IWalletService
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
         if (wallet is null)
+        {
             return Result<WalletDto>.Failure("Wallet not found.");
-
+        }
         if (wallet.Status != WalletStatus.Frozen)
+        {
             return Result<WalletDto>.Failure("Wallet is not frozen.");
-
-        wallet.Status       = WalletStatus.Active;
+        }
+        wallet.Status = WalletStatus.Active;
         wallet.FreezeReason = null;
-        wallet.UpdatedAt    = DateTime.UtcNow;
+        wallet.UpdatedAt = DateTime.UtcNow;
 
         await _wallets.SaveChangesAsync();
         return Result<WalletDto>.Success(MapToDto(wallet));
@@ -194,12 +201,12 @@ public class WalletDomainService : IWalletService
     /// <summary>Maps a <see cref="Wallet"/> entity to a <see cref="WalletDto"/> for API responses.</summary>
     private static WalletDto MapToDto(Wallet w) => new()
     {
-        Id       = w.Id,
-        UserId   = w.UserId,
-        Email    = w.Email,
+        Id = w.Id,
+        UserId = w.UserId,
+        Email = w.Email,
         FullName = w.FullName,
-        Balance  = w.Balance,
+        Balance = w.Balance,
         Currency = w.Currency,
-        Status   = w.Status
+        Status = w.Status
     };
 }
