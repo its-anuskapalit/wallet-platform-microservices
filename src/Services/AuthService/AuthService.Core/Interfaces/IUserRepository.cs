@@ -31,4 +31,7 @@ public interface IUserRepository
 
     /// <summary>Persists all pending changes to the database.</summary>
     Task SaveChangesAsync();
+
+    /// <summary>Updates the hashed password for the specified user.</summary>
+    Task UpdatePasswordHashAsync(Guid userId, string newPasswordHash);
 }

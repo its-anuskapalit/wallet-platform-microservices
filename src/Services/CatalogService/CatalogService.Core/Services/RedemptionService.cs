@@ -7,82 +7,108 @@ using Shared.Common;
 namespace CatalogService.Core.Services;
 
 /// <summary>
-/// Implements redemption business logic: validates stock availability, decrements stock,
-/// and records the redemption transaction.
+/// Handles catalog item redemption:
+///   1. Validates stock and item availability.
+///   2. Checks the user has enough loyalty points (via IRewardsClient).
+///   3. Deducts points from RewardsService.
+///   4. Decrements stock and records the redemption with a generated voucher code.
 /// </summary>
 public class RedemptionDomainService : IRedemptionService
 {
-    private readonly ICatalogRepository _catalog;
+    private readonly ICatalogRepository    _catalog;
     private readonly IRedemptionRepository _redemptions;
+    private readonly IRewardsClient        _rewardsClient;
 
-    /// <summary>
-    /// Initializes a new instance of <see cref="RedemptionDomainService"/>.
-    /// </summary>
-    /// <param name="catalog">Repository for catalog item access.</param>
-    /// <param name="redemptions">Repository for redemption persistence.</param>
-    public RedemptionDomainService(ICatalogRepository catalog, IRedemptionRepository redemptions)
+    public RedemptionDomainService(
+        ICatalogRepository    catalog,
+        IRedemptionRepository redemptions,
+        IRewardsClient        rewardsClient)
     {
-        _catalog     = catalog;
-        _redemptions = redemptions;
+        _catalog       = catalog;
+        _redemptions   = redemptions;
+        _rewardsClient = rewardsClient;
     }
 
-    /// <summary>
-    /// Redeems a catalog item for the specified user by decrementing its stock
-    /// and recording a completed redemption.
-    /// </summary>
-    /// <param name="userId">The user performing the redemption.</param>
-    /// <param name="dto">Redemption request containing the catalog item identifier.</param>
-    /// <returns>
-    /// A successful result with the redemption record; or a failure if the item is not found,
-    /// inactive, or out of stock.
-    /// </returns>
     public async Task<Result<RedemptionDto>> RedeemAsync(Guid userId, CreateRedemptionDto dto)
     {
+        // 1. Validate the catalog item
         var item = await _catalog.GetByIdAsync(dto.CatalogItemId);
-        if (item is null)
-            return Result<RedemptionDto>.Failure("Catalog item not found.");
+        if (item is null)    return Result<RedemptionDto>.Failure("Catalog item not found.");
+        if (!item.IsActive)  return Result<RedemptionDto>.Failure("This item is no longer available.");
+        if (item.Stock <= 0) return Result<RedemptionDto>.Failure("This item is out of stock.");
 
-        if (!item.IsActive)
-            return Result<RedemptionDto>.Failure("Item is no longer available.");
+        // 2. Check points balance
+        var availablePoints = await _rewardsClient.GetAvailablePointsAsync(userId);
+        if (availablePoints < item.PointsRequired)
+            return Result<RedemptionDto>.Failure(
+                $"You need {item.PointsRequired} pts to redeem this item, but you only have {availablePoints} pts.");
 
-        if (item.Stock <= 0)
-            return Result<RedemptionDto>.Failure("Item is out of stock.");
+        // 3. Deduct points (via RewardsService HTTP call)
+        var redemptionId = Guid.NewGuid();
+        var deducted = await _rewardsClient.DeductPointsAsync(
+            userId, item.PointsRequired,
+            $"Redeemed: {item.Name}",
+            redemptionId);
 
+        if (!deducted)
+            return Result<RedemptionDto>.Failure("Failed to deduct points. Please try again.");
+
+        // 4. Decrement stock and record redemption with voucher code
         item.Stock--;
         item.UpdatedAt = DateTime.UtcNow;
 
+        var voucher = GenerateVoucherCode(item.Category);
+
         var redemption = new Redemption
         {
+            Id            = redemptionId,
             UserId        = userId,
             CatalogItemId = item.Id,
             PointsUsed    = item.PointsRequired,
-            Status        = RedemptionStatus.Completed
+            Status        = RedemptionStatus.Completed,
+            VoucherCode   = voucher
         };
 
         await _redemptions.AddAsync(redemption);
         await _redemptions.SaveChangesAsync();
 
-        return Result<RedemptionDto>.Success(MapToDto(redemption, item.Name));
+        return Result<RedemptionDto>.Success(MapToDto(redemption, item));
     }
 
-    /// <summary>Retrieves all redemptions made by the specified user.</summary>
-    /// <param name="userId">The user's unique identifier.</param>
-    /// <returns>A successful result containing the user's redemption history.</returns>
     public async Task<Result<IEnumerable<RedemptionDto>>> GetMyRedemptionsAsync(Guid userId)
     {
         var redemptions = await _redemptions.GetByUserIdAsync(userId);
-        return Result<IEnumerable<RedemptionDto>>.Success(redemptions.Select(r => MapToDto(r, r.CatalogItem.Name)));
+        return Result<IEnumerable<RedemptionDto>>.Success(
+            redemptions.Select(r => MapToDto(r, r.CatalogItem)));
     }
 
-    /// <summary>Maps a <see cref="Redemption"/> entity and item name to a <see cref="RedemptionDto"/> for API responses.</summary>
-    private static RedemptionDto MapToDto(Redemption r, string itemName) => new()
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static string GenerateVoucherCode(string category)
+    {
+        var prefix = category.ToUpperInvariant() switch
+        {
+            "GIFTCARD" => "GC",
+            "VOUCHER"  => "VC",
+            "CASHBACK" => "CB",
+            "FOOD"     => "FD",
+            "TRAVEL"   => "TR",
+            _          => "WP"
+        };
+        var token = Guid.NewGuid().ToString("N")[..8].ToUpper();
+        return $"{prefix}-{token}";
+    }
+
+    private static RedemptionDto MapToDto(Redemption r, CatalogItem item) => new()
     {
         Id            = r.Id,
         UserId        = r.UserId,
         CatalogItemId = r.CatalogItemId,
-        ItemName      = itemName,
+        ItemName      = item.Name,
+        Category      = item.Category,
         PointsUsed    = r.PointsUsed,
         Status        = r.Status.ToString(),
+        VoucherCode   = r.VoucherCode,
         CreatedAt     = r.CreatedAt
     };
 }

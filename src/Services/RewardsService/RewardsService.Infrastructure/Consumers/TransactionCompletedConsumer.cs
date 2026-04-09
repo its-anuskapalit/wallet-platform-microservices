@@ -63,20 +63,56 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
             await repo.AddAsync(account);
         }
 
-        var points = RewardsDomainService.CalculatePoints(message.Amount);
-        if (points <= 0) return;
+        var basePoints = RewardsDomainService.CalculatePoints(message.Amount);
 
-        account.TotalPoints += points;
+        // Campaign: milestone bonus points for large transfers
+        var bonusPoints = 0;
+        var bonusDesc   = string.Empty;
+
+        if (message.TransactionType.Equals("Transfer", StringComparison.OrdinalIgnoreCase))
+        {
+            if (message.Amount >= 5000)
+            {
+                bonusPoints = 200;
+                bonusDesc   = $"🏆 Big Transfer Bonus (+{bonusPoints} pts) for sending ₹{message.Amount}+";
+            }
+            else if (message.Amount >= 1000)
+            {
+                bonusPoints = 50;
+                bonusDesc   = $"⭐ Milestone Bonus (+{bonusPoints} pts) for sending ₹{message.Amount}+";
+            }
+        }
+
+        var totalPoints = basePoints + bonusPoints;
+        if (totalPoints <= 0) return;
+
+        account.TotalPoints += totalPoints;
         account.Tier         = RewardsDomainService.CalculateTier(account.TotalPoints);
         account.UpdatedAt    = DateTime.UtcNow;
 
-        await repo.AddPointsTransactionAsync(new PointsTransaction
+        // Base points entry
+        if (basePoints > 0)
         {
-            RewardsAccountId = account.Id,
-            TransactionId    = message.TransactionId,
-            Points           = points,
-            Description      = $"Earned {points} points for {message.TransactionType} of {message.Amount} {message.Currency}"
-        });
+            await repo.AddPointsTransactionAsync(new PointsTransaction
+            {
+                RewardsAccountId = account.Id,
+                TransactionId    = message.TransactionId,
+                Points           = basePoints,
+                Description      = $"Earned {basePoints} pts for {message.TransactionType} of ₹{message.Amount}"
+            });
+        }
+
+        // Campaign bonus entry (separate line item so user can see it)
+        if (bonusPoints > 0)
+        {
+            await repo.AddPointsTransactionAsync(new PointsTransaction
+            {
+                RewardsAccountId = account.Id,
+                TransactionId    = message.TransactionId,
+                Points           = bonusPoints,
+                Description      = bonusDesc
+            });
+        }
 
         await repo.SaveChangesAsync();
     }

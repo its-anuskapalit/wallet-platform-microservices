@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+// ─── Design Tokens ───────────────────────────────────────────────────────────
+:root {
+  // Primary palette - Burnt Orange
+  --primary:                #944a00;
+  --primary-container:      #e87f24;
+  --on-primary:             #ffffff;
+  --primary-fixed:          #ffdbc7;
+  --primary-fixed-dim:      #ffb786;
+
+  // Surface hierarchy
+  --background:             #fcf9f4;
+  --surface:                #fcf9f4;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low:  #f6f3ee;
+  --surface-container:      #f0ede9;
+  --surface-container-high: #eae7e3;
+  --surface-container-highest: #e4e1dd;
+
+  // On-surface
+  --on-surface:             #1c1c19;
+  --on-surface-variant:     #4a4945;
+  --outline-variant:        #c8c5c0;
+
+  // Semantic colors
+  --success:                #2d6a4f;
+  --success-container:      #d8f3dc;
+  --error:                  #b3261e;
+  --error-container:        #ffdad6;
+  --warning:                #7a5900;
+  --warning-container:      #ffdea0;
+
+  // Typography scale
+  --font-display: 'Manrope', sans-serif;
+  --font-body:    'Inter', sans-serif;
+
+  --text-display-lg: clamp(2.5rem, 5vw, 3.5rem);
+  --text-headline-lg: clamp(1.75rem, 3vw, 2.25rem);
+  --text-headline-md: clamp(1.5rem, 2.5vw, 1.875rem);
+  --text-title-lg:    1.375rem;
+  --text-title-md:    1.125rem;
+  --text-title-sm:    1rem;
+  --text-body-lg:     1rem;
+  --text-body-md:     0.9375rem;
+  --text-body-sm:     0.875rem;
+  --text-label-lg:    0.875rem;
+  --text-label-md:    0.8125rem;
+  --text-label-sm:    0.75rem;
+
+  // Elevation
+  --shadow-ambient: 0 8px 32px rgba(28, 28, 25, 0.06);
+  --shadow-float:   0 16px 64px rgba(28, 28, 25, 0.08);
+
+  // Border radius
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+  --radius-full: 9999px;
+
+  // Spacing
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+}
+
+// ─── Reset & Base ────────────────────────────────────────────────────────────
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-size: var(--text-body-md);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+// ─── Typography Utilities ────────────────────────────────────────────────────
+.display-lg  { font-family: var(--font-display); font-size: var(--text-display-lg); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
+.headline-lg { font-family: var(--font-display); font-size: var(--text-headline-lg); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
+.headline-md { font-family: var(--font-display); font-size: var(--text-headline-md); font-weight: 700; line-height: 1.25; }
+.title-lg    { font-family: var(--font-display); font-size: var(--text-title-lg); font-weight: 600; line-height: 1.3; }
+.title-md    { font-family: var(--font-display); font-size: var(--text-title-md); font-weight: 600; line-height: 1.35; }
+.title-sm    { font-family: var(--font-body); font-size: var(--text-title-sm); font-weight: 600; line-height: 1.4; }
+.body-lg     { font-family: var(--font-body); font-size: var(--text-body-lg); font-weight: 400; line-height: 1.6; }
+.body-md     { font-family: var(--font-body); font-size: var(--text-body-md); font-weight: 400; line-height: 1.6; }
+.body-sm     { font-family: var(--font-body); font-size: var(--text-body-sm); font-weight: 400; line-height: 1.5; }
+.label-lg    { font-family: var(--font-body); font-size: var(--text-label-lg); font-weight: 500; line-height: 1.4; letter-spacing: 0.01em; }
+.label-md    { font-family: var(--font-body); font-size: var(--text-label-md); font-weight: 500; line-height: 1.4; letter-spacing: 0.01em; }
+.label-sm    { font-family: var(--font-body); font-size: var(--text-label-sm); font-weight: 500; line-height: 1.3; letter-spacing: 0.015em; text-transform: uppercase; }
+
+// ─── Surface Utilities ───────────────────────────────────────────────────────
+.surface          { background: var(--surface); }
+.surface-low      { background: var(--surface-container-low); }
+.surface-card     { background: var(--surface-container-lowest); border-radius: var(--radius-lg); box-shadow: var(--shadow-ambient); }
+.surface-elevated { background: var(--surface-container-lowest); border-radius: var(--radius-xl); box-shadow: var(--shadow-float); }
+
+// ─── Button System ───────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-label-lg);
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 14px var(--space-6);
+  transition: all 0.2s ease;
+  text-decoration: none;
+  white-space: nowrap;
+
+  &-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+    color: var(--on-primary);
+    box-shadow: 0 4px 16px rgba(148, 74, 0, 0.3);
+    &:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(148, 74, 0, 0.4); }
+    &:active { transform: translateY(0); }
+  }
+
+  &-secondary {
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+    &:hover { background: var(--surface-container-highest); }
+  }
+
+  &-ghost {
+    background: transparent;
+    color: var(--primary);
+    &:hover { background: var(--primary-fixed); }
+  }
+
+  &-sm { padding: 10px var(--space-4); font-size: var(--text-label-md); border-radius: var(--radius-sm); }
+  &-lg { padding: 18px var(--space-8); font-size: var(--text-body-md); }
+  &-icon { padding: 12px; border-radius: var(--radius-md); aspect-ratio: 1; }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+}
+
+// ─── Card ────────────────────────────────────────────────────────────────────
+.card {
+  background: var(--surface-container-lowest);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-ambient);
+}
+
+// ─── Form Controls ───────────────────────────────────────────────────────────
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  label {
+    font-size: var(--text-label-md);
+    font-weight: 500;
+    color: var(--on-surface-variant);
+    letter-spacing: 0.01em;
+  }
+
+  .form-control {
+    background: var(--surface-container-low);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 14px var(--space-4);
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    color: var(--on-surface);
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+
+    &::placeholder { color: var(--on-surface-variant); opacity: 0.6; }
+
+    &:focus {
+      background: var(--surface-container-lowest);
+      box-shadow: 0 0 0 1px rgba(148, 74, 0, 0.2);
+    }
+
+    &.error {
+      box-shadow: 0 0 0 1px rgba(179, 38, 30, 0.4);
+    }
+  }
+
+  .field-error {
+    font-size: var(--text-label-md);
+    color: var(--error);
+    margin-top: var(--space-1);
+  }
+}
+
+// ─── Badge ───────────────────────────────────────────────────────────────────
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-label-sm);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+
+  &-success { background: var(--success-container); color: var(--success); }
+  &-error   { background: var(--error-container); color: var(--error); }
+  &-warning { background: var(--warning-container); color: var(--warning); }
+  &-neutral { background: var(--surface-container-high); color: var(--on-surface-variant); }
+}
+
+// ─── Layout Utilities ────────────────────────────────────────────────────────
+.flex         { display: flex; }
+.flex-col     { display: flex; flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.justify-center  { justify-content: center; }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }
+
+.text-muted   { color: var(--on-surface-variant); }
+.text-primary { color: var(--primary); }
+.text-success { color: var(--success); }
+.text-error   { color: var(--error); }
+.text-center  { text-align: center; }
+.text-right   { text-align: right; }
+
+.w-full { width: 100%; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// ─── Scrollbar ───────────────────────────────────────────────────────────────
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-container-low); }
+::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: var(--radius-full); }
+
+// ─── Loading States ──────────────────────────────────────────────────────────
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-container) 25%, var(--surface-container-high) 50%, var(--surface-container) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+// ─── Page Transitions ────────────────────────────────────────────────────────
+.page-enter {
+  animation: page-fade-in 0.3s ease;
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Glass Effect ────────────────────────────────────────────────────────────
+.glass {
+  background: rgba(252, 249, 244, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+// ─── Divider-free list spacing ───────────────────────────────────────────────
+.list-spaced > * + * { margin-top: var(--space-4); }
+
+// ─── Amount Formatting ───────────────────────────────────────────────────────
+.amount-positive { color: var(--success); }
+.amount-negative { color: var(--error); }

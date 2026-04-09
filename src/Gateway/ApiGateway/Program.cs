@@ -17,9 +17,23 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AngularDevPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddOcelot();
 
 var app = builder.Build();
+
+app.UseCors("AngularDevPolicy");
 
 app.UseSerilogRequestLogging();
 

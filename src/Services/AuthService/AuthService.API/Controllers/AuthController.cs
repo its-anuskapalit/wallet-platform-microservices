@@ -1,8 +1,9 @@
+using System.Security.Claims;
 using AuthService.Core.DTOs;
 using AuthService.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-//Http- Service - maps result to http response
+
 namespace AuthService.API.Controllers;
 
 /// <summary>
@@ -13,16 +14,20 @@ namespace AuthService.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
+    private readonly IOtpService _otp;
     private readonly ILogger<AuthController> _logger;
-    /// <summary>
-    /// Initializes a new instance of <see cref="AuthController"/>.
-    /// </summary>
-    /// <param name="auth">The authentication domain service.</param>
-    /// <param name="logger">Logger for recording auth events.</param>
-    public AuthController(IAuthService auth, ILogger<AuthController> logger)
+    private readonly IWebHostEnvironment _env;
+
+    public AuthController(
+        IAuthService auth,
+        IOtpService otp,
+        ILogger<AuthController> logger,
+        IWebHostEnvironment env)
     {
-        _auth = auth;
+        _auth   = auth;
+        _otp    = otp;
         _logger = logger;
+        _env    = env;
     }
 
     /// <summary>Registers a new user account and returns auth tokens.</summary>
@@ -98,8 +103,43 @@ public class AuthController : ControllerBase
         });
     }
 
-    /// <summary>Verifies that the caller has the Admin role. Used to test admin-level authorization.</summary>
-    /// <returns>200 with a confirmation message if the caller is an admin; 403 otherwise.</returns>
+    /// <summary>Changes the currently authenticated user's password.</summary>
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        var userId = Guid.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+        var result = await _auth.ChangePasswordAsync(userId, dto);
+        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Sends a 6-digit OTP to the provided phone number.
+    /// In Development, the OTP code is returned in the response body for easy testing.
+    /// </summary>
+    [HttpPost("send-otp")]
+    public async Task<IActionResult> SendOtp([FromBody] SendOtpDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Email))
+            return BadRequest(new { error = "Email is required to send OTP." });
+
+        var result = await _otp.SendOtpAsync(dto.Phone, dto.Email, _env.IsDevelopment());
+        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        return Ok(result.Data);
+    }
+
+    /// <summary>Verifies the OTP entered by the user for the given phone number.</summary>
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
+    {
+        var result = await _otp.VerifyOtpAsync(dto.Phone, dto.OtpCode);
+        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        return Ok(new { verified = true, message = "Phone number verified successfully." });
+    }
+
+    /// <summary>Verifies that the caller has the Admin role.</summary>
     [Authorize(Roles = "Admin")]
     [HttpGet("admin-only")]
     public IActionResult AdminOnly() => Ok(new { message = "You are an admin." });

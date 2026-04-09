@@ -26,27 +26,50 @@ public class ProfileController : ControllerBase
         _profileService = profileService;
     }
 
-    /// <summary>Gets the unique identifier of the currently authenticated user from JWT claims.</summary>
-    private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
+    private Guid   CurrentUserId   => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+    private string CurrentEmail    => User.FindFirstValue(ClaimTypes.Email) ?? User.FindFirstValue("email") ?? string.Empty;
+    private string CurrentFullName => User.FindFirstValue("fullName") ?? User.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
 
-    /// <summary>Retrieves the profile of the currently authenticated user.</summary>
-    /// <returns>200 with profile data including KYC status; 404 if not found.</returns>
+    /// <summary>
+    /// Retrieves the profile of the currently authenticated user.
+    /// If the profile does not yet exist (e.g. RabbitMQ event was missed), it is created automatically.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetProfile()
     {
-        var result = await _profileService.GetProfileAsync(CurrentUserId);
+        var result = await _profileService.GetOrCreateProfileAsync(CurrentUserId, CurrentEmail, CurrentFullName);
         if (!result.IsSuccess) return NotFound(new { error = result.Error });
         return Ok(result.Data);
     }
 
     /// <summary>Updates mutable fields on the currently authenticated user's profile.</summary>
-    /// <param name="dto">Fields to update; only non-empty values are applied.</param>
-    /// <returns>200 with updated profile; 400 if not found.</returns>
     [HttpPut]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
+        await _profileService.GetOrCreateProfileAsync(CurrentUserId, CurrentEmail, CurrentFullName);
         var result = await _profileService.UpdateProfileAsync(CurrentUserId, dto);
         if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Looks up a user profile by email address. Used by the send-money and admin-KYC flows
+    /// so users never need to know system GUIDs.
+    /// </summary>
+    [HttpGet("lookup")]
+    public async Task<IActionResult> LookupByEmail([FromQuery] string email)
+    {
+        var result = await _profileService.LookupByEmailAsync(email);
+        if (!result.IsSuccess) return NotFound(new { error = result.Error });
+        return Ok(result.Data);
+    }
+
+    /// <summary>Admin-only: returns all user profiles with pagination.</summary>
+    [HttpGet("admin/all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllProfiles([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        var result = await _profileService.GetAllProfilesAsync(page, pageSize);
         return Ok(result.Data);
     }
 }

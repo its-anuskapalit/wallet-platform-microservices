@@ -33,16 +33,17 @@ public class WalletDomainService : IWalletService
         _idempotency = idempotency;
         _publisher = publisher;
     }
-    /// <summary>Retrieves the wallet belonging to the specified user.</summary>
-    /// <param name="userId">The user's unique identifier.</param>
-    /// <returns>A successful result with wallet details, or a failure if the wallet does not exist.</returns>
+    /// <summary>
+    /// Retrieves the wallet belonging to the specified user.
+    /// If no wallet exists (e.g. the UserRegisteredEvent was missed), one is created automatically
+    /// with a zero balance so the user is never blocked.
+    /// </summary>
     public async Task<Result<WalletDto>> GetWalletAsync(Guid userId)
     {
         var wallet = await _wallets.GetByUserIdAsync(userId);
         if (wallet is null)
-        {
-            return Result<WalletDto>.Failure("Wallet not found.");
-        }
+            wallet = await CreateWalletAsync(userId);
+
         return Result<WalletDto>.Success(MapToDto(wallet));
     }
 
@@ -66,11 +67,9 @@ public class WalletDomainService : IWalletService
         {
             return Result<WalletDto>.Success(JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
         }
-        var wallet = await _wallets.GetByUserIdAsync(userId);
-        if (wallet is null)
-        {
-            return Result<WalletDto>.Failure("Wallet not found.");
-        }
+        var wallet = await _wallets.GetByUserIdAsync(userId)
+                     ?? await CreateWalletAsync(userId);
+
         if (wallet.Status == WalletStatus.Frozen)
         {
             return Result<WalletDto>.Failure("Wallet is frozen.");
@@ -198,7 +197,75 @@ public class WalletDomainService : IWalletService
         return Result<WalletDto>.Success(MapToDto(wallet));
     }
 
+    /// <summary>
+    /// Credits a wallet as the receiver side of a completed transfer.
+    /// Uses the transaction ID as idempotency key so re-delivery is safe.
+    /// </summary>
+    public async Task<Result<WalletDto>> CreditAsync(Guid userId, string idempotencyKey, decimal amount, string currency)
+    {
+        var cached = await _idempotency.GetAsync($"credit:{idempotencyKey}");
+        if (cached is not null)
+            return Result<WalletDto>.Success(JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
+
+        var wallet = await _wallets.GetByUserIdAsync(userId);
+        if (wallet is null)
+            return Result<WalletDto>.Failure("Receiver wallet not found.");
+
+        wallet.Balance    += amount;
+        wallet.UpdatedAt   = DateTime.UtcNow;
+
+        var response = MapToDto(wallet);
+        await _idempotency.AddAsync(new IdempotencyKey { Key = $"credit:{idempotencyKey}", Response = JsonSerializer.Serialize(response) });
+        await _wallets.SaveChangesAsync();
+        return Result<WalletDto>.Success(response);
+    }
+
+    /// <summary>
+    /// Debits funds from a wallet as the sender side of a completed transfer.
+    /// Uses the transaction ID as idempotency key so re-delivery is safe.
+    /// Fails silently (logs) if balance is insufficient — the ledger already recorded the transfer.
+    /// </summary>
+    public async Task<Result<WalletDto>> DebitTransferAsync(Guid userId, string idempotencyKey, decimal amount, string currency)
+    {
+        var cached = await _idempotency.GetAsync($"debit:{idempotencyKey}");
+        if (cached is not null)
+            return Result<WalletDto>.Success(JsonSerializer.Deserialize<WalletDto>(cached.Response)!);
+
+        var wallet = await _wallets.GetByUserIdAsync(userId);
+        if (wallet is null)
+            return Result<WalletDto>.Failure("Sender wallet not found.");
+
+        if (wallet.Balance < amount)
+            return Result<WalletDto>.Failure("Insufficient balance.");
+
+        wallet.Balance   -= amount;
+        wallet.UpdatedAt  = DateTime.UtcNow;
+
+        var response = MapToDto(wallet);
+        await _idempotency.AddAsync(new IdempotencyKey { Key = $"debit:{idempotencyKey}", Response = JsonSerializer.Serialize(response) });
+        await _wallets.SaveChangesAsync();
+        return Result<WalletDto>.Success(response);
+    }
+
     /// <summary>Maps a <see cref="Wallet"/> entity to a <see cref="WalletDto"/> for API responses.</summary>
+    /// <summary>
+    /// Self-healing: creates a zero-balance wallet for a user whose UserRegisteredEvent was missed
+    /// (e.g. RabbitMQ was unavailable at registration time).
+    /// </summary>
+    private async Task<Wallet> CreateWalletAsync(Guid userId)
+    {
+        var wallet = new Wallet
+        {
+            UserId   = userId,
+            Currency = "INR",
+            Balance  = 0,
+            Status   = WalletStatus.Active
+        };
+        await _wallets.AddAsync(wallet);
+        await _wallets.SaveChangesAsync();
+        return wallet;
+    }
+
     private static WalletDto MapToDto(Wallet w) => new()
     {
         Id = w.Id,

@@ -30,11 +30,22 @@ public class WalletController : ControllerBase
     private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
 
     /// <summary>Retrieves the wallet of the currently authenticated user.</summary>
-    /// <returns>200 with wallet details; 404 if no wallet exists for the user.</returns>
     [HttpGet]
     public async Task<IActionResult> GetWallet()
     {
         var result = await _walletService.GetWalletAsync(CurrentUserId);
+        if (!result.IsSuccess) return NotFound(new { error = result.Error });
+        return Ok(result.Data);
+    }
+
+    /// <summary>
+    /// Retrieves the wallet for any given userId. Used by the send-by-email flow: after resolving
+    /// a recipient's email to their userId, the frontend fetches their walletId via this endpoint.
+    /// </summary>
+    [HttpGet("lookup/{userId:guid}")]
+    public async Task<IActionResult> GetWalletByUserId(Guid userId)
+    {
+        var result = await _walletService.GetWalletAsync(userId);
         if (!result.IsSuccess) return NotFound(new { error = result.Error });
         return Ok(result.Data);
     }
@@ -61,25 +72,28 @@ public class WalletController : ControllerBase
         return Ok(result.Data);
     }
 
-    /// <summary>Freezes the authenticated user's wallet. Requires the Admin role.</summary>
-    /// <param name="dto">Freeze reason payload.</param>
-    /// <returns>200 with updated wallet; 400 if already frozen or wallet not found.</returns>
-    [HttpPost("freeze")]
+    /// <summary>
+    /// Admin: Freezes a target user's wallet. Pass the target user ID in the URL.
+    /// Requires the Admin role.
+    /// </summary>
+    [HttpPost("admin/freeze/{userId:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Freeze([FromBody] FreezeDto dto)
+    public async Task<IActionResult> FreezeUser(Guid userId, [FromBody] FreezeDto dto)
     {
-        var result = await _walletService.FreezeAsync(CurrentUserId, dto);
+        var result = await _walletService.FreezeAsync(userId, dto);
         if (!result.IsSuccess) return BadRequest(new { error = result.Error });
         return Ok(result.Data);
     }
 
-    /// <summary>Unfreezes the authenticated user's wallet. Requires the Admin role.</summary>
-    /// <returns>200 with updated wallet; 400 if not frozen or wallet not found.</returns>
-    [HttpPost("unfreeze")]
+    /// <summary>
+    /// Admin: Unfreezes a target user's wallet. Pass the target user ID in the URL.
+    /// Requires the Admin role.
+    /// </summary>
+    [HttpPost("admin/unfreeze/{userId:guid}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> Unfreeze()
+    public async Task<IActionResult> UnfreezeUser(Guid userId)
     {
-        var result = await _walletService.UnfreezeAsync(CurrentUserId);
+        var result = await _walletService.UnfreezeAsync(userId);
         if (!result.IsSuccess) return BadRequest(new { error = result.Error });
         return Ok(result.Data);
     }

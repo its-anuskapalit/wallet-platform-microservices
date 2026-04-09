@@ -22,4 +22,16 @@ public interface IWalletService
 
     /// <summary>Restores a frozen wallet to active status.</summary>
     Task<Result<WalletDto>> UnfreezeAsync(Guid userId);
+
+    /// <summary>
+    /// Credits funds to a wallet identified by userId. Used by the TransactionCompletedConsumer
+    /// to apply the receiver side of a completed transfer.
+    /// </summary>
+    Task<Result<WalletDto>> CreditAsync(Guid userId, string idempotencyKey, decimal amount, string currency);
+
+    /// <summary>
+    /// Debits funds from a wallet for an inter-service transfer. Unlike DeductAsync, this
+    /// accepts an external idempotency key (the transactionId) so the consumer can be safely retried.
+    /// </summary>
+    Task<Result<WalletDto>> DebitTransferAsync(Guid userId, string idempotencyKey, decimal amount, string currency);
 }

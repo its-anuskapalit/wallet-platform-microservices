@@ -24,7 +24,8 @@ public interface IAuthService
     Task<Result<AuthResponseDto>> RefreshTokenAsync(string refreshToken);
 
     /// <summary>Revokes a refresh token so it can no longer be used to issue new access tokens.</summary>
-    /// <param name="refreshToken">The refresh token to revoke.</param>
-    /// <returns>A success result, or a failure if the token was not found or already revoked.</returns>
-    Task<Result> RevokeTokenAsync(string refreshToken);   // non-generic Result
+    Task<Result> RevokeTokenAsync(string refreshToken);
+
+    /// <summary>Changes the authenticated user's password after verifying the current one.</summary>
+    Task<Result> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
 }

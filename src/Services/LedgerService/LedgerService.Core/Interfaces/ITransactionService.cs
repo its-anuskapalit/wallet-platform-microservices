@@ -15,6 +15,9 @@ public interface ITransactionService
     /// <summary>Retrieves a single transaction by its unique identifier.</summary>
     Task<Result<TransactionDto>> GetByIdAsync(Guid transactionId);
 
-    /// <summary>Retrieves all transactions where the specified user is the sender or receiver.</summary>
-    Task<Result<IEnumerable<TransactionDto>>> GetMyTransactionsAsync(Guid userId);
+    /// <summary>Retrieves paginated transactions where the specified user is the sender or receiver.</summary>
+    Task<Result<IEnumerable<TransactionDto>>> GetMyTransactionsAsync(Guid userId, int page = 1, int pageSize = 20);
+
+    /// <summary>Returns aggregate send/receive totals for the user.</summary>
+    Task<Result<TransactionSummaryDto>> GetSummaryAsync(Guid userId);
 }

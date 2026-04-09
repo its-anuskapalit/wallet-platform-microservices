@@ -2,6 +2,7 @@ using System.Text;
 using AuthService.Core.Interfaces;
 using AuthService.Core.Services;
 using AuthService.Infrastructure.Data;
+using AuthService.Infrastructure.Email;
 using AuthService.Infrastructure.Repositories;
 using dotenv.net;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -62,10 +63,13 @@ builder.Services.AddAuthorization();
 
 // ── Repositories ──────────────────────────────────────────────────
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IPhoneOtpRepository, PhoneOtpRepository>();
 
 // ── Services ──────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthDomainService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+builder.Services.AddScoped<IOtpService, OtpDomainService>();
 
 // ── RabbitMQ ──────────────────────────────────────────────────────
 builder.Services.Configure<RabbitMqOptions>(o =>
@@ -78,7 +82,8 @@ builder.Services.Configure<RabbitMqOptions>(o =>
 builder.Services.AddEventBus();
 
 // ── Controllers & Swagger ─────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

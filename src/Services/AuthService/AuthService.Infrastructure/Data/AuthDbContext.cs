@@ -5,8 +5,9 @@ namespace AuthService.Infrastructure.Data;
 public class AuthDbContext : DbContext
 {
     public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options) { }
-    public DbSet<User> Users => Set<User>(); //representation of Users table
+    public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PhoneOtp> PhoneOtps => Set<PhoneOtp>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -29,6 +30,14 @@ public class AuthDbContext : DbContext
             e.Property(rt => rt.Token).IsRequired().HasMaxLength(512);
             e.HasIndex(rt => rt.Token).IsUnique();
             e.Property(rt => rt.ExpiresAt).IsRequired();
+        });
+
+        mb.Entity<PhoneOtp>(e =>
+        {
+            e.HasKey(o => o.Id);
+            e.Property(o => o.Phone).IsRequired().HasMaxLength(20);
+            e.Property(o => o.OtpCode).IsRequired().HasMaxLength(10);
+            e.HasIndex(o => new { o.Phone, o.IsUsed });
         });
     }
 }

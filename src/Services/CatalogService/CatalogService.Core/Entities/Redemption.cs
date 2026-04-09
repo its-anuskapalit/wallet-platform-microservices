@@ -11,4 +11,5 @@ public class Redemption : BaseEntity
     public int PointsUsed { get; set; }
     public RedemptionStatus Status { get; set; } = RedemptionStatus.Pending;
     public string? FailureReason { get; set; }
+    public string? VoucherCode { get; set; }
 }

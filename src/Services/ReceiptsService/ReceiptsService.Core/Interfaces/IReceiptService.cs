@@ -16,4 +16,7 @@ public interface IReceiptService
 
     /// <summary>Generates a UTF-8 CSV file of the user's transaction receipts and returns it as raw bytes.</summary>
     Task<Result<byte[]>> ExportCsvAsync(Guid userId);
+
+    /// <summary>Generates a PDF receipt for the specified transaction and returns raw bytes.</summary>
+    Task<Result<byte[]>> GetPdfAsync(Guid transactionId);
 }

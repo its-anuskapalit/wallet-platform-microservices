@@ -22,29 +22,17 @@ public class RewardsDomainService : IRewardsService
         _rewards = rewards;
     }
 
-    /// <summary>Retrieves the rewards account summary for the specified user.</summary>
-    /// <param name="userId">The user's unique identifier.</param>
-    /// <returns>A successful result with account summary; or a failure if no rewards account exists.</returns>
+    /// <summary>Retrieves the rewards account summary for the specified user, auto-creating if missing.</summary>
     public async Task<Result<RewardsDto>> GetRewardsAsync(Guid userId)
     {
-        var account = await _rewards.GetByUserIdAsync(userId);
-        if (account is null)
-        {
-            return Result<RewardsDto>.Failure("Rewards account not found.");
-        }
+        var account = await EnsureAccountAsync(userId);
         return Result<RewardsDto>.Success(MapToDto(account));
     }
 
     /// <summary>Retrieves the points transaction history for the specified user, ordered newest-first.</summary>
-    /// <param name="userId">The user's unique identifier.</param>
-    /// <returns>A successful result with the ordered points history; or a failure if no account exists.</returns>
     public async Task<Result<IEnumerable<PointsTransactionDto>>> GetPointsHistoryAsync(Guid userId)
     {
-        var account = await _rewards.GetByUserIdAsync(userId);
-        if (account is null)
-        {
-            return Result<IEnumerable<PointsTransactionDto>>.Failure("Rewards account not found.");
-        }
+        var account = await EnsureAccountAsync(userId);
         var history = account.PointsTransactions
             .OrderByDescending(p => p.CreatedAt)
             .Select(p => new PointsTransactionDto
@@ -76,6 +64,59 @@ public class RewardsDomainService : IRewardsService
     /// <param name="amount">The transaction amount in the local currency.</param>
     /// <returns>The number of points to award, floored to the nearest integer.</returns>
     public static int CalculatePoints(decimal amount) => (int)Math.Floor(amount / 10);
+
+    /// <summary>Returns the rewards account for any userId, auto-creating if missing (used by CatalogService).</summary>
+    public async Task<Result<RewardsDto>> GetRewardsByUserIdAsync(Guid userId)
+    {
+        var account = await EnsureAccountAsync(userId);
+        return Result<RewardsDto>.Success(MapToDto(account));
+    }
+
+    /// <summary>Deducts points for a redemption. Returns failure if balance is insufficient.</summary>
+    public async Task<Result> DeductPointsAsync(Guid userId, int points, string description, Guid redemptionId)
+    {
+        var account = await EnsureAccountAsync(userId);
+
+        if (account.AvailablePoints < points)
+            return Result.Failure($"Insufficient points. You have {account.AvailablePoints} pts but need {points} pts.");
+
+        account.RedeemedPoints += points;
+        account.Tier            = CalculateTier(account.TotalPoints);
+        account.UpdatedAt       = DateTime.UtcNow;
+
+        await _rewards.AddPointsTransactionAsync(new Entities.PointsTransaction
+        {
+            RewardsAccountId = account.Id,
+            TransactionId    = redemptionId,
+            Points           = -points,
+            Description      = description
+        });
+
+        await _rewards.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Returns the rewards account for the given user, auto-creating a zero-balance account
+    /// if one does not exist (self-healing — handles cases where the signup event was missed).
+    /// </summary>
+    private async Task<Entities.RewardsAccount> EnsureAccountAsync(Guid userId)
+    {
+        var account = await _rewards.GetByUserIdAsync(userId);
+        if (account is not null) return account;
+
+        account = new Entities.RewardsAccount
+        {
+            UserId       = userId,
+            Email        = string.Empty,
+            TotalPoints  = 0,
+            RedeemedPoints = 0,
+            Tier         = RewardsTier.Bronze
+        };
+        await _rewards.AddAsync(account);
+        await _rewards.SaveChangesAsync();
+        return account;
+    }
 
     /// <summary>Maps a <see cref="Entities.RewardsAccount"/> entity to a <see cref="RewardsDto"/> for API responses.</summary>
     private static RewardsDto MapToDto(Entities.RewardsAccount a) => new()

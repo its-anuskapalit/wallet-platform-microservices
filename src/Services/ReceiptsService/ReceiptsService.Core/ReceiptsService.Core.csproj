@@ -6,6 +6,10 @@
     <ProjectReference Include="..\..\..\Shared\Shared.EventBus\Shared.EventBus.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="QuestPDF" Version="2024.3.4" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>

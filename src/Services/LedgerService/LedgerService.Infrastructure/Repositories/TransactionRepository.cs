@@ -39,8 +39,18 @@ public class TransactionRepository : ITransactionRepository
     /// </summary>
     /// <param name="userId">The user's unique identifier.</param>
     /// <returns>An ordered list of transactions involving the user.</returns>
-    public async Task<IEnumerable<Transaction>> GetBySenderUserIdAsync(Guid userId) =>
-        await _db.Transactions.Where(t => t.SenderUserId == userId || t.ReceiverUserId == userId).OrderByDescending(t => t.CreatedAt).ToListAsync();
+    public async Task<IEnumerable<Transaction>> GetBySenderUserIdAsync(Guid userId, int page = 1, int pageSize = 20) =>
+        await _db.Transactions
+            .Where(t => t.SenderUserId == userId || t.ReceiverUserId == userId)
+            .OrderByDescending(t => t.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+    public async Task<IEnumerable<Transaction>> GetAllByUserIdAsync(Guid userId) =>
+        await _db.Transactions
+            .Where(t => t.SenderUserId == userId || t.ReceiverUserId == userId)
+            .ToListAsync();
 
     /// <summary>Stages a new <see cref="Transaction"/> entity for insertion.</summary>
     /// <param name="transaction">The transaction to add.</param>

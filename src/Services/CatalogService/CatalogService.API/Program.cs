@@ -1,6 +1,7 @@
 using System.Text;
 using CatalogService.Core.Interfaces;
 using CatalogService.Core.Services;
+using CatalogService.Infrastructure.Clients;
 using CatalogService.Infrastructure.Data;
 using CatalogService.Infrastructure.Repositories;
 using dotenv.net;
@@ -53,7 +54,13 @@ builder.Services.AddScoped<IRedemptionRepository, RedemptionRepository>();
 builder.Services.AddScoped<ICatalogService, CatalogDomainService>();
 builder.Services.AddScoped<IRedemptionService, RedemptionDomainService>();
 
-builder.Services.AddControllers();
+// Typed HTTP client to call RewardsService
+var rewardsUrl = builder.Configuration["Services:RewardsUrl"] ?? "http://localhost:5005";
+builder.Services.AddHttpClient<IRewardsClient, HttpRewardsClient>(c =>
+    c.BaseAddress = new Uri(rewardsUrl));
+
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -85,11 +92,94 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Migrate and seed catalog items
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
     await db.Database.MigrateAsync();
+
+    if (db.CatalogItems.Count() < 10)
+    {
+        // Remove child rows first to satisfy FK constraint, then parent rows
+        db.Redemptions.RemoveRange(db.Redemptions);
+        db.CatalogItems.RemoveRange(db.CatalogItems);
+        await db.SaveChangesAsync();
+        db.CatalogItems.AddRange(
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Amazon Gift Card ₹500",
+                Description = "Redeem for an Amazon India gift voucher worth ₹500.",
+                PointsRequired = 500, Category = "Voucher", Stock = 50, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Amazon Gift Card ₹1000",
+                Description = "Redeem for an Amazon India gift voucher worth ₹1000.",
+                PointsRequired = 900, Category = "Voucher", Stock = 30, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "₹200 Wallet Cashback",
+                Description = "Get ₹200 credited directly to your wallet balance.",
+                PointsRequired = 200, Category = "Cashback", Stock = 100, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "₹500 Wallet Cashback",
+                Description = "Get ₹500 credited directly to your wallet balance.",
+                PointsRequired = 450, Category = "Cashback", Stock = 50, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Swiggy Voucher ₹300",
+                Description = "Order food worth ₹300 on Swiggy — free on us!",
+                PointsRequired = 300, Category = "Food", Stock = 40, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Zomato Pro Voucher",
+                Description = "1-month Zomato Pro membership with free deliveries.",
+                PointsRequired = 250, Category = "Food", Stock = 60, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "MakeMyTrip ₹1000 Off",
+                Description = "Flat ₹1000 discount on any flight or hotel booking.",
+                PointsRequired = 1000, Category = "Travel", Stock = 20, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Bus Pass (City 30-day)",
+                Description = "30-day unlimited city bus pass for any metro city.",
+                PointsRequired = 150, Category = "Travel", Stock = 80, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Myntra ₹500 Voucher",
+                Description = "Shop fashion & lifestyle on Myntra worth ₹500.",
+                PointsRequired = 480, Category = "Shopping", Stock = 35, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Flipkart SuperCoins Boost",
+                Description = "200 SuperCoins credited to your Flipkart account.",
+                PointsRequired = 120, Category = "Shopping", Stock = 100, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Netflix 1-Month",
+                Description = "Enjoy 1 month of Netflix Standard plan on us.",
+                PointsRequired = 600, Category = "Entertainment", Stock = 25, IsActive = true
+            },
+            new CatalogService.Core.Entities.CatalogItem
+            {
+                Id = Guid.NewGuid(), Name = "Spotify Premium 3 Months",
+                Description = "3 months of ad-free music streaming on Spotify.",
+                PointsRequired = 350, Category = "Entertainment", Stock = 45, IsActive = true
+            }
+        );
+        await db.SaveChangesAsync();
+    }
 }
 
 app.UseSwagger();

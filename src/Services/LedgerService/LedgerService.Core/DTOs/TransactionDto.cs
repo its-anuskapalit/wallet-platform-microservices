@@ -1,6 +1,16 @@
 // TransactionDto.cs
 namespace LedgerService.Core.DTOs;
 
+public class TransactionSummaryDto
+{
+    public decimal TotalSent { get; set; }
+    public decimal TotalReceived { get; set; }
+    public decimal ThisMonthSent { get; set; }
+    public decimal ThisMonthReceived { get; set; }
+    public int TotalTransactionCount { get; set; }
+    public int ThisMonthTransactionCount { get; set; }
+}
+
 public class TransactionDto
 {
     public Guid Id { get; set; }

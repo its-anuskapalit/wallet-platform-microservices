@@ -41,7 +41,6 @@ public class RewardsController : ControllerBase
     }
 
     /// <summary>Retrieves the points transaction history for the currently authenticated user, ordered newest-first.</summary>
-    /// <returns>200 with the points history list; 404 if no account exists.</returns>
     [HttpGet("history")]
     public async Task<IActionResult> GetHistory()
     {
@@ -49,4 +48,33 @@ public class RewardsController : ControllerBase
         if (!result.IsSuccess) return NotFound(new { error = result.Error });
         return Ok(result.Data);
     }
+
+    /// <summary>Returns the rewards account for any user by userId (internal — used by CatalogService).</summary>
+    [HttpGet("account/{userId:guid}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetByUserId(Guid userId)
+    {
+        var result = await _rewardsService.GetRewardsByUserIdAsync(userId);
+        if (!result.IsSuccess) return NotFound(new { error = result.Error });
+        return Ok(result.Data);
+    }
+
+    /// <summary>Deducts points for a catalog redemption (internal — called by CatalogService).</summary>
+    [HttpPost("deduct")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Deduct([FromBody] DeductPointsDto dto)
+    {
+        var result = await _rewardsService.DeductPointsAsync(
+            dto.UserId, dto.Points, dto.Description, dto.RedemptionId);
+        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        return NoContent();
+    }
+}
+
+public class DeductPointsDto
+{
+    public Guid UserId { get; set; }
+    public int Points { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public Guid RedemptionId { get; set; }
 }

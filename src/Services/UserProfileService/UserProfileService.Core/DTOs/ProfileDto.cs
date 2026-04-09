@@ -1,6 +1,7 @@
 using UserProfileService.Core.Enums;
+
 namespace UserProfileService.Core.DTOs;
-//send back to client 
+
 public class ProfileDto
 {
     public Guid UserId { get; set; }

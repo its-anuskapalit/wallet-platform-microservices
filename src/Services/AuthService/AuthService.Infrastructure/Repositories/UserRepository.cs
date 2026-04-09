@@ -68,4 +68,15 @@ public class UserRepository : IUserRepository
     }
     /// <summary>Persists all pending changes to the database.</summary>
     public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
+
+    /// <summary>Sets a new bcrypt password hash for the specified user.</summary>
+    public async Task UpdatePasswordHashAsync(Guid userId, string newPasswordHash)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        if (user is not null)
+        {
+            user.PasswordHash = newPasswordHash;
+            user.UpdatedAt    = DateTime.UtcNow;
+        }
+    }
 }

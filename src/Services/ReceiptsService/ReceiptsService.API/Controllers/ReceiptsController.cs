@@ -50,6 +50,17 @@ public class ReceiptsController : ControllerBase
         return Ok(result.Data);
     }
 
+    /// <summary>Downloads a formatted PDF receipt for the specified transaction.</summary>
+    /// <param name="transactionId">The unique identifier of the transaction.</param>
+    /// <returns>A PDF file; 404 if the receipt does not exist.</returns>
+    [HttpGet("transaction/{transactionId}/pdf")]
+    public async Task<IActionResult> GetPdf(Guid transactionId)
+    {
+        var result = await _receiptService.GetPdfAsync(transactionId);
+        if (!result.IsSuccess) return NotFound(new { error = result.Error });
+        return File(result.Data!, "application/pdf", $"receipt-{transactionId}.pdf");
+    }
+
     /// <summary>Exports the currently authenticated user's transaction receipts as a downloadable CSV file.</summary>
     /// <returns>A CSV file attachment named <c>transactions_YYYYMMDD.csv</c>; 400 on failure.</returns>
     [HttpGet("export/csv")]

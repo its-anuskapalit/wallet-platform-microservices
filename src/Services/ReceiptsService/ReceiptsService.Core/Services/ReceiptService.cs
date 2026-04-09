@@ -65,6 +65,17 @@ public class ReceiptDomainService : IReceiptService
         return Result<byte[]>.Success(bytes);
     }
 
+    /// <summary>Generates a PDF receipt for the specified transaction.</summary>
+    public async Task<Result<byte[]>> GetPdfAsync(Guid transactionId)
+    {
+        var receipt = await _receipts.GetByTransactionIdAsync(transactionId);
+        if (receipt is null)
+            return Result<byte[]>.Failure("Receipt not found.");
+
+        var pdfBytes = ReceiptPdfGenerator.Generate(MapToDto(receipt));
+        return Result<byte[]>.Success(pdfBytes);
+    }
+
     /// <summary>Maps a <see cref="Entities.Receipt"/> entity to a <see cref="ReceiptDto"/> for API responses.</summary>
     private static ReceiptDto MapToDto(Entities.Receipt r) => new()
     {

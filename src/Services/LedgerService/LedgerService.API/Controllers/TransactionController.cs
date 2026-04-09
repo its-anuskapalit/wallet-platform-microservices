@@ -30,19 +30,39 @@ public class TransactionController : ControllerBase
     private Guid CurrentUserId =>Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)?? User.FindFirstValue("sub")!);
 
     /// <summary>Initiates a new financial transaction between two wallets.</summary>
-    /// <param name="dto">Transaction initiation payload including sender/receiver wallets and amount.</param>
-    /// <returns>200 with the created transaction; 400 on validation failure.</returns>
     [HttpPost]
     public async Task<IActionResult> Initiate([FromBody] InitiateTransactionDto dto)
     {
+        dto.SenderUserId = CurrentUserId;
+
+        if (string.IsNullOrWhiteSpace(dto.IdempotencyKey))
+            dto.IdempotencyKey = Guid.NewGuid().ToString();
+
+        if (string.IsNullOrWhiteSpace(dto.Type))     dto.Type     = "Transfer";
+        if (string.IsNullOrWhiteSpace(dto.Currency)) dto.Currency = "INR";
+
+        // Validate receiver is not the sender
+        if (dto.ReceiverUserId == Guid.Empty)
+            return BadRequest(new { error = "Receiver user ID is required." });
+        if (dto.ReceiverUserId == CurrentUserId)
+            return BadRequest(new { error = "You cannot send money to yourself." });
+        if (dto.Amount <= 0)
+            return BadRequest(new { error = "Amount must be greater than zero." });
+
         var result = await _transactionService.InitiateAsync(dto);
         if (!result.IsSuccess) return BadRequest(new { error = result.Error });
         return Ok(result.Data);
     }
 
+    /// <summary>Returns aggregate transaction stats for the authenticated user.</summary>
+    [HttpGet("summary")]
+    public async Task<IActionResult> GetSummary()
+    {
+        var result = await _transactionService.GetSummaryAsync(CurrentUserId);
+        return Ok(result.Data);
+    }
+
     /// <summary>Retrieves a transaction by its unique identifier.</summary>
-    /// <param name="transactionId">The transaction's unique identifier.</param>
-    /// <returns>200 with the transaction; 404 if not found.</returns>
     [HttpGet("{transactionId}")]
     public async Task<IActionResult> GetById(Guid transactionId)
     {
@@ -51,12 +71,11 @@ public class TransactionController : ControllerBase
         return Ok(result.Data);
     }
 
-    /// <summary>Retrieves all transactions initiated by the currently authenticated user.</summary>
-    /// <returns>200 with the list of outbound transactions.</returns>
+    /// <summary>Retrieves all transactions for the currently authenticated user (sent and received), with optional pagination.</summary>
     [HttpGet("my")]
-    public async Task<IActionResult> GetMyTransactions()
+    public async Task<IActionResult> GetMyTransactions([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
-        var result = await _transactionService.GetMyTransactionsAsync(CurrentUserId);
+        var result = await _transactionService.GetMyTransactionsAsync(CurrentUserId, page, pageSize);
         return Ok(result.Data);
     }
 }

@@ -144,13 +144,33 @@ public class TransactionService : ITransactionService
         return Result<TransactionDto>.Success(MapToDto(transaction));
     }
 
-    /// <summary>Retrieves all transactions initiated by the specified user.</summary>
-    /// <param name="userId">The sender user's unique identifier.</param>
-    /// <returns>A successful result containing the user's outbound transactions.</returns>
-    public async Task<Result<IEnumerable<TransactionDto>>> GetMyTransactionsAsync(Guid userId)
+    /// <summary>Retrieves paginated transactions for the specified user (sent and received).</summary>
+    public async Task<Result<IEnumerable<TransactionDto>>> GetMyTransactionsAsync(Guid userId, int page = 1, int pageSize = 20)
     {
-        var transactions = await _transactions.GetBySenderUserIdAsync(userId);
+        var transactions = await _transactions.GetBySenderUserIdAsync(userId, page, pageSize);
         return Result<IEnumerable<TransactionDto>>.Success(transactions.Select(MapToDto));
+    }
+
+    /// <summary>Returns aggregate send/receive totals for the specified user.</summary>
+    public async Task<Result<TransactionSummaryDto>> GetSummaryAsync(Guid userId)
+    {
+        var all = (await _transactions.GetAllByUserIdAsync(userId)).ToList();
+        var now = DateTime.UtcNow;
+        var firstOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var sent      = all.Where(t => t.SenderUserId   == userId && t.Type == TransactionType.Transfer).ToList();
+        var received  = all.Where(t => t.ReceiverUserId == userId && t.Type == TransactionType.Transfer).ToList();
+        var thisMonth = all.Where(t => t.CreatedAt >= firstOfMonth).ToList();
+
+        return Result<TransactionSummaryDto>.Success(new TransactionSummaryDto
+        {
+            TotalSent                 = sent.Sum(t => t.Amount),
+            TotalReceived             = received.Sum(t => t.Amount),
+            ThisMonthSent             = thisMonth.Where(t => t.SenderUserId   == userId && t.Type == TransactionType.Transfer).Sum(t => t.Amount),
+            ThisMonthReceived         = thisMonth.Where(t => t.ReceiverUserId == userId && t.Type == TransactionType.Transfer).Sum(t => t.Amount),
+            TotalTransactionCount     = all.Count,
+            ThisMonthTransactionCount = thisMonth.Count
+        });
     }
 
     /// <summary>Maps a <see cref="Transaction"/> entity to a <see cref="TransactionDto"/> for API responses.</summary>

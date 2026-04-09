@@ -148,6 +148,26 @@ public class AuthDomainService : IAuthService
         return Result.Success();
     }
 
+    /// <summary>Verifies the current password, then sets a new bcrypt hash.</summary>
+    public async Task<Result> ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+    {
+        var user = await _users.GetByIdAsync(userId);
+        if (user is null)
+            return Result.Failure("User not found.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            return Result.Failure("Current password is incorrect.");
+
+        if (dto.NewPassword.Length < 8)
+            return Result.Failure("New password must be at least 8 characters.");
+
+        var newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _users.UpdatePasswordHashAsync(userId, newHash);
+        await _users.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     // ── Helpers ──────────────────────────────────────────────────
 
     /// <summary>Creates a new <see cref="RefreshToken"/> entity with a generated token and expiry for the given user.</summary>

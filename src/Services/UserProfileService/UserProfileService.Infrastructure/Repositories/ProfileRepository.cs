@@ -22,12 +22,16 @@ public class ProfileRepository : IProfileRepository
     }
 
     /// <summary>Retrieves a user profile by user identifier, including the associated KYC document.</summary>
-    /// <param name="userId">The user's unique identifier.</param>
-    /// <returns>The matching <see cref="UserProfile"/> with KYC document, or <c>null</c> if not found.</returns>
     public async Task<UserProfile?> GetByUserIdAsync(Guid userId) =>
         await _db.UserProfiles
             .Include(p => p.KycDocument)
             .FirstOrDefaultAsync(p => p.UserId == userId);
+
+    /// <summary>Retrieves a user profile by email address, including the associated KYC document.</summary>
+    public async Task<UserProfile?> GetByEmailAsync(string email) =>
+        await _db.UserProfiles
+            .Include(p => p.KycDocument)
+            .FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower());
 
     /// <summary>Checks whether a profile already exists for the given user.</summary>
     /// <param name="userId">The user's unique identifier.</param>
@@ -39,6 +43,15 @@ public class ProfileRepository : IProfileRepository
     /// <param name="profile">The profile to add.</param>
     public async Task AddAsync(UserProfile profile) =>
         await _db.UserProfiles.AddAsync(profile);
+
+    /// <summary>Returns all profiles with pagination, ordered by creation date descending.</summary>
+    public async Task<(IEnumerable<UserProfile> Items, int Total)> GetAllAsync(int page, int pageSize)
+    {
+        var query = _db.UserProfiles.Include(p => p.KycDocument).OrderByDescending(p => p.CreatedAt);
+        var total = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        return (items, total);
+    }
 
     /// <summary>Persists all pending changes to the database.</summary>
     public async Task SaveChangesAsync() =>

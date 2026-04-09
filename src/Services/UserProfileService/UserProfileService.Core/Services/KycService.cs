@@ -45,16 +45,32 @@ public class KycService : IKycService
         {
             return Result<string>.Failure("Profile not found.");
         }
-        if (profile.KycDocument is not null)
+        // Allow resubmission only if previously rejected
+        if (profile.KycDocument is not null && profile.KycDocument.Status != KycStatus.Rejected)
         {
-            return Result<string>.Failure("KYC already submitted.");
+            return Result<string>.Failure("KYC already submitted and is pending or approved.");
         }
+
+        if (profile.KycDocument?.Status == KycStatus.Rejected)
+        {
+            // Update existing rejected document instead of creating a new one
+            profile.KycDocument.DocumentType     = dto.DocumentType;
+            profile.KycDocument.DocumentNumber   = dto.DocumentNumber;
+            profile.KycDocument.Status           = KycStatus.Pending;
+            profile.KycDocument.RejectionReason  = null;
+            profile.KycDocument.ReviewedAt       = null;
+            profile.KycDocument.ReviewedBy       = null;
+            profile.KycDocument.UpdatedAt        = DateTime.UtcNow;
+            await _kyc.SaveChangesAsync();
+            return Result<string>.Success("KYC resubmitted successfully. Pending review.");
+        }
+
         var doc = new KycDocument
         {
-            UserProfileId = profile.Id,
-            DocumentType = dto.DocumentType,
+            UserProfileId  = profile.Id,
+            DocumentType   = dto.DocumentType,
             DocumentNumber = dto.DocumentNumber,
-            Status = KycStatus.Pending
+            Status         = KycStatus.Pending
         };
 
         await _kyc.AddAsync(doc);
