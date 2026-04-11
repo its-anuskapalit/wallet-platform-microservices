@@ -11,4 +11,6 @@ public class TransactionCompletedEvent
     public string Currency { get; set; } = "INR";
     public string TransactionType { get; set; } = string.Empty; // Transfer, TopUp, Payment
     public DateTime CompletedAt { get; set; }
+    /// <summary>Optional human-readable context for receipts (e.g. bill split title, emails).</summary>
+    public string? Memo { get; set; }
 }

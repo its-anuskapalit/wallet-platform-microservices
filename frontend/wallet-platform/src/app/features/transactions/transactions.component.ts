@@ -8,6 +8,9 @@ import { ReceiptService } from '../../core/services/receipt.service';
 import { Transaction } from '../../core/models/transaction.models';
 import { UserProfile } from '../../core/models/profile.models';
 import { Wallet } from '../../core/models/wallet.models';
+import { BalanceVisibilityService } from '../../core/services/balance-visibility.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ClipboardService } from '../../core/services/clipboard.service';
 
 type SendStep = 'email' | 'confirm';
 
@@ -45,6 +48,31 @@ type SendStep = 'email' | 'confirm';
         <span class="label-sm text-muted">{{ filteredTxns().length }} records</span>
       </div>
 
+      <!-- Search + Date Range -->
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--on-surface-variant)" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M13 13l-3-3"/></svg>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search by type, amount or ID…"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+          @if (searchQuery()) {
+            <button class="search-clear" (click)="searchQuery.set('')">×</button>
+          }
+        </div>
+        <div class="date-range">
+          <input type="date" class="date-input" [value]="dateFrom()" (change)="dateFrom.set($any($event.target).value)" title="From date"/>
+          <span class="date-sep">—</span>
+          <input type="date" class="date-input" [value]="dateTo()" (change)="dateTo.set($any($event.target).value)" title="To date"/>
+          @if (dateFrom() || dateTo()) {
+            <button class="search-clear" (click)="dateFrom.set(''); dateTo.set('')">×</button>
+          }
+        </div>
+      </div>
+
       <!-- Table -->
       <div class="card table-card">
         @if (loading()) {
@@ -67,43 +95,53 @@ type SendStep = 'email' | 'confirm';
           <div class="table-header">
             <span></span><span>Transaction</span><span>Amount</span><span>Date</span><span>Status</span><span></span>
           </div>
-          @for (txn of filteredTxns(); track txn.id) {
-            <div class="table-row" (click)="selectedTxn.set(txn)" style="cursor:pointer;">
-              <div class="txn-type-icon" [class]="txnIconClass(txn)">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                  @if (txn.type === 'TopUp') { <path d="M8 3v10M3 8h10"/> }
-                  @else { <path d="M14 2L2 6l5 3 3 5 4-12z"/> }
-                </svg>
+          @for (group of groupedTxns(); track group.label) {
+            <div class="date-group-label">{{ group.label }}</div>
+            @for (txn of group.txns; track txn.id) {
+              <div class="table-row" (click)="selectedTxn.set(txn)" style="cursor:pointer;">
+                <div class="txn-type-icon" [class]="txnIconClass(txn)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    @if (txn.type === 'TopUp') { <path d="M8 3v10M3 8h10"/> }
+                    @else { <path d="M14 2L2 6l5 3 3 5 4-12z"/> }
+                  </svg>
+                </div>
+                <div class="txn-meta">
+                  <span class="title-sm">{{ txnLabel(txn) }}</span>
+                  <div class="txn-ref-row">
+                    <span class="label-sm text-muted">Ref: {{ txn.id | slice:0:8 }}…</span>
+                    <button
+                      type="button"
+                      class="btn-copy-ref"
+                      title="Copy transaction ID"
+                      aria-label="Copy transaction ID"
+                      (click)="copyTxnId(txn.id, $event)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="txn-amount" [class]="amountClass(txn)">
+                  {{ isCredit(txn) ? '+' : '-' }}{{ txn.amount | currency:txn.currency }}
+                </div>
+                <div class="label-md text-muted">{{ txn.createdAt | date:'h:mm a' }}</div>
+                <span class="badge" [class]="statusClass(txn.status)">{{ txn.status }}</span>
+                <button class="btn-pdf" title="Download PDF Receipt"
+                        [disabled]="downloadingPdfId() === txn.id"
+                        (click)="$event.stopPropagation(); downloadPdf(txn)">
+                  @if (downloadingPdfId() === txn.id) {
+                    <span class="spinner-sm"></span>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M2 11h10"/></svg>
+                  }
+                </button>
               </div>
-              <div class="txn-meta">
-                <span class="title-sm">{{ txnLabel(txn) }}</span>
-                <span class="label-sm text-muted">Ref: {{ txn.id | slice:0:8 }}…</span>
-              </div>
-              <div class="txn-amount" [class]="amountClass(txn)">
-                {{ isCredit(txn) ? '+' : '-' }}{{ txn.amount | currency:txn.currency }}
-              </div>
-              <div class="label-md text-muted">{{ txn.createdAt | date:'MMM d, yyyy' }}</div>
-              <span class="badge" [class]="statusClass(txn.status)">{{ txn.status }}</span>
-              <button class="btn-pdf" title="Download PDF Receipt"
-                      [disabled]="downloadingPdfId() === txn.id"
-                      (click)="$event.stopPropagation(); downloadPdf(txn)">
-                @if (downloadingPdfId() === txn.id) {
-                  <span class="spinner-sm"></span>
-                } @else {
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M2 11h10"/></svg>
-                }
-              </button>
-            </div>
+            }
           }
         }
       </div>
 
-      @if (successMsg()) {
-        <div class="alert-success" style="margin-top:16px;">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
-          {{ successMsg() }}
-        </div>
-      }
     </div>
 
     <!-- ══ Send Money Modal ══ -->
@@ -175,7 +213,12 @@ type SendStep = 'email' | 'confirm';
                     <span class="field-error">Enter a valid amount</span>
                   }
                   <p class="label-sm text-muted" style="margin-top:6px;">
-                    Available: {{ senderWallet()?.balance | currency:senderWallet()?.currency }}
+                    Available:
+                    @if (balanceVis.visible()) {
+                      {{ senderWallet()?.balance | currency:senderWallet()?.currency }}
+                    } @else {
+                      <span style="letter-spacing:0.06em;user-select:none;">{{ balanceVis.maskedAmount(senderWallet()?.currency) }}</span>
+                    }
                   </p>
                 </div>
 
@@ -245,9 +288,22 @@ type SendStep = 'email' | 'confirm';
               <span class="text-muted label-md">Date</span>
               <span class="title-sm">{{ selectedTxn()!.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
             </div>
-            <div class="detail-row">
+            <div class="detail-row detail-row--ref">
               <span class="text-muted label-md">Reference ID</span>
-              <span class="mono-text">{{ selectedTxn()!.id }}</span>
+              <div class="detail-ref-wrap">
+                <span class="mono-text detail-ref-text">{{ selectedTxn()!.id }}</span>
+                <button
+                  type="button"
+                  class="btn-copy-ref btn-copy-ref--detail"
+                  title="Copy reference ID"
+                  aria-label="Copy reference ID"
+                  (click)="copyTxnId(selectedTxn()!.id, $event)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -269,8 +325,79 @@ type SendStep = 'email' | 'confirm';
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       margin-bottom: 16px;
       flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-container-lowest);
+      border: 1.5px solid var(--outline-variant);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      flex: 1;
+      min-width: 220px;
+      transition: border-color 0.15s;
+
+      &:focus-within { border-color: var(--primary); }
+    }
+
+    .search-input {
+      border: none;
+      background: none;
+      outline: none;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--on-surface);
+      flex: 1;
+
+      &::placeholder { color: var(--on-surface-variant); opacity: 0.7; }
+    }
+
+    .search-clear {
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      color: var(--on-surface-variant);
+      padding: 0;
+      &:hover { color: var(--on-surface); }
+    }
+
+    .date-range {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-container-lowest);
+      border: 1.5px solid var(--outline-variant);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+    }
+
+    .date-input {
+      border: none;
+      background: none;
+      outline: none;
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--on-surface);
+      cursor: pointer;
+    }
+
+    .date-sep {
+      color: var(--on-surface-variant);
+      font-size: 13px;
     }
 
     .filter-btn {
@@ -305,6 +432,19 @@ type SendStep = 'email' | 'confirm';
       text-transform: uppercase;
     }
 
+    .date-group-label {
+      padding: 10px 20px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      background: var(--surface-container-low);
+      border-top: 1px solid var(--outline-variant);
+
+      &:first-of-type { border-top: none; }
+    }
+
     .table-row {
       display: grid;
       grid-template-columns: 36px 1fr auto auto auto 30px;
@@ -333,6 +473,54 @@ type SendStep = 'email' | 'confirm';
     }
 
     .txn-meta { display: flex; flex-direction: column; gap: 2px; }
+
+    .txn-ref-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-copy-ref {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-copy-ref:hover {
+      background: var(--surface-container);
+      color: var(--primary);
+    }
+
+    .detail-row--ref {
+      align-items: flex-start;
+    }
+
+    .detail-ref-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .detail-ref-text {
+      word-break: break-all;
+      font-size: 13px;
+    }
+
+    .btn-copy-ref--detail {
+      margin-top: 2px;
+    }
 
     .txn-amount { font-weight: 700; font-size: 14px; white-space: nowrap; }
     .txn-amount.amount-positive { color: var(--success); }
@@ -570,10 +758,16 @@ export class TransactionsComponent implements OnInit {
   private profileSvc  = inject(ProfileService);
   private receiptSvc  = inject(ReceiptService);
   private fb          = inject(FormBuilder);
+  balanceVis          = inject(BalanceVisibilityService);
+  private toast       = inject(ToastService);
+  private clipboard   = inject(ClipboardService);
 
-  transactions    = signal<Transaction[]>([]);
-  loading         = signal(true);
-  activeFilter    = signal<string>('all');
+  transactions     = signal<Transaction[]>([]);
+  loading          = signal(true);
+  activeFilter     = signal<string>('all');
+  searchQuery      = signal('');
+  dateFrom         = signal('');
+  dateTo           = signal('');
   downloadingPdfId = signal<string | null>(null);
 
   showSendModal       = signal(false);
@@ -584,7 +778,6 @@ export class TransactionsComponent implements OnInit {
   recipientError      = signal<string | null>(null);
   submitting          = signal(false);
   sendError           = signal<string | null>(null);
-  successMsg          = signal<string | null>(null);
   selectedTxn         = signal<Transaction | null>(null);
   senderWallet        = signal<Wallet | null>(null);
 
@@ -601,9 +794,42 @@ export class TransactionsComponent implements OnInit {
   ];
 
   filteredTxns = computed(() => {
+    let txns = this.transactions();
     const f = this.activeFilter();
-    if (f === 'all') return this.transactions();
-    return this.transactions().filter(t => t.status === f);
+    if (f !== 'all') txns = txns.filter(t => t.status === f);
+    const q = this.searchQuery().trim().toLowerCase();
+    if (q) txns = txns.filter(t =>
+      t.type.toLowerCase().includes(q) ||
+      t.id.toLowerCase().includes(q) ||
+      (t.amount?.toString() ?? '').includes(q)
+    );
+    const from = this.dateFrom();
+    if (from) txns = txns.filter(t => new Date(t.createdAt) >= new Date(from));
+    const to = this.dateTo();
+    if (to) txns = txns.filter(t => new Date(t.createdAt) <= new Date(to + 'T23:59:59'));
+    return txns;
+  });
+
+  groupedTxns = computed(() => {
+    const txns = this.filteredTxns();
+    const today     = new Date(); today.setHours(0,0,0,0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const groups: { label: string; key: string; txns: Transaction[] }[] = [];
+    const map = new Map<string, Transaction[]>();
+
+    for (const txn of txns) {
+      const d = new Date(txn.createdAt); d.setHours(0,0,0,0);
+      let key: string;
+      if (d.getTime() === today.getTime())          key = 'Today';
+      else if (d.getTime() === yesterday.getTime()) key = 'Yesterday';
+      else                                          key = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(txn);
+    }
+
+    map.forEach((t, label) => groups.push({ label, key: label, txns: t }));
+    return groups;
   });
 
   emailForm  = this.fb.group({ email: ['', [Validators.required, Validators.email]] });
@@ -685,7 +911,9 @@ export class TransactionsComponent implements OnInit {
         this.transactions.update(list => [txn, ...list]);
         this.submitting.set(false);
         this.closeSendModal();
-        this.successMsg.set(`₹${this.amountForm.value.amount} sent to ${recipient.fullName} successfully.`);
+        this.toast.success(
+          `${sender.currency} ${this.amountForm.value.amount} sent to ${recipient.fullName}.`
+        );
         // Refresh wallet balance
         this.walletSvc.getWallet().subscribe(w => this.senderWallet.set(w));
       },
@@ -727,6 +955,11 @@ export class TransactionsComponent implements OnInit {
     return map[status] ?? 'badge badge-neutral';
   }
 
+  copyTxnId(id: string, ev: Event): void {
+    ev.stopPropagation();
+    void this.clipboard.copy(id, 'Transaction ID copied');
+  }
+
   downloadPdf(txn: Transaction): void {
     this.downloadingPdfId.set(txn.id);
     this.receiptSvc.downloadPdf(txn.id).subscribe({
@@ -738,11 +971,11 @@ export class TransactionsComponent implements OnInit {
         link.click();
         URL.revokeObjectURL(url);
         this.downloadingPdfId.set(null);
+        this.toast.success('Receipt downloaded');
       },
       error: () => {
         this.downloadingPdfId.set(null);
-        // Receipt may not be generated yet for very recent transactions
-        alert('Receipt not available yet for this transaction.');
+        this.toast.warning('Receipt not available yet for this transaction.');
       }
     });
   }
@@ -769,5 +1002,6 @@ export class TransactionsComponent implements OnInit {
     link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    this.toast.info(`Exported ${rows.length} transactions to CSV`);
   }
 }

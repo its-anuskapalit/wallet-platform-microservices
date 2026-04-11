@@ -2,7 +2,6 @@ using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-
 namespace Shared.Common.Middleware;
 
 /// <summary>
@@ -37,10 +36,7 @@ public class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception on {Method} {Path}",
-                context.Request.Method,
-                context.Request.Path);
-
+            _logger.LogError(ex, "Unhandled exception on {Method} {Path}",context.Request.Method,context.Request.Path);
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -61,15 +57,10 @@ public class GlobalExceptionMiddleware
             _                         => HttpStatusCode.InternalServerError
         };
 
-        var message = statusCode == HttpStatusCode.InternalServerError
-            ? "An unexpected error occurred."
-            : ex.Message;
-
+        var message = statusCode == HttpStatusCode.InternalServerError ? "An unexpected error occurred." : ex.Message;
         var response = JsonSerializer.Serialize(new { error = message });
-
         context.Response.ContentType = "application/json";
         context.Response.StatusCode  = (int)statusCode;
-
         return context.Response.WriteAsync(response);
     }
 }

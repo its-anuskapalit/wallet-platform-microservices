@@ -11,4 +11,6 @@ public class InitiateTransactionDto
     public string Currency { get; set; } = "INR";
     public string Type { get; set; } = "Transfer";
     public string IdempotencyKey { get; set; } = string.Empty;
+    /// <summary>Optional note for receipts (bill split, transfer description). Max length enforced in API.</summary>
+    public string? Memo { get; set; }
 }

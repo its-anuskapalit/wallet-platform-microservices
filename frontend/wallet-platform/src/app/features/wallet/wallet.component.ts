@@ -4,6 +4,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { WalletService } from '../../core/services/wallet.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { TransactionService } from '../../core/services/transaction.service';
+import { WalletNicknameService } from '../../core/services/wallet-nickname.service';
+import { BalanceVisibilityService } from '../../core/services/balance-visibility.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ClipboardService } from '../../core/services/clipboard.service';
 import { Wallet } from '../../core/models/wallet.models';
 import { UserProfile } from '../../core/models/profile.models';
 
@@ -27,11 +31,57 @@ type ModalType = 'topup' | 'send' | null;
         <div class="skeleton" style="height: 200px; border-radius: 24px; margin-bottom: 28px;"></div>
       } @else if (wallet()) {
         <div class="wallet-hero" [class.frozen]="wallet()!.isFrozen">
+          <!-- Nickname row -->
+          <div class="wallet-nickname-row">
+            @if (editingNickname()) {
+              <input
+                #nicknameInput
+                class="nickname-input"
+                [value]="nicknameSvc.nickname()"
+                placeholder="e.g. My Business Wallet"
+                maxlength="40"
+                (keyup.enter)="saveNickname(nicknameInput.value)"
+                (keyup.escape)="editingNickname.set(false)"
+                (blur)="saveNickname(nicknameInput.value)"
+                autofocus
+              />
+            } @else {
+              <span class="nickname-display" (click)="startEditNickname()">
+                {{ nicknameSvc.nickname() || 'Personal Wallet' }}
+                <svg class="edit-pencil" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2l2 2L4 11H2V9L9 2z"/></svg>
+              </span>
+            }
+          </div>
+
           <div class="wallet-hero-top">
             <div>
               <p class="wallet-hero-label">Available Balance</p>
-              <div class="wallet-hero-balance">
-                {{ wallet()!.balance | currency:wallet()!.currency }}
+              <div class="wallet-hero-balance-row">
+                <div class="wallet-hero-balance-slot">
+                  @if (balanceVis.visible()) {
+                    <div class="wallet-hero-balance">{{ wallet()!.balance | currency:wallet()!.currency }}</div>
+                  } @else {
+                    <div class="wallet-hero-balance balance-masked">{{ balanceVis.maskedAmount(wallet()!.currency) }}</div>
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="balance-visibility-btn-hero"
+                  (click)="balanceVis.toggle()"
+                  [attr.aria-label]="balanceVis.visible() ? 'Hide balance' : 'Show balance'"
+                  [attr.aria-pressed]="!balanceVis.visible()">
+                  @if (balanceVis.visible()) {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1 4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  } @else {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  }
+                </button>
               </div>
             </div>
             <div class="wallet-chip">
@@ -45,7 +95,20 @@ type ModalType = 'topup' | 'send' | null;
           <div class="wallet-hero-bottom">
             <div class="wallet-id">
               <p class="wallet-label-sm">Wallet ID</p>
-              <p class="wallet-id-value">•••• •••• {{ shortId(wallet()!.id) }}</p>
+              <div class="wallet-id-row">
+                <p class="wallet-id-value">•••• •••• {{ shortId(wallet()!.id) }}</p>
+                <button
+                  type="button"
+                  class="copy-id-btn"
+                  (click)="copyWalletId(wallet()!.id)"
+                  title="Copy full wallet ID"
+                  aria-label="Copy full wallet ID">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                </button>
+              </div>
             </div>
             @if (wallet()!.isFrozen) {
               <div class="frozen-badge">
@@ -108,13 +171,6 @@ type ModalType = 'topup' | 'send' | null;
         </div>
       </div>
 
-      <!-- Success/Error message -->
-      @if (successMsg()) {
-        <div class="alert-success">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
-          {{ successMsg() }}
-        </div>
-      }
       @if (errorMsg()) {
         <div class="alert-error">{{ errorMsg() }}</div>
       }
@@ -179,7 +235,14 @@ type ModalType = 'topup' | 'send' | null;
                   <label>Amount ({{ wallet()?.currency ?? 'INR' }})</label>
                   <input type="number" class="form-control" [formControl]="sendForm.controls.amount"
                          placeholder="0.00" min="0.01" step="0.01"/>
-                  <p class="label-sm text-muted" style="margin-top:6px;">Balance: {{ wallet()?.balance | currency:wallet()?.currency }}</p>
+                  <p class="label-sm text-muted" style="margin-top:6px;">
+                    Balance:
+                    @if (balanceVis.visible()) {
+                      {{ wallet()?.balance | currency:wallet()?.currency }}
+                    } @else {
+                      <span class="balance-masked-inline">{{ balanceVis.maskedAmount(wallet()?.currency) }}</span>
+                    }
+                  </p>
                 </div>
               }
 
@@ -207,6 +270,46 @@ type ModalType = 'topup' | 'send' | null;
       justify-content: space-between;
       margin-bottom: 28px;
       h1 { margin-top: 4px; }
+    }
+
+    /* ── Wallet Nickname ── */
+    .wallet-nickname-row {
+      margin-bottom: 16px;
+    }
+
+    .nickname-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-bottom: 1px dashed rgba(255,255,255,0.35);
+      padding-bottom: 1px;
+      transition: color 0.15s;
+
+      &:hover { color: white; .edit-pencil { opacity: 1; } }
+    }
+
+    .edit-pencil { opacity: 0.55; transition: opacity 0.15s; }
+
+    .nickname-input {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 8px;
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 4px 10px;
+      outline: none;
+      width: 220px;
+
+      &::placeholder { color: rgba(255,255,255,0.5); }
+      &:focus { border-color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.2); }
     }
 
     .wallet-hero {
@@ -252,12 +355,66 @@ type ModalType = 'topup' | 'send' | null;
       margin-bottom: 8px;
     }
 
+    .wallet-hero-balance-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: nowrap;
+      min-height: 3.5rem;
+    }
+
+    .wallet-hero-balance-slot {
+      flex: 1;
+      min-width: 0;
+      min-height: 3.5rem;
+      display: flex;
+      align-items: center;
+    }
+
     .wallet-hero-balance {
       font-family: var(--font-display);
       font-size: 2.75rem;
       font-weight: 800;
       color: white;
       letter-spacing: -0.02em;
+    }
+
+    .wallet-hero-balance.balance-masked {
+      letter-spacing: 0.08em;
+      user-select: none;
+    }
+
+    .balance-masked-inline {
+      letter-spacing: 0.06em;
+      user-select: none;
+    }
+
+    .balance-visibility-btn-hero {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+      transition: background 0.15s ease;
+    }
+
+    .balance-visibility-btn-hero:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .balance-visibility-btn-hero:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.85);
+      outline-offset: 2px;
+    }
+
+    .wallet-hero.frozen .balance-visibility-btn-hero {
+      background: rgba(255, 255, 255, 0.14);
     }
 
     .wallet-hero-bottom {
@@ -274,10 +431,41 @@ type ModalType = 'topup' | 'send' | null;
       margin-bottom: 4px;
     }
 
+    .wallet-id-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .wallet-id-value {
       font-size: 16px;
       font-weight: 600;
       letter-spacing: 0.08em;
+      margin: 0;
+    }
+
+    .copy-id-btn {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.18);
+      color: white;
+      transition: background 0.15s ease;
+    }
+
+    .copy-id-btn:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .wallet-hero.frozen .copy-id-btn {
+      background: rgba(255, 255, 255, 0.12);
     }
 
     .currency-tag {
@@ -446,13 +634,24 @@ export class WalletComponent implements OnInit {
   private profileSvc = inject(ProfileService);
   private txnSvc     = inject(TransactionService);
   private fb         = inject(FormBuilder);
+  nicknameSvc        = inject(WalletNicknameService);
+  balanceVis         = inject(BalanceVisibilityService);
+  private toast      = inject(ToastService);
+  private clipboard  = inject(ClipboardService);
 
-  wallet        = signal<Wallet | null>(null);
-  loadingWallet = signal(true);
-  activeModal   = signal<ModalType>(null);
-  submitting    = signal(false);
-  successMsg    = signal<string | null>(null);
-  errorMsg      = signal<string | null>(null);
+  wallet          = signal<Wallet | null>(null);
+  loadingWallet   = signal(true);
+  activeModal     = signal<ModalType>(null);
+  submitting      = signal(false);
+  errorMsg        = signal<string | null>(null);
+  editingNickname = signal(false);
+
+  startEditNickname(): void { this.editingNickname.set(true); }
+
+  saveNickname(value: string): void {
+    this.nicknameSvc.save(value);
+    this.editingNickname.set(false);
+  }
   topUpIdempotencyKey = '';
 
   resolvingRecipient      = signal(false);
@@ -487,7 +686,6 @@ export class WalletComponent implements OnInit {
 
   openModal(type: ModalType): void {
     this.activeModal.set(type);
-    this.successMsg.set(null);
     this.errorMsg.set(null);
     this.topUpForm.reset();
     this.sendForm.reset();
@@ -540,7 +738,7 @@ export class WalletComponent implements OnInit {
         this.wallet.set(w);
         this.submitting.set(false);
         this.closeModal();
-        this.successMsg.set(`Successfully added ${amount} to your wallet.`);
+        this.toast.success(`Added ${w.currency} ${amount} to your wallet.`);
       },
       error: err => {
         this.submitting.set(false);
@@ -572,7 +770,7 @@ export class WalletComponent implements OnInit {
       next: () => {
         this.submitting.set(false);
         this.closeModal();
-        this.successMsg.set(`${sender.currency} ${amount} sent to ${recipient.fullName} successfully.`);
+        this.toast.success(`${sender.currency} ${amount} sent to ${recipient.fullName}.`);
         this.loadWallet();
       },
       error: err => {
@@ -580,6 +778,10 @@ export class WalletComponent implements OnInit {
         this.errorMsg.set(err.error?.error ?? 'Transfer failed. Please try again.');
       }
     });
+  }
+
+  copyWalletId(id: string): void {
+    void this.clipboard.copy(id, 'Wallet ID copied');
   }
 
   shortId(id: string): string {

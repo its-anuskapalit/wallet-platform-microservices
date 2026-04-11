@@ -48,6 +48,8 @@ public class TransactionController : ControllerBase
             return BadRequest(new { error = "You cannot send money to yourself." });
         if (dto.Amount <= 0)
             return BadRequest(new { error = "Amount must be greater than zero." });
+        if (!string.IsNullOrEmpty(dto.Memo) && dto.Memo.Length > 1500)
+            return BadRequest(new { error = "Memo must be at most 1500 characters." });
 
         var result = await _transactionService.InitiateAsync(dto);
         if (!result.IsSuccess) return BadRequest(new { error = result.Error });

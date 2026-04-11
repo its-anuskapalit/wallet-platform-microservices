@@ -31,4 +31,6 @@ export interface InitiateTransactionRequest {
   currency?: string;
   type?: string;
   idempotencyKey?: string;
+  /** Optional note included on PDF receipts */
+  memo?: string;
 }

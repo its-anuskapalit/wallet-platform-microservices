@@ -3,6 +3,9 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
+import { ClipboardService } from '../../core/services/clipboard.service';
+import { SkeletonBlockComponent } from '../../shared/skeleton-block/skeleton-block.component';
 import { UserProfile, KycStatus } from '../../core/models/profile.models';
 
 type KycStep = 'personal' | 'document' | 'status';
@@ -10,7 +13,7 @@ type KycStep = 'personal' | 'document' | 'status';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, DatePipe, ReactiveFormsModule],
+  imports: [CommonModule, DatePipe, ReactiveFormsModule, SkeletonBlockComponent],
   template: `
     <div class="profile-page page-enter">
 
@@ -21,13 +24,31 @@ type KycStep = 'personal' | 'document' | 'status';
         </div>
       </div>
 
+      @if (loadingProfile()) {
+        <app-skeleton-block h="200px" radius="16px" mb="24px" />
+        <div class="profile-skel-grid">
+          <app-skeleton-block h="520px" radius="16px" />
+          <app-skeleton-block h="520px" radius="16px" />
+        </div>
+      } @else {
+
       <!-- ── Top: Avatar card ─────────────────────────────────────────── -->
       <div class="card avatar-card">
         <div class="avatar-wrap">
           <div class="avatar">{{ initials() }}</div>
           <div class="avatar-info">
             <h2 class="title-lg">{{ profile()?.fullName || '—' }}</h2>
-            <p class="body-sm text-muted">{{ profile()?.email }}</p>
+            <div class="email-copy-row">
+              <p class="body-sm text-muted">{{ profile()?.email }}</p>
+              @if (profile()?.email) {
+                <button type="button" class="btn-copy-email" (click)="copyProfileEmail()" title="Copy email" aria-label="Copy email">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                </button>
+              }
+            </div>
             <div class="badge-row">
               <span class="badge" [class]="kycBadgeClass()">
                 <span class="badge-dot"></span>
@@ -179,12 +200,6 @@ type KycStep = 'personal' | 'document' | 'status';
                 </div>
               </div>
 
-              @if (profileSuccess()) {
-                <div class="alert-success">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
-                  {{ profileSuccess() }}
-                </div>
-              }
               @if (profileError()) {
                 <div class="alert-error">{{ profileError() }}</div>
               }
@@ -437,12 +452,6 @@ type KycStep = 'personal' | 'document' | 'status';
               </div>
             </div>
 
-            @if (passwordSuccess()) {
-              <div class="alert-success" style="margin-top:12px;">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
-                {{ passwordSuccess() }}
-              </div>
-            }
             @if (passwordError()) {
               <div class="alert-error" style="margin-top:12px;">{{ passwordError() }}</div>
             }
@@ -459,10 +468,51 @@ type KycStep = 'personal' | 'document' | 'status';
         }
       </div>
 
+      }
+
     </div>
   `,
   styles: [`
     .profile-page { max-width: 1060px; }
+
+    .profile-skel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .profile-skel-grid { grid-template-columns: 1fr; }
+    }
+
+    .email-copy-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .email-copy-row p { margin: 0; }
+
+    .btn-copy-email {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-copy-email:hover {
+      background: var(--surface-container);
+      color: var(--primary);
+    }
 
     .page-header {
       display: flex;
@@ -838,12 +888,14 @@ export class ProfileComponent implements OnInit {
   private profileSvc = inject(ProfileService);
   private auth = inject(AuthService);
   private fb = inject(FormBuilder);
+  private toast = inject(ToastService);
+  private clipboard = inject(ClipboardService);
 
   profile = signal<UserProfile | null>(null);
+  loadingProfile = signal(true);
   editMode = signal(false);
   savingProfile = signal(false);
   submittingKyc = signal(false);
-  profileSuccess = signal<string | null>(null);
   profileError = signal<string | null>(null);
   kycError = signal<string | null>(null);
   rejectionReason = signal<string | null>(null);
@@ -851,7 +903,6 @@ export class ProfileComponent implements OnInit {
   // Security section
   showPasswordSection = signal(false);
   changingPassword = signal(false);
-  passwordSuccess = signal<string | null>(null);
   passwordError = signal<string | null>(null);
 
   passwordForm = this.fb.group({
@@ -863,7 +914,6 @@ export class ProfileComponent implements OnInit {
   togglePasswordSection(): void {
     this.showPasswordSection.update(v => !v);
     this.passwordForm.reset();
-    this.passwordSuccess.set(null);
     this.passwordError.set(null);
   }
 
@@ -879,8 +929,8 @@ export class ProfileComponent implements OnInit {
     this.auth.changePassword({ currentPassword: currentPassword!, newPassword: newPassword! }).subscribe({
       next: () => {
         this.changingPassword.set(false);
-        this.passwordSuccess.set('Password changed successfully.');
         this.passwordForm.reset();
+        this.toast.success('Password updated');
       },
       error: err => {
         this.changingPassword.set(false);
@@ -973,6 +1023,7 @@ export class ProfileComponent implements OnInit {
   }
 
   loadProfile(): void {
+    this.loadingProfile.set(true);
     this.profileSvc.getProfile().subscribe({
       next: p => {
         this.profile.set(p);
@@ -982,14 +1033,19 @@ export class ProfileComponent implements OnInit {
           address:     p.address  ?? '',
           dateOfBirth: p.dateOfBirth ?? ''
         });
-        // Pre-fill name on document
         this.kycForm.patchValue({ nameOnDocument: p.fullName ?? '' });
-      }
+        this.loadingProfile.set(false);
+      },
+      error: () => this.loadingProfile.set(false)
     });
   }
 
+  copyProfileEmail(): void {
+    const email = this.profile()?.email;
+    if (email) void this.clipboard.copy(email, 'Email copied');
+  }
+
   startEdit(): void {
-    this.profileSuccess.set(null);
     this.profileError.set(null);
     this.editMode.set(true);
   }
@@ -1018,9 +1074,10 @@ export class ProfileComponent implements OnInit {
     }).subscribe({
       next: p => {
         this.profile.set(p);
+        this.auth.patchCachedUser({ fullName: p.fullName });
         this.savingProfile.set(false);
         this.editMode.set(false);
-        this.profileSuccess.set('Profile saved successfully.');
+        this.toast.success('Profile saved');
         this.kycForm.patchValue({ nameOnDocument: p.fullName });
       },
       error: err => {
@@ -1042,6 +1099,7 @@ export class ProfileComponent implements OnInit {
       next: () => {
         this.submittingKyc.set(false);
         this.profile.update(p => p ? { ...p, kycStatus: 'Pending' as KycStatus } : p);
+        this.toast.success('KYC documents submitted for review');
       },
       error: err => {
         this.kycError.set(err.error?.error ?? 'Submission failed. Please try again.');

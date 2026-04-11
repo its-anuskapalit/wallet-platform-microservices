@@ -13,6 +13,8 @@ using WalletService.Core.Services;
 using WalletService.Infrastructure.Consumers;
 using WalletService.Infrastructure.Data;
 using WalletService.Infrastructure.Repositories;
+using WalletService.Infrastructure.Clients;
+using WalletService.Core.Entities;
 
 DotEnv.Load();
 
@@ -54,6 +56,15 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
 builder.Services.AddScoped<IWalletService, WalletDomainService>();
+builder.Services.AddScoped<IBillSplitRepository, BillSplitRepository>();
+builder.Services.AddScoped<IBillSplitService, BillSplitDomainService>();
+
+builder.Services.AddHttpClient<ILedgerClient, LedgerApiClient>((sp, client) =>
+{
+    var baseUrl = sp.GetRequiredService<IConfiguration>()["Ledger:BaseUrl"] ?? "http://localhost:5004";
+    client.BaseAddress = new Uri(baseUrl.TrimEnd('/') + "/");
+    client.Timeout     = TimeSpan.FromSeconds(45);
+});
 
 builder.Services.Configure<RabbitMqOptions>(o =>
 {

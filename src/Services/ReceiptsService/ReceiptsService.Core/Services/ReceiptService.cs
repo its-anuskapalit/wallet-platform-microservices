@@ -11,6 +11,20 @@ namespace ReceiptsService.Core.Services;
 /// </summary>
 public class ReceiptDomainService : IReceiptService
 {
+    private static readonly TimeZoneInfo IndiaTz = ResolveIndiaTz();
+
+    private static TimeZoneInfo ResolveIndiaTz()
+    {
+        foreach (var id in new[] { "Asia/Kolkata", "India Standard Time" })
+        {
+            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+            catch (TimeZoneNotFoundException) { }
+            catch (InvalidTimeZoneException) { }
+        }
+
+        return TimeZoneInfo.Utc;
+    }
+
     private readonly IReceiptRepository _receipts;
 
     /// <summary>
@@ -59,7 +73,8 @@ public class ReceiptDomainService : IReceiptService
 
         foreach (var r in receipts)
         {
-            sb.AppendLine($"{r.TransactionId},{r.Amount},{r.Currency},{r.TransactionType},{r.TransactionDate:yyyy-MM-dd HH:mm:ss}");
+            var ist = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(r.TransactionDate, DateTimeKind.Utc), IndiaTz);
+            sb.AppendLine($"{r.TransactionId},{r.Amount},{r.Currency},{r.TransactionType},{ist:yyyy-MM-dd HH:mm:ss} IST");
         }
         var bytes = Encoding.UTF8.GetBytes(sb.ToString());
         return Result<byte[]>.Success(bytes);
@@ -88,6 +103,7 @@ public class ReceiptDomainService : IReceiptService
         Amount = r.Amount,
         Currency = r.Currency,
         TransactionType = r.TransactionType,
-        TransactionDate = r.TransactionDate
+        TransactionDate = r.TransactionDate,
+        Memo = r.Memo
     };
 }

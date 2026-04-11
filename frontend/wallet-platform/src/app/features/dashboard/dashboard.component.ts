@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
@@ -8,10 +8,12 @@ import { WalletService } from '../../core/services/wallet.service';
 import { TransactionService } from '../../core/services/transaction.service';
 import { RewardsService } from '../../core/services/rewards.service';
 import { ProfileService } from '../../core/services/profile.service';
+import { WalletNicknameService } from '../../core/services/wallet-nickname.service';
+import { BalanceVisibilityService } from '../../core/services/balance-visibility.service';
 import { Wallet } from '../../core/models/wallet.models';
 import { Transaction, TransactionSummary } from '../../core/models/transaction.models';
 import { RewardsAccount } from '../../core/models/rewards.models';
-import { KycStatus } from '../../core/models/profile.models';
+import { KycStatus, UserProfile } from '../../core/models/profile.models';
 
 @Component({
   selector: 'app-dashboard',
@@ -23,7 +25,7 @@ import { KycStatus } from '../../core/models/profile.models';
       <div class="page-header">
         <div>
           <p class="label-sm text-muted">{{ greeting() }}</p>
-          <h1 class="headline-lg">{{ currentUser()?.fullName ?? 'Welcome' }}</h1>
+          <h1 class="headline-lg">{{ displayName() }}</h1>
         </div>
         <div class="header-actions">
           <a routerLink="/wallet" class="btn btn-primary">
@@ -33,12 +35,46 @@ import { KycStatus } from '../../core/models/profile.models';
         </div>
       </div>
 
+      <!-- Quick Actions -->
+      <div class="quick-actions-row">
+        <a routerLink="/wallet" class="qa-btn">
+          <span class="qa-icon qa-icon--topup">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+          </span>
+          <span class="qa-label">Top Up</span>
+        </a>
+        <a routerLink="/wallet" class="qa-btn">
+          <span class="qa-icon qa-icon--send">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h14M11 4l6 6-6 6"/></svg>
+          </span>
+          <span class="qa-label">Send</span>
+        </a>
+        <a routerLink="/transactions" class="qa-btn">
+          <span class="qa-icon qa-icon--history">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5"/></svg>
+          </span>
+          <span class="qa-label">History</span>
+        </a>
+        <a routerLink="/rewards" class="qa-btn">
+          <span class="qa-icon qa-icon--rewards">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.46L10 14.27 5.06 17l.94-5.46-4-3.9 5.61-.8z"/></svg>
+          </span>
+          <span class="qa-label">Rewards</span>
+        </a>
+        <a routerLink="/profile" class="qa-btn">
+          <span class="qa-icon qa-icon--profile">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="7" r="3"/><path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6"/></svg>
+          </span>
+          <span class="qa-label">Profile</span>
+        </a>
+      </div>
+
       <!-- Stats Row -->
       <div class="stats-grid">
         <!-- Balance Card -->
         <div class="stat-card stat-card--primary">
           <div class="stat-header">
-            <span class="stat-label">Total Balance</span>
+            <span class="stat-label">{{ nicknameSvc.nickname() || 'Total Balance' }}</span>
             <div class="stat-icon">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 8h16"/><circle cx="14" cy="13" r="1.5" fill="currentColor" stroke="none"/></svg>
             </div>
@@ -46,7 +82,33 @@ import { KycStatus } from '../../core/models/profile.models';
           @if (loadingWallet()) {
             <div class="skeleton" style="height: 40px; width: 180px; margin: 8px 0;"></div>
           } @else {
-            <div class="stat-value">{{ wallet()?.balance | currency:wallet()?.currency ?? 'USD' }}</div>
+            <div class="stat-value-row">
+              <div class="stat-balance-slot">
+                @if (balanceVis.visible()) {
+                  <div class="stat-value counter-animate">{{ displayBalance() | currency:wallet()?.currency ?? 'INR' }}</div>
+                } @else {
+                  <div class="stat-value balance-masked">{{ balanceVis.maskedAmount(wallet()?.currency) }}</div>
+                }
+              </div>
+              <button
+                type="button"
+                class="balance-visibility-btn"
+                (click)="balanceVis.toggle()"
+                [attr.aria-label]="balanceVis.visible() ? 'Hide balance' : 'Show balance'"
+                [attr.aria-pressed]="!balanceVis.visible()">
+                @if (balanceVis.visible()) {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1 4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                } @else {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
+            </div>
           }
           <div class="stat-meta">
             @if (wallet()?.isFrozen) {
@@ -84,7 +146,7 @@ import { KycStatus } from '../../core/models/profile.models';
           @if (loadingRewards()) {
             <div class="skeleton" style="height: 40px; width: 100px; margin: 8px 0;"></div>
           } @else {
-            <div class="stat-value">{{ rewards()?.availablePoints ?? 0 | number }}</div>
+            <div class="stat-value counter-animate">{{ displayPoints() | number }}</div>
           }
           <span class="stat-meta text-muted label-md">{{ rewards()?.tier ?? 'Standard' }} tier</span>
         </div>
@@ -152,8 +214,43 @@ import { KycStatus } from '../../core/models/profile.models';
           }
         </div>
 
-        <!-- Quick Actions -->
+        <!-- Quick Actions + Spending Chart -->
         <div class="quick-actions-panel">
+          <!-- Spending Breakdown -->
+          @if (!loadingTxns() && spendingData().total > 0) {
+            <div class="card spending-card">
+              <h3 class="title-md" style="margin-bottom:16px;">Spending Breakdown</h3>
+              <div class="donut-wrap">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  @for (seg of donutSegments(); track seg.label; let i = $index) {
+                    <circle
+                      cx="60" cy="60" r="46"
+                      fill="none"
+                      [attr.stroke]="seg.color"
+                      stroke-width="20"
+                      [attr.stroke-dasharray]="seg.dash + ' ' + (289 - seg.dash)"
+                      [attr.stroke-dashoffset]="seg.offset"
+                      transform="rotate(-90 60 60)"
+                      style="transition: stroke-dasharray 0.8s ease;"
+                    />
+                  }
+                  <circle cx="60" cy="60" r="34" fill="var(--surface-container-lowest)"/>
+                  <text x="60" y="56" text-anchor="middle" font-size="11" font-weight="700" fill="var(--on-surface-variant)">Total</text>
+                  <text x="60" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="var(--on-surface)">{{ spendingData().total }}</text>
+                </svg>
+                <div class="donut-legend">
+                  @for (seg of donutSegments(); track seg.label) {
+                    <div class="legend-item">
+                      <span class="legend-dot" [style.background]="seg.color"></span>
+                      <span class="legend-label">{{ seg.label }}</span>
+                      <span class="legend-val">{{ seg.count }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
           <div class="card">
             <h3 class="title-md" style="margin-bottom: 16px;">Quick Actions</h3>
             <div class="actions-list">
@@ -226,12 +323,72 @@ import { KycStatus } from '../../core/models/profile.models';
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
 
       h1 { margin-top: 4px; }
     }
 
     .header-actions { display: flex; gap: 12px; }
+
+    /* ── Quick Actions Row ── */
+    .quick-actions-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .qa-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 20px;
+      border-radius: var(--radius-lg);
+      background: var(--surface-container-lowest);
+      border: 1px solid var(--outline-variant);
+      text-decoration: none;
+      color: var(--on-surface-variant);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      flex: 1;
+      min-width: 80px;
+      white-space: nowrap;
+
+      &:hover {
+        background: var(--primary-fixed);
+        border-color: var(--primary);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(148, 74, 0, 0.15);
+
+        .qa-icon { background: var(--primary); color: white; }
+      }
+    }
+
+    .qa-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--surface-container-low);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.18s ease;
+
+      &--topup  { background: #fff3e0; color: #e65100; }
+      &--send   { background: #e8f5e9; color: #2e7d32; }
+      &--history { background: #e3f2fd; color: #1565c0; }
+      &--rewards { background: #fff8e1; color: #f57f17; }
+      &--profile { background: #f3e5f5; color: #6a1b9a; }
+    }
+
+    .qa-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
 
     .stats-grid {
       display: grid;
@@ -284,14 +441,67 @@ import { KycStatus } from '../../core/models/profile.models';
       &--red   { background: #fce4ec; color: #c62828; }
     }
 
+    .stat-value-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+      margin-bottom: 8px;
+      min-height: 48px;
+    }
+
+    .stat-balance-slot {
+      flex: 1;
+      min-width: 0;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+    }
+
     .stat-value {
       font-family: var(--font-display);
       font-size: 2rem;
       font-weight: 700;
       line-height: 1.1;
-      margin-bottom: 8px;
+      margin-bottom: 0;
 
       &--sm { font-size: 1.4rem; }
+    }
+
+    .balance-masked {
+      letter-spacing: 0.1em;
+      user-select: none;
+    }
+
+    .balance-visibility-btn {
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .stat-card--primary .balance-visibility-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .stat-card--primary .balance-visibility-btn:hover {
+      background: rgba(255, 255, 255, 0.32);
+    }
+
+    .stat-card--primary .balance-visibility-btn:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.9);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 380px) {
+      .stat-value-row { flex-wrap: wrap; }
     }
 
     .stat-meta { font-size: 13px; }
@@ -406,6 +616,57 @@ import { KycStatus } from '../../core/models/profile.models';
       flex-direction: column;
       gap: 2px;
     }
+
+    /* Spending chart */
+    .spending-card { margin-bottom: 16px; }
+
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .donut-legend {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .legend-label {
+      flex: 1;
+      color: var(--on-surface-variant);
+      font-weight: 500;
+    }
+
+    .legend-val {
+      font-weight: 700;
+      color: var(--on-surface);
+    }
+
+    /* Animated counter */
+    .counter-animate {
+      animation: countUp 0.4s ease-out;
+    }
+
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   `]
 })
 export class DashboardComponent implements OnInit {
@@ -415,8 +676,11 @@ export class DashboardComponent implements OnInit {
   private rewardsSvc = inject(RewardsService);
   private profileSvc = inject(ProfileService);
   private router     = inject(Router);
+  nicknameSvc        = inject(WalletNicknameService);
+  balanceVis           = inject(BalanceVisibilityService);
 
   currentUser  = this.auth.currentUser;
+  userProfile  = signal<UserProfile | null>(null);
   wallet       = signal<Wallet | null>(null);
   transactions = signal<Transaction[]>([]);
   rewards      = signal<RewardsAccount | null>(null);
@@ -431,6 +695,67 @@ export class DashboardComponent implements OnInit {
   greeting = signal(this.getGreeting());
 
   kycApproved = computed(() => this.kycStatus() === 'Approved');
+
+  /** Profile is source of truth for name; JWT/localStorage may be stale after profile edits. */
+  displayName = computed(() => {
+    const fromProfile = this.userProfile()?.fullName?.trim();
+    if (fromProfile) return fromProfile;
+    const fromAuth = this.currentUser()?.fullName?.trim();
+    return fromAuth || 'Welcome';
+  });
+
+  // Animated display values
+  displayBalance = signal(0);
+  displayPoints  = signal(0);
+
+  // Spending breakdown for donut chart
+  spendingData = computed(() => {
+    const txns = this.transactions();
+    const topUp    = txns.filter(t => t.type === 'TopUp').length;
+    const transfer = txns.filter(t => t.type === 'Transfer').length;
+    const deduction = txns.filter(t => t.type === 'Deduction').length;
+    return { topUp, transfer, deduction, total: txns.length };
+  });
+
+  donutSegments = computed(() => {
+    const d = this.spendingData();
+    const circumference = 289; // 2*π*46
+    const total = d.total || 1;
+    const colors = ['#52b788', '#e87f24', '#f28b82'];
+    const labels = ['Top Up', 'Transfer', 'Deduction'];
+    const counts = [d.topUp, d.transfer, d.deduction];
+    let offset = 0;
+    return counts.map((count, i) => {
+      const dash = (count / total) * circumference;
+      const seg = { label: labels[i], color: colors[i], count, dash, offset: -offset };
+      offset += dash;
+      return seg;
+    }).filter(s => s.count > 0);
+  });
+
+  constructor() {
+    // Animate balance counter when wallet loads
+    effect(() => {
+      const balance = this.wallet()?.balance ?? 0;
+      this.animateCounter(balance, v => this.displayBalance.set(v));
+    });
+    // Animate points counter when rewards loads
+    effect(() => {
+      const pts = this.rewards()?.availablePoints ?? 0;
+      this.animateCounter(pts, v => this.displayPoints.set(v));
+    });
+  }
+
+  private animateCounter(target: number, setter: (v: number) => void, duration = 900): void {
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      setter(Math.round(ease * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
 
   ngOnInit(): void {
     this.loadAll();
@@ -459,7 +784,11 @@ export class DashboardComponent implements OnInit {
       error: () => this.loadingRewards.set(false)
     });
     this.profileSvc.getProfile().subscribe({
-      next: p => { this.kycStatus.set(p.kycStatus ?? 'NotSubmitted'); this.loadingProfile.set(false); },
+      next: p => {
+        this.userProfile.set(p);
+        this.kycStatus.set(p.kycStatus ?? 'NotSubmitted');
+        this.loadingProfile.set(false);
+      },
       error: () => this.loadingProfile.set(false)
     });
   }
@@ -474,6 +803,13 @@ export class DashboardComponent implements OnInit {
     });
     this.txnSvc.getMyTransactions(1, 5).subscribe({
       next: t => this.transactions.set(t), error: () => {}
+    });
+    this.profileSvc.getProfile().subscribe({
+      next: p => {
+        this.userProfile.set(p);
+        this.kycStatus.set(p.kycStatus ?? 'NotSubmitted');
+      },
+      error: () => {}
     });
   }
 

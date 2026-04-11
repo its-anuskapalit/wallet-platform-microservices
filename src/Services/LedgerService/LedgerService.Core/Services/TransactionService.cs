@@ -123,7 +123,8 @@ public class TransactionService : ITransactionService
                 Amount = transaction.Amount,
                 Currency = transaction.Currency,
                 TransactionType = transaction.Type.ToString(),
-                CompletedAt = DateTime.UtcNow
+                CompletedAt = DateTime.UtcNow,
+                Memo = string.IsNullOrWhiteSpace(dto.Memo) ? null : dto.Memo.Trim()
             },
             EventQueues.TransactionExchange,
             routingKey: "transaction.completed");

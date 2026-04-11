@@ -39,6 +39,9 @@ public class WalletRepository : IWalletRepository
     public async Task<bool> ExistsByUserIdAsync(Guid userId) =>
         await _db.Wallets.AnyAsync(w => w.UserId == userId);
 
+    public async Task<Wallet?> GetByEmailAsync(string email) =>
+        await _db.Wallets.FirstOrDefaultAsync(w => w.Email.ToLower() == email.ToLower());
+
     /// <summary>Stages a new <see cref="Wallet"/> entity for insertion.</summary>
     /// <param name="wallet">The wallet to add.</param>
     public async Task AddAsync(Wallet wallet) =>

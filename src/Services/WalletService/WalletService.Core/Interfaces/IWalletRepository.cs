@@ -13,6 +13,9 @@ public interface IWalletRepository
     /// <summary>Retrieves a wallet by its own unique identifier.</summary>
     Task<Wallet?> GetByIdAsync(Guid walletId);
 
+    /// <summary>Retrieves a wallet by the owner's email address.</summary>
+    Task<Wallet?> GetByEmailAsync(string email);
+
     /// <summary>Returns <c>true</c> if a wallet already exists for the given user.</summary>
     Task<bool> ExistsByUserIdAsync(Guid userId);
 

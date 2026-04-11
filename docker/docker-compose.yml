@@ -1,0 +1,41 @@
+# Local dependencies for WalletPlatform (SQL Server + RabbitMQ).
+# From repo root:
+#   docker compose -f docker/docker-compose.yml --env-file docker/compose.env up -d
+#
+# Copy docker/compose.env.example → docker/compose.env and set a strong SA password.
+# When your APIs run in Docker too, use hostnames "sql" and "rabbitmq" in connection strings
+# and RabbitMQ settings (not localhost). Ocelot routes today use localhost — for full container
+# networking you will need a docker-specific ocelot config with service names as downstream hosts.
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: walletplatform-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in docker/compose.env}"
+    ports:
+      - "1433:1433"
+    volumes:
+      - walletplatform-sql-data:/var/opt/mssql
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: walletplatform-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-guest}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASS:-guest}"
+    volumes:
+      - walletplatform-rabbit-data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  walletplatform-sql-data:
+  walletplatform-rabbit-data:

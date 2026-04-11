@@ -1,4 +1,4 @@
-import { Component, inject, HostListener, signal } from '@angular/core';
+import { Component, inject, HostListener, signal, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -48,28 +48,30 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="hero-bg">
         <div class="hero-blob hero-blob--1"></div>
         <div class="hero-blob hero-blob--2"></div>
+        <div class="hero-blob hero-blob--3"></div>
+        <div class="hero-grid"></div>
       </div>
       <div class="hero-content">
-        <div class="hero-badge">
+        <div class="hero-badge anim-fade-up" style="animation-delay:0.1s">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.67 3.39L12.5 5.05l-2.75 2.68.65 3.77L7 9.69l-3.4 1.81.65-3.77L1.5 5.05l3.83-.66z" fill="#f57f17"/></svg>
           Earn rewards on every transaction
         </div>
         <h1 class="hero-headline">
-          Your money,<br/>
-          <span class="gradient-text">smarter.</span>
+          <span class="anim-fade-up" style="animation-delay:0.22s;display:block;">Your money,</span>
+          <span class="gradient-text anim-fade-up" style="animation-delay:0.38s;display:block;">smarter.</span>
         </h1>
-        <p class="hero-sub">
+        <p class="hero-sub anim-fade-up" style="animation-delay:0.5s">
           Aurelian is a modern digital wallet that lets you send money instantly,
           earn loyalty points, redeem real rewards — and stay in control of every rupee.
         </p>
-        <div class="hero-cta">
+        <div class="hero-cta anim-fade-up" style="animation-delay:0.62s">
           <a routerLink="/auth/register" class="btn btn-hero-primary">
             Open free account
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
           </a>
           <a routerLink="/auth/login" class="btn btn-hero-ghost">Sign in</a>
         </div>
-        <div class="hero-trust">
+        <div class="hero-trust anim-fade-up" style="animation-delay:0.74s">
           <div class="trust-item">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="1.8" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
             Free to join
@@ -166,47 +168,47 @@ import { AuthService } from '../../core/services/auth.service';
     <!-- ══ FEATURES ══ -->
     <section class="section" id="features">
       <div class="section-inner">
-        <p class="section-eyebrow">Everything you need</p>
-        <h2 class="section-title">Built for real-world finance</h2>
-        <p class="section-sub">From wallet management to AI support — Aurelian has you covered.</p>
+        <p class="section-eyebrow reveal">Everything you need</p>
+        <h2 class="section-title reveal">Built for real-world finance</h2>
+        <p class="section-sub reveal">From wallet management to AI support — Aurelian has you covered.</p>
 
         <div class="features-grid">
-          <div class="feature-card feature-card--accent">
+          <div class="feature-card feature-card--accent reveal">
             <div class="feature-icon" style="background:#fff3e0;color:#e65100;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>
             </div>
             <h3>Digital Wallet</h3>
             <p>Top up, send, and receive money instantly. Full transaction history with PDF receipts.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card reveal" style="--reveal-delay:0.1s">
             <div class="feature-icon" style="background:#e8f5e9;color:#2e7d32;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
             </div>
             <h3>KYC Verification</h3>
             <p>Submit your identity documents in minutes. Admin-reviewed for full account access.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card reveal" style="--reveal-delay:0.2s">
             <div class="feature-icon" style="background:#fff8e1;color:#f57f17;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
             </div>
             <h3>Loyalty Rewards</h3>
             <p>Earn points on every transaction. Milestones unlock bonus points — the more you use, the more you earn.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card reveal" style="--reveal-delay:0.3s">
             <div class="feature-icon" style="background:#f3e5f5;color:#6a1b9a;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
             </div>
             <h3>Reward Catalog</h3>
             <p>Redeem points for vouchers, cashback, food, travel, and entertainment — instantly delivered with a unique code.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card reveal" style="--reveal-delay:0.4s">
             <div class="feature-icon" style="background:#e3f2fd;color:#1565c0;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
             </div>
             <h3>AI Chatbot</h3>
             <p>Ask WalletBot anything — rewards, transfers, KYC, or how to get started. Available 24/7.</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card reveal" style="--reveal-delay:0.5s">
             <div class="feature-icon" style="background:#fce4ec;color:#c62828;">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
@@ -220,10 +222,10 @@ import { AuthService } from '../../core/services/auth.service';
     <!-- ══ HOW IT WORKS ══ -->
     <section class="section section--alt" id="how">
       <div class="section-inner">
-        <p class="section-eyebrow">Simple by design</p>
-        <h2 class="section-title">Up and running in minutes</h2>
+        <p class="section-eyebrow reveal">Simple by design</p>
+        <h2 class="section-title reveal">Up and running in minutes</h2>
         <div class="steps-row">
-          <div class="step">
+          <div class="step reveal" style="--reveal-delay:0.05s">
             <div class="step-num">1</div>
             <h3 class="step-title">Create account</h3>
             <p class="step-desc">Register with your email, verify with OTP. Takes under a minute.</p>
@@ -259,11 +261,11 @@ import { AuthService } from '../../core/services/auth.service';
     <!-- ══ REWARDS HIGHLIGHT ══ -->
     <section class="section" id="rewards">
       <div class="section-inner">
-        <p class="section-eyebrow">Loyalty program</p>
-        <h2 class="section-title">Earn more, every time</h2>
+        <p class="section-eyebrow reveal">Loyalty program</p>
+        <h2 class="section-title reveal">Earn more, every time</h2>
         <div class="rewards-highlight">
           <div class="rh-left">
-            <div class="rh-item">
+            <div class="rh-item reveal" style="--reveal-delay:0.05s">
               <div class="rh-icon">🎉</div>
               <div>
                 <div class="rh-title">Welcome Bonus</div>
@@ -475,22 +477,81 @@ import { AuthService } from '../../core/services/auth.service';
       z-index: -1;
     }
 
+    /* ── Hero animations ──────────────────────────────────── */
+    .anim-fade-up {
+      animation: heroFadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes heroFadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Scroll reveal base ──────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      transition-delay: var(--reveal-delay, 0s);
+
+      &.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .hero-blob {
       position: absolute;
       border-radius: 50%;
       filter: blur(80px);
-      opacity: 0.15;
+      opacity: 0.18;
 
       &--1 {
         width: 600px; height: 600px;
         background: var(--primary);
         top: -200px; right: -200px;
+        animation: blobDrift1 12s ease-in-out infinite;
       }
       &--2 {
         width: 400px; height: 400px;
         background: #f57f17;
         bottom: -100px; left: -100px;
+        animation: blobDrift2 14s ease-in-out infinite;
       }
+      &--3 {
+        width: 280px; height: 280px;
+        background: #6a1b9a;
+        top: 40%; left: 30%;
+        opacity: 0.06;
+        animation: blobDrift3 18s ease-in-out infinite;
+      }
+    }
+
+    @keyframes blobDrift1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33%       { transform: translate(-30px, 20px) scale(1.05); }
+      66%       { transform: translate(20px, -30px) scale(0.95); }
+    }
+    @keyframes blobDrift2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      40%       { transform: translate(25px, -20px) scale(1.08); }
+      70%       { transform: translate(-15px, 25px) scale(0.97); }
+    }
+    @keyframes blobDrift3 {
+      0%, 100% { transform: translate(0, 0); }
+      50%       { transform: translate(40px, -30px); }
+    }
+
+    /* ── Grid overlay on hero bg ─────────────────────────── */
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(148, 74, 0, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 74, 0, 0.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%);
     }
 
     .hero-content { flex: 1; max-width: 540px; }
@@ -519,10 +580,17 @@ import { AuthService } from '../../core/services/auth.service';
     }
 
     .gradient-text {
-      background: linear-gradient(135deg, var(--primary) 0%, #f57f17 100%);
+      background: linear-gradient(135deg, var(--primary) 0%, #f57f17 45%, var(--primary) 100%);
+      background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      animation: gradientShimmer 4s linear infinite;
+    }
+
+    @keyframes gradientShimmer {
+      0%   { background-position: 0% center; }
+      100% { background-position: 200% center; }
     }
 
     .hero-sub {
@@ -612,6 +680,12 @@ import { AuthService } from '../../core/services/auth.service';
       border: 1px solid var(--outline-variant, #e0e0e0);
       position: relative;
       z-index: 1;
+      animation: mockupSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+
+    @keyframes mockupSlideIn {
+      from { opacity: 0; transform: translateX(40px) rotate(2deg); }
+      to   { opacity: 1; transform: translateX(0) rotate(0deg); }
     }
 
     .mockup-header {
@@ -904,6 +978,17 @@ import { AuthService } from '../../core/services/auth.service';
       align-items: center;
       justify-content: center;
       margin: 0 auto 16px;
+      box-shadow: 0 0 0 0 rgba(148,74,0,0.4);
+      animation: stepPulse 2.5s ease-in-out infinite;
+    }
+
+    .step:nth-child(3)  .step-num { animation-delay: 0.4s; }
+    .step:nth-child(5)  .step-num { animation-delay: 0.8s; }
+    .step:nth-child(7)  .step-num { animation-delay: 1.2s; }
+
+    @keyframes stepPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(148,74,0,0.35); }
+      50%       { box-shadow: 0 0 0 8px rgba(148,74,0,0); }
     }
 
     .step-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
@@ -1027,11 +1112,14 @@ import { AuthService } from '../../core/services/auth.service';
     .footer-copy { font-size: 13px; color: var(--on-surface-variant); }
   `]
 })
-export class LandingComponent {
+export class LandingComponent implements AfterViewInit, OnDestroy {
   private auth = inject(AuthService);
+  private el   = inject(ElementRef);
 
-  scrolled = signal(false);
+  scrolled   = signal(false);
   isLoggedIn = this.auth.isAuthenticated;
+
+  private observer!: IntersectionObserver;
 
   @HostListener('window:scroll')
   onScroll(): void {
@@ -1040,5 +1128,27 @@ export class LandingComponent {
 
   scrollTo(id: string): void {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  ngAfterViewInit(): void {
+    this.observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            this.observer.unobserve(entry.target); // fire once
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+
+    this.el.nativeElement.querySelectorAll('.reveal').forEach((el: Element) => {
+      this.observer.observe(el);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
   }
 }

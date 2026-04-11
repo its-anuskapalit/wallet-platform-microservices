@@ -13,4 +13,6 @@ public class Receipt : BaseEntity
     public string Currency { get; set; } = "INR";
     public string TransactionType { get; set; } = string.Empty;
     public DateTime TransactionDate { get; set; }
+    /// <summary>Optional parties / reference text for PDF receipts.</summary>
+    public string? Memo { get; set; }
 }

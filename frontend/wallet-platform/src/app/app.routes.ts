@@ -48,6 +48,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
       },
       {
+        path: 'bill-split',
+        loadComponent: () => import('./features/bill-split/bill-split.component').then(m => m.BillSplitComponent)
+      },
+      {
         path: 'admin',
         canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminComponent)

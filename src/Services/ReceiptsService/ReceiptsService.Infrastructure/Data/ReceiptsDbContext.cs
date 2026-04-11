@@ -18,6 +18,7 @@ public class ReceiptsDbContext : DbContext
             e.Property(r => r.Amount).HasPrecision(18, 2);
             e.Property(r => r.Currency).HasMaxLength(10);
             e.Property(r => r.TransactionType).HasMaxLength(50);
+            e.Property(r => r.Memo).HasMaxLength(1500);
         });
     }
 }

@@ -57,7 +57,8 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
             Amount           = message.Amount,
             Currency         = message.Currency,
             TransactionType  = message.TransactionType,
-            TransactionDate  = message.CompletedAt
+            TransactionDate  = message.CompletedAt,
+            Memo             = string.IsNullOrWhiteSpace(message.Memo) ? null : message.Memo.Trim()
         });
 
         await repo.SaveChangesAsync();

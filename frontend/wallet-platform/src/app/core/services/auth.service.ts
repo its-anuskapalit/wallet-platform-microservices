@@ -49,6 +49,15 @@ export class AuthService {
     );
   }
 
+  /** Keeps UI in sync when profile (e.g. full name) changes without a new JWT. */
+  patchCachedUser(partial: Partial<Pick<CurrentUser, 'fullName' | 'email'>>): void {
+    const cur = this._currentUser();
+    if (!cur) return;
+    const next: CurrentUser = { ...cur, ...partial };
+    this._currentUser.set(next);
+    localStorage.setItem('current_user', JSON.stringify(next));
+  }
+
   changePassword(dto: ChangePasswordRequest): Observable<void> {
     return this.http.post<void>(`${this.base}/change-password`, dto);
   }

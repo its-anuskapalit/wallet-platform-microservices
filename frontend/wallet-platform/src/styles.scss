@@ -72,6 +72,143 @@
   --space-16: 64px;
 }
 
+
+// ─── Night Mode — X / Twitter “Dim” (blue-gray surfaces, soft contrast) ─────
+// Base #15202B, cards #192734, dividers #38444d, text #E7E9EA / #71767B
+[data-theme="dark"] {
+  // Orange accent kept for wallet brand; reads well on Dim blue-gray
+  --primary:                    #f97316;
+  --primary-container:          #c2410c;
+  --on-primary:                 #ffffff;
+  --primary-fixed:              #1c1008;
+  --primary-fixed-dim:          #422006;
+
+  // Dim stack — same family as Twitter/X Dim
+  --background:                 #15202b;
+  --surface:                    #15202b;
+
+  --surface-container-lowest:   #192734;   // cards / elevated panels
+  --surface-container-low:      #1e2732;   // inputs / secondary panels
+  --surface-container:          #22303c;   // hover
+  --surface-container-high:     #273340;   // selected / pressed
+  --surface-container-highest:  #38444d;   // chips / strong borders
+
+  // Text — X Dim primary / secondary
+  --on-surface:                 #e7e9ea;
+  --on-surface-variant:         #71767b;
+  --outline-variant:            #38444d;
+
+  // Semantic — readable on Dim (slightly desaturated vs neon-on-navy)
+  --success:                    #00ba7c;
+  --success-container:          #063d2c;
+  --error:                      #f4212e;
+  --error-container:            #3d1518;
+  --warning:                    #ffd400;
+  --warning-container:          #3d3200;
+
+  --shadow-ambient: 0 4px 24px rgba(15, 20, 27, 0.55);
+  --shadow-float:   0 16px 48px rgba(15, 20, 27, 0.65);
+}
+
+// Body — flat Dim with a very subtle cool lift at top (still reads as Dim, not navy)
+[data-theme="dark"] body {
+  background: #15202b;
+  background-image:
+    radial-gradient(ellipse 120% 60% at 50% -8%, #1a2f3d 0%, #15202b 55%);
+  min-height: 100vh;
+}
+
+// Cards — Twitter-style raised surface + hairline divider color
+[data-theme="dark"] .card {
+  background: #192734;
+  border: 1px solid #38444d;
+  box-shadow:
+    0 1px 3px rgba(15, 20, 27, 0.45),
+    0 6px 20px rgba(15, 20, 27, 0.35);
+}
+
+// Primary stat card — orange gradient on Dim
+[data-theme="dark"] .stat-card--primary {
+  background: linear-gradient(135deg, #9a3412 0%, #ea580c 100%) !important;
+  border: 1px solid rgba(249, 115, 22, 0.35) !important;
+  box-shadow: 0 8px 28px rgba(249, 115, 22, 0.18) !important;
+}
+
+// Sidebar — Dim-tinted glass
+[data-theme="dark"] .sidebar {
+  background: rgba(21, 32, 43, 0.92) !important;
+  border-right: 1px solid #38444d;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+// Inputs — Dim surfaces, orange focus
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea { color-scheme: dark; }
+
+[data-theme="dark"] .form-control {
+  background: #192734;
+  color: #e7e9ea;
+  border: 1.5px solid #38444d;
+  &:focus {
+    background: #1e2732;
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  }
+}
+
+// Skeleton — Dim shimmer
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    105deg,
+    #192734 0%, #192734 35%,
+    #22303c 50%,
+    #192734 65%, #192734 100%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+// Active nav — orange tint on Dim
+[data-theme="dark"] .nav-item.active {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+// Badges — Dim-friendly containers
+[data-theme="dark"] .badge-success {
+  background: #063d2c;
+  color: #00ba7c;
+  border: 1px solid rgba(0, 186, 124, 0.28);
+}
+[data-theme="dark"] .badge-error {
+  background: #3d1518;
+  color: #f4212e;
+  border: 1px solid rgba(244, 33, 46, 0.28);
+}
+[data-theme="dark"] .badge-warning {
+  background: #3d3200;
+  color: #ffd400;
+  border: 1px solid rgba(255, 212, 0, 0.28);
+}
+[data-theme="dark"] .badge-neutral {
+  background: #1e2732;
+  color: #71767b;
+  border: 1px solid #38444d;
+}
+
+// ─── Custom Scrollbar ────────────────────────────────────────────────────────
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 999px;
+  &:hover { background: var(--on-surface-variant); }
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #38444d; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #536471; }
+
 // ─── Reset & Base ────────────────────────────────────────────────────────────
 *, *::before, *::after {
   box-sizing: border-box;
@@ -254,27 +391,166 @@ body {
 ::-webkit-scrollbar-track { background: var(--surface-container-low); }
 ::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: var(--radius-full); }
 
-// ─── Loading States ──────────────────────────────────────────────────────────
+// ─── Loading States — enhanced shimmer ──────────────────────────────────────
 .skeleton {
-  background: linear-gradient(90deg, var(--surface-container) 25%, var(--surface-container-high) 50%, var(--surface-container) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s infinite;
+  background: linear-gradient(
+    105deg,
+    var(--surface-container)     0%,
+    var(--surface-container)     35%,
+    var(--surface-container-high) 50%,
+    var(--surface-container)     65%,
+    var(--surface-container)     100%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
 @keyframes skeleton-shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 
-// ─── Page Transitions ────────────────────────────────────────────────────────
+// ─── Page Transitions — staggered children ───────────────────────────────────
 .page-enter {
-  animation: page-fade-in 0.3s ease;
+  animation: page-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes page-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
+@keyframes page-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+// Stagger direct children of page-enter
+.page-enter > * {
+  animation: page-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.page-enter > *:nth-child(1) { animation-delay: 0.05s; }
+.page-enter > *:nth-child(2) { animation-delay: 0.10s; }
+.page-enter > *:nth-child(3) { animation-delay: 0.15s; }
+.page-enter > *:nth-child(4) { animation-delay: 0.20s; }
+.page-enter > *:nth-child(5) { animation-delay: 0.25s; }
+
+// ─── Card hover elevation ────────────────────────────────────────────────────
+.card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-float);
+    transform: translateY(-2px);
+  }
+}
+
+// ─── Button ripple effect ────────────────────────────────────────────────────
+.btn {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: inherit;
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  &:active::after {
+    opacity: 1;
+    transform: scale(1);
+    transition: none;
+  }
+}
+
+// ─── Stat card pulse on load ─────────────────────────────────────────────────
+.stat-card {
+  animation: stat-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.12s; }
+.stat-card:nth-child(3) { animation-delay: 0.19s; }
+.stat-card:nth-child(4) { animation-delay: 0.26s; }
+
+@keyframes stat-pop {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+// ─── Badge pulse (for live statuses) ────────────────────────────────────────
+.badge-success { animation: badge-glow-green 2.5s ease-in-out infinite; }
+.badge-warning { animation: badge-glow-amber 2.5s ease-in-out infinite; }
+.badge-error   { animation: badge-glow-red   2.5s ease-in-out infinite; }
+
+@keyframes badge-glow-green {
+  0%, 100% { box-shadow: none; }
+  50%       { box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15); }
+}
+@keyframes badge-glow-amber {
+  0%, 100% { box-shadow: none; }
+  50%       { box-shadow: 0 0 0 3px rgba(122, 89, 0, 0.15); }
+}
+@keyframes badge-glow-red {
+  0%, 100% { box-shadow: none; }
+  50%       { box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.15); }
+}
+
+// ─── Modal entrance ──────────────────────────────────────────────────────────
+.modal {
+  animation: modal-scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.modal-overlay {
+  animation: overlay-fade-in 0.25s ease both;
+}
+
+@keyframes modal-scale-in {
+  from { opacity: 0; transform: scale(0.92) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ─── List item stagger (transaction rows, history items) ────────────────────
+.list-spaced > * {
+  animation: list-item-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.list-spaced > *:nth-child(1)  { animation-delay: 0.04s; }
+.list-spaced > *:nth-child(2)  { animation-delay: 0.08s; }
+.list-spaced > *:nth-child(3)  { animation-delay: 0.12s; }
+.list-spaced > *:nth-child(4)  { animation-delay: 0.16s; }
+.list-spaced > *:nth-child(5)  { animation-delay: 0.20s; }
+.list-spaced > *:nth-child(6)  { animation-delay: 0.24s; }
+.list-spaced > *:nth-child(7)  { animation-delay: 0.28s; }
+.list-spaced > *:nth-child(8)  { animation-delay: 0.32s; }
+.list-spaced > *:nth-child(n+9){ animation-delay: 0.36s; }
+
+@keyframes list-item-in {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// ─── Nav item ink underline ──────────────────────────────────────────────────
+.nav-item {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0%;
+    background: var(--primary);
+    border-radius: 0 4px 4px 0;
+    transition: height 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  &.active::before { height: 60%; }
 }
 
 // ─── Glass Effect ────────────────────────────────────────────────────────────
@@ -284,9 +560,31 @@ body {
   -webkit-backdrop-filter: blur(24px);
 }
 
+[data-theme="dark"] .glass {
+  background: rgba(21, 32, 43, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+// ─── Focus ring (keyboard navigation) ───────────────────────────────────────
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
 // ─── Divider-free list spacing ───────────────────────────────────────────────
 .list-spaced > * + * { margin-top: var(--space-4); }
 
 // ─── Amount Formatting ───────────────────────────────────────────────────────
 .amount-positive { color: var(--success); }
 .amount-negative { color: var(--error); }
+
+// ─── Respect reduced motion preference ───────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

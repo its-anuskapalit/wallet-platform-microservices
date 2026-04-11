@@ -12,4 +12,5 @@ public class ReceiptDto
     public string Currency { get; set; } = string.Empty;
     public string TransactionType { get; set; } = string.Empty;
     public DateTime TransactionDate { get; set; }
+    public string? Memo { get; set; }
 }

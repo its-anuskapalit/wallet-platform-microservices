@@ -1,4 +1,4 @@
-import { Component, computed, signal, inject } from '@angular/core';
+import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -76,6 +76,22 @@ interface NavItem {
             }
           </div>
         }
+        <button class="theme-btn" (click)="toggleDark()" [title]="collapsed() ? (darkMode() ? 'Light mode' : 'Dark mode') : ''">
+          @if (darkMode()) {
+            <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="9" r="4"/>
+              <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.22 3.22l1.42 1.42M13.36 13.36l1.42 1.42M3.22 14.78l1.42-1.42M13.36 4.64l1.42-1.42"/>
+            </svg>
+          } @else {
+            <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15.5 10.5A7 7 0 116.5 2.5a5.5 5.5 0 009 8z"/>
+            </svg>
+          }
+          @if (!collapsed()) {
+            <span>{{ darkMode() ? 'Light mode' : 'Night mode' }}</span>
+          }
+        </button>
+
         <button class="logout-btn" (click)="logout()" [title]="collapsed() ? 'Logout' : ''">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
             <path d="M6.75 15.75H3.75C3.35218 15.75 2.97064 15.592 2.68934 15.3107C2.40804 15.0294 2.25 14.6478 2.25 14.25V3.75C2.25 3.35218 2.40804 2.97064 2.68934 2.68934C2.97064 2.40804 3.35218 2.25 3.75 2.25H6.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -227,7 +243,7 @@ interface NavItem {
 
     .sidebar-footer {
       padding: 12px 8px;
-      border-top: 1px solid rgba(200, 197, 192, 0.3);
+      border-top: 1px solid var(--outline-variant);
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -282,6 +298,25 @@ interface NavItem {
       letter-spacing: 0.03em;
     }
 
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      border: none;
+      background: transparent;
+      color: var(--on-surface-variant);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      font-family: var(--font-body);
+      transition: all 0.15s;
+
+      &:hover { background: var(--surface-container-low); color: var(--on-surface); }
+    }
+
     .logout-btn {
       display: flex;
       align-items: center;
@@ -304,11 +339,25 @@ interface NavItem {
     }
   `]
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   private auth = inject(AuthService);
 
-  collapsed = signal(false);
+  collapsed   = signal(false);
+  darkMode    = signal(false);
   currentUser = this.auth.currentUser;
+
+  ngOnInit(): void {
+    const stored = localStorage.getItem('aurelian-theme') === 'dark';
+    this.darkMode.set(stored);
+    document.documentElement.setAttribute('data-theme', stored ? 'dark' : 'light');
+  }
+
+  toggleDark(): void {
+    this.darkMode.update(v => !v);
+    const isDark = this.darkMode();
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('aurelian-theme', isDark ? 'dark' : 'light');
+  }
 
   userInitials = computed(() => {
     const name = this.currentUser()?.fullName ?? '';
@@ -340,6 +389,11 @@ export class SidebarComponent {
       label: 'Profile',
       route: '/profile',
       icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3"/><path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6"/></svg>`
+    },
+    {
+      label: 'Bill Split',
+      route: '/bill-split',
+      icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="16" height="12" rx="2"/><path d="M10 5V3M6 9h8M6 13h5"/><path d="M14 11l2 2-2 2"/></svg>`
     },
     {
       label: 'Admin',
