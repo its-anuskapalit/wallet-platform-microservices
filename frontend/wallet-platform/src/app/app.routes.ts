@@ -56,6 +56,14 @@ export const routes: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminComponent)
       },
+      {
+        path: 'investigation',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('./features/investigation-copilot/investigation-copilot.component').then(
+            m => m.InvestigationCopilotComponent
+          )
+      },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

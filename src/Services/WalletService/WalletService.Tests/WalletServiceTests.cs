@@ -51,14 +51,19 @@ public class WalletServiceTests
     }
 
     [Fact]
-    public async Task GetWallet_WithNonExistentWallet_ReturnsFailure()
+    public async Task GetWallet_WithNonExistentWallet_CreatesWalletAndReturnsSuccess()
     {
-        _walletRepo.Setup(r => r.GetByUserIdAsync(It.IsAny<Guid>())).ReturnsAsync((Wallet?)null);
+        var userId = Guid.NewGuid();
+        _walletRepo.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync((Wallet?)null);
+        _walletRepo.Setup(r => r.AddAsync(It.IsAny<Wallet>())).Returns(Task.CompletedTask);
+        _walletRepo.Setup(r => r.SaveChangesAsync()).Returns(Task.CompletedTask);
 
-        var result = await _sut.GetWalletAsync(Guid.NewGuid());
+        var result = await _sut.GetWalletAsync(userId);
 
-        result.IsSuccess.Should().BeFalse();
-        result.Error.Should().Be("Wallet not found.");
+        result.IsSuccess.Should().BeTrue();
+        result.Data!.UserId.Should().Be(userId);
+        result.Data.Balance.Should().Be(0m);
+        _walletRepo.Verify(r => r.AddAsync(It.Is<Wallet>(w => w.UserId == userId)), Times.Once);
     }
 
     // ── Top Up ────────────────────────────────────────────────────

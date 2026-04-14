@@ -400,6 +400,12 @@ export class SidebarComponent implements OnInit {
       route: '/admin',
       icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l1.5 4.5H16l-3.75 2.73 1.43 4.39L10 11.18l-3.68 2.44 1.43-4.39L4 6.5h4.5z"/><circle cx="10" cy="17" r="1.5"/></svg>`,
       adminOnly: true
+    },
+    {
+      label: 'Investigation AI',
+      route: '/investigation',
+      icon: `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2a3 3 0 013 3v1h4v11a2 2 0 01-2 2H5a2 2 0 01-2-2V6h4V5a3 3 0 013-3z"/><path d="M7 10h6M7 14h4"/></svg>`,
+      adminOnly: true
     }
   ];
 

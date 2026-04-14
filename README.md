@@ -1,6 +1,47 @@
 # WalletPlatform — Aurelian
 
-A production-grade **Wallet & Loyalty Platform** built with .NET 10 Microservices, Angular 17, and a Python AI Chatbot. Inspired by platforms like Paytm and PhonePe, this system handles user authentication, KYC verification, wallet management, double-entry transactions, loyalty rewards, catalog redemption, PDF receipts, admin controls, and a conversational AI assistant.
+A production-grade **Wallet & Loyalty Platform** built with .NET 10 microservices, Angular 17, and a Python AI chatbot. Inspired by platforms like Paytm and PhonePe, this system handles user authentication, KYC verification, wallet management, double-entry transactions, loyalty rewards, catalog redemption, PDF receipts, admin controls, and a conversational AI assistant.
+
+---
+
+## Table of contents
+
+- [Recent updates](#recent-updates)
+- [Architecture overview](#architecture-overview)
+- [Tech stack](#tech-stack)
+- [Microservices](#microservices)
+- [DevOps: CI (GitHub Actions)](#devops-ci-github-actions)
+- [DevOps: Docker](#devops-docker)
+- [Continuous deployment (CD)](#continuous-deployment-cd)
+- [Angular frontend](#angular-frontend)
+- [Event-driven communication](#event-driven-communication)
+- [Key features](#key-features)
+- [Campaign / rewards logic](#campaign--rewards-logic-summary)
+- [Project structure](#project-structure)
+- [Getting started](#getting-started)
+- [API documentation](#api-documentation)
+- [API gateway routes](#api-gateway-routes)
+- [Architecture patterns](#architecture-patterns)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Recent updates
+
+The following reflects automation, packaging, and quality-gate work added to the repository:
+
+| Area | Change |
+|------|--------|
+| **CI (GitHub Actions)** | Workflow at [`.github/workflows/ci.yml`](.github/workflows/ci.yml): on push/PR to `main` or `master`, runs **.NET** `restore` → `build` → `test` on [`WalletPlatform.slnx`](WalletPlatform.slnx), and **Angular** `npm ci` + production `npm run build` under `frontend/wallet-platform`. Jobs use .NET SDK **10.0.x** and Node **20** with npm cache from `package-lock.json`. Concurrent runs for the same branch cancel older runs. |
+| **Frontend build (CI)** | Production `ng build` budgets for `anyComponentStyle` in [`frontend/wallet-platform/angular.json`](frontend/wallet-platform/angular.json) were aligned with real component SCSS sizes so CI builds succeed. |
+| **Backend tests** | `WalletService` unit test updated so expectations match current domain behavior: `GetWalletAsync` **creates** a zero-balance wallet when none exists (self-healing), instead of returning “Wallet not found.” |
+| **Docker — API images** | Multi-stage [`docker/Dockerfile`](docker/Dockerfile): `PROJECT_PATH` + `APP_DLL` build args publish one Web API per image (default example: Wallet Service). Root [`.dockerignore`](.dockerignore) shrinks build context (excludes `frontend/node_modules`, build outputs, VCS noise) so builds stay fast. |
+| **Docker — build all services** | [`docker/build-all.ps1`](docker/build-all.ps1) builds **ten** images: nine `*Service.API` projects plus [`ApiGateway`](src/Gateway/ApiGateway/ApiGateway.csproj), tagged `walletplatform-*:latest`. Run when you are ready: `powershell -ExecutionPolicy Bypass -File docker/build-all.ps1` from the repo root (Docker Desktop must be running). |
+| **Docker — local dependencies** | [`docker/docker-compose.yml`](docker/docker-compose.yml) + `docker/compose.env` (create it with `MSSQL_SA_PASSWORD` and optional RabbitMQ vars; see comments in the compose file): brings up **SQL Server 2022** and **RabbitMQ** (management UI) for local development. Comments note gateway/Ocelot `localhost` vs container DNS when every app runs in Docker. |
+
+**Note:** Container **images** do not need to be running for local development; you can keep using `dotnet run`, `ng serve`, and optionally Compose only for SQL/RabbitMQ. Building all API images is optional and can be done later—the script is ready when you are.
 
 ---
 
@@ -54,6 +95,7 @@ Browser (Angular 17 — :4200)
 | API Docs | Swashbuckle 6.9 (Swagger UI) |
 | Architecture | Clean Architecture (Core / Infrastructure / API) |
 | Configuration | dotenv.net, appsettings.json, Python-dotenv |
+| CI | GitHub Actions (dotnet + Node/npm) |
 
 ---
 
@@ -71,6 +113,72 @@ Browser (Angular 17 — :4200)
 | Receipts Service | 5008 | WalletPlatform_Receipts | Transaction receipts, PDF generation, CSV export |
 | Admin Service | 5009 | WalletPlatform_Admin | Fraud flags, user management, wallet freeze/unfreeze |
 | Chatbot Service | 8000 | — | Gemini AI assistant (FastAPI + Python) |
+
+---
+
+## DevOps: CI (GitHub Actions)
+
+| Item | Detail |
+|------|--------|
+| **Location** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| **Triggers** | Push and pull request to `main` or `master` |
+| **`dotnet` job** | Checkout → `actions/setup-dotnet` (10.0.x) → `dotnet restore WalletPlatform.slnx` → `dotnet build -c Release` → `dotnet test -c Release --no-build` |
+| **`frontend` job** | Checkout → `actions/setup-node` (20, npm cache from `frontend/wallet-platform/package-lock.json`) → `npm ci` → `npm run build` |
+| **Concurrency** | New commits cancel in-progress runs for the same workflow + ref |
+
+After you push to GitHub, open the **Actions** tab on the repository to see pass/fail and logs.
+
+---
+
+## DevOps: Docker
+
+### Local dependencies (SQL Server + RabbitMQ)
+
+From the **repository root**, with Docker Desktop running:
+
+1. Ensure `docker/compose.env` exists and set `MSSQL_SA_PASSWORD` (and optional RabbitMQ user/pass). The [`docker/docker-compose.yml`](docker/docker-compose.yml) header describes the expected variables.
+2. Run:
+
+```powershell
+docker compose -f docker/docker-compose.yml --env-file docker/compose.env up -d
+```
+
+- SQL Server listens on **`localhost:1433`**.
+- RabbitMQ: **`localhost:5672`** (AMQP), **`localhost:15672`** (management UI).
+
+Stop without removing named volumes:
+
+```powershell
+docker compose -f docker/docker-compose.yml --env-file docker/compose.env down
+```
+
+### API container images (one service per image)
+
+- **Dockerfile:** [`docker/Dockerfile`](docker/Dockerfile) — build args `PROJECT_PATH` (path to a `.csproj`) and `APP_DLL` (published entry assembly, e.g. `WalletService.API.dll`). Exposes **8080** inside the image (`ASPNETCORE_URLS=http://+:8080`).
+- **Single-image example** (from repo root):
+
+```powershell
+docker build -f docker/Dockerfile `
+  --build-arg PROJECT_PATH=src/Services/WalletService/WalletService.API/WalletService.API.csproj `
+  --build-arg APP_DLL=WalletService.API.dll `
+  -t walletplatform-wallet:latest .
+```
+
+- **Build all gateway + services:** when you are ready (can take a while the first time):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File docker/build-all.ps1
+```
+
+This tags images `walletplatform-admin:latest`, `walletplatform-auth:latest`, … `walletplatform-gateway:latest`, then lists them. Ensure **Docker Desktop** is running.
+
+- **`.dockerignore`** at the repo root keeps the build context small (excludes `frontend`, `node_modules`, `bin`/`obj`, etc.).
+
+---
+
+## Continuous deployment (CD)
+
+**Not configured in this repo.** CI verifies build + tests; **CD** (deploy to Azure, Kubernetes, container registry, etc.) needs a **hosting target** and secrets. See issues/discussion if you add a deploy workflow later.
 
 ---
 
@@ -188,44 +296,45 @@ Located at `frontend/wallet-platform/`. Built with Angular 17 standalone compone
 
 ```
 WalletPlatform/
-├── chatbot_service/
-│   ├── main.py              ← FastAPI app, Gemini integration
-│   ├── .env                 ← GEMINI_API_KEY
-│   ├── requirements.txt
-│   └── venv/
+├── .github/
+│   └── workflows/
+│       └── ci.yml              ← GitHub Actions CI (dotnet + frontend)
+├── docker/
+│   ├── Dockerfile              ← Per-API multi-stage image (build args)
+│   ├── docker-compose.yml      ← SQL Server + RabbitMQ for local dev
+│   ├── compose.env             ← local secrets (see compose file comments)
+│   └── build-all.ps1           ← build all API + gateway images
 ├── frontend/
-│   └── wallet-platform/     ← Angular 17 app
+│   └── wallet-platform/        ← Angular 17 app
 │       └── src/app/
-│           ├── core/        ← services, guards, interceptors, models
-│           ├── features/    ← dashboard, wallet, transactions, rewards,
-│           │                   profile, admin, auth, landing
-│           ├── layout/      ← main-layout, sidebar
-│           └── shared/      ← chatbot widget
+│           ├── core/           ← services, guards, interceptors, models
+│           ├── features/       ← dashboard, wallet, transactions, rewards,
+│           │                     profile, admin, auth, landing
+│           ├── layout/         ← main-layout, sidebar
+│           └── shared/         ← chatbot widget
+├── chatbot_service/            ← FastAPI + Gemini (optional)
+├── investigation_copilot/      ← optional copilot tooling
 ├── src/
 │   ├── Services/
-│   │   ├── AuthService/
-│   │   │   ├── AuthService.API
-│   │   │   ├── AuthService.Core
-│   │   │   ├── AuthService.Infrastructure   ← MailKit, OTP entities
-│   │   │   └── AuthService.Tests
+│   │   ├── AuthService/        ← API, Core, Infrastructure, Tests
 │   │   ├── UserProfileService/
 │   │   ├── WalletService/
 │   │   ├── LedgerService/
 │   │   ├── RewardsService/
-│   │   ├── CatalogService/                  ← IRewardsClient, 12+ items
+│   │   ├── CatalogService/
 │   │   ├── NotificationService/
-│   │   ├── ReceiptsService/                 ← QuestPDF
+│   │   ├── ReceiptsService/
 │   │   └── AdminService/
 │   ├── Gateway/
-│   │   └── ApiGateway/                      ← Ocelot
+│   │   └── ApiGateway/         ← Ocelot
 │   └── Shared/
-│       ├── Shared.Common        ← BaseEntity, Result<T>
-│       ├── Shared.Contracts     ← Event DTOs, Queue names
-│       └── Shared.EventBus      ← RabbitMQ publisher + base consumer
-├── start-all.ps1                ← One-command startup with health checks
-├── .gitignore
-├── .env.example
-└── WalletPlatform.sln
+│       ├── Shared.Common       ← BaseEntity, Result<T>
+│       ├── Shared.Contracts    ← Event DTOs, queue names
+│       └── Shared.EventBus     ← RabbitMQ publisher + base consumer
+├── start-all.ps1               ← One-command startup with health checks
+├── WalletPlatform.slnx       ← Solution (nested solution format)
+├── .dockerignore
+└── .gitignore
 ```
 
 ---
@@ -236,9 +345,9 @@ WalletPlatform/
 
 - .NET 10 SDK
 - Node.js 20+ & Angular CLI 17
-- Python 3.11+
-- SQL Server Express
-- RabbitMQ (or Docker)
+- Python 3.11+ (for chatbot)
+- SQL Server Express **or** Docker (Compose file for SQL Server + RabbitMQ)
+- RabbitMQ (or Docker via `docker/docker-compose.yml`)
 - Gmail account with App Password enabled
 - Google AI Studio API key (for chatbot)
 
@@ -249,13 +358,15 @@ git clone https://github.com/yourusername/WalletPlatform.git
 cd WalletPlatform
 ```
 
-### 2. Start RabbitMQ
+### 2. RabbitMQ (alternative to full Compose)
 
 ```bash
 docker run -d --name rabbitmq \
   -p 5672:5672 -p 15672:15672 \
   rabbitmq:3.13-management
 ```
+
+Or use **SQL + RabbitMQ** via [`docker/docker-compose.yml`](docker/docker-compose.yml) and `docker/compose.env` as described in [DevOps: Docker](#devops-docker).
 
 ### 3. Create SQL Server databases
 
@@ -300,7 +411,7 @@ For the chatbot, create `chatbot_service/.env`:
 GEMINI_API_KEY=your_gemini_api_key_from_aistudio
 ```
 
-### 5. Set up the chatbot Python environment
+### 5. Chatbot Python environment
 
 ```powershell
 cd chatbot_service
@@ -314,28 +425,18 @@ venv\Scripts\pip install -r requirements.txt
 .\start-all.ps1
 ```
 
-This script starts all .NET services, the API Gateway, the Chatbot, and the Angular frontend in separate windows, with health checks to ensure each service is healthy before proceeding.
+This starts .NET services, the API Gateway, optionally the chatbot and investigation copilot, and the Angular frontend in separate windows, with health checks.
 
 ### 7. Manual startup (alternative)
 
 ```bash
 # .NET Services (one terminal each)
 cd src/Services/AuthService/AuthService.API && dotnet run
-cd src/Services/UserProfileService/UserProfileService.API && dotnet run
-cd src/Services/WalletService/WalletService.API && dotnet run
-cd src/Services/LedgerService/LedgerService.API && dotnet run
-cd src/Services/RewardsService/RewardsService.API && dotnet run
-cd src/Services/CatalogService/CatalogService.API && dotnet run
-cd src/Services/NotificationService/NotificationService.API && dotnet run
-cd src/Services/ReceiptsService/ReceiptsService.API && dotnet run
-cd src/Services/AdminService/AdminService.API && dotnet run
-cd src/Gateway/ApiGateway && dotnet run
+# ... repeat for other services and gateway ...
 
-# Chatbot
 cd chatbot_service
 venv\Scripts\uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-# Frontend
 cd frontend/wallet-platform
 npm install
 ng serve
@@ -416,9 +517,11 @@ All services are also accessible via the API Gateway at `http://localhost:5000/g
 - [x] AI Chatbot (Gemini `gemini-2.5-flash` via FastAPI)
 - [x] One-command startup script (`start-all.ps1`)
 - [x] Public landing page (Aurelian brand)
-- [ ] Docker Compose
-- [ ] CI/CD Pipeline
-- [ ] Unit & Integration Tests (xUnit + Moq)
+- [x] Docker Compose for SQL Server + RabbitMQ (local dependencies)
+- [x] Docker packaging — Dockerfile per API, `build-all.ps1`, `.dockerignore`
+- [x] CI pipeline (GitHub Actions — build + test + frontend production build)
+- [ ] CD / deploy to cloud (hosting + registry + secrets)
+- [ ] Expanded integration test coverage (beyond current xUnit suites)
 
 ---
 
@@ -428,7 +531,7 @@ All services are also accessible via the API Gateway at `http://localhost:5000/g
 2. Create a feature branch (`git checkout -b feature/your-feature`)
 3. Commit your changes (`git commit -m 'Add your feature'`)
 4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
+5. Open a Pull Request (CI should run automatically on GitHub)
 
 ---
 
@@ -438,4 +541,4 @@ This project is licensed under the MIT License.
 
 ---
 
-> Built with .NET 10 · Angular 17 · FastAPI · Gemini AI · Clean Architecture · Microservices · RabbitMQ · SQL Server
+> Built with .NET 10 · Angular 17 · FastAPI · Gemini AI · Clean Architecture · Microservices · RabbitMQ · SQL Server · GitHub Actions CI

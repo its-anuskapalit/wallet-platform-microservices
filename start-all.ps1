@@ -1,6 +1,7 @@
 param(
     [switch]$SkipFrontend,
     [switch]$SkipChatbot,
+    [switch]$SkipInvestigationCopilot,
     [switch]$NoWait,
     [switch]$KillPorts
 )
@@ -8,6 +9,7 @@ param(
 $Root     = $PSScriptRoot
 $Src      = Join-Path $Root "src"
 $Chatbot  = Join-Path $Root "chatbot_service"
+$InvestigationCopilot = Join-Path $Root "investigation_copilot"
 $Frontend = Join-Path $Root "frontend\wallet-platform"
 
 function Write-Header {
@@ -134,6 +136,24 @@ if (-not $SkipChatbot) {
     }
 }
 
+if (-not $SkipInvestigationCopilot) {
+    Write-Header -Msg "Starting Investigation Copilot"
+    $uvInv = Join-Path $InvestigationCopilot ".venv\Scripts\uvicorn.exe"
+    $pyInv = Join-Path $InvestigationCopilot ".venv\Scripts\python.exe"
+
+    if (Test-Path $uvInv) {
+        $invCmd = "& { `$host.UI.RawUI.WindowTitle = 'InvestigationCopilot'; Set-Location '$InvestigationCopilot'; & '$uvInv' main:app --host 0.0.0.0 --port 8001 --reload }"
+        Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoExit", "-Command", $invCmd) -WindowStyle Minimized
+        Write-OK "Investigation Copilot http://localhost:8001"
+    } elseif (Test-Path $pyInv) {
+        $invCmd = "& { `$host.UI.RawUI.WindowTitle = 'InvestigationCopilot'; Set-Location '$InvestigationCopilot'; & '$pyInv' -m uvicorn main:app --host 0.0.0.0 --port 8001 --reload }"
+        Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoExit", "-Command", $invCmd) -WindowStyle Minimized
+        Write-OK "Investigation Copilot http://localhost:8001"
+    } else {
+        Write-WARN "investigation_copilot .venv missing. Run: cd investigation_copilot; python -m venv .venv; pip install -r requirements.txt"
+    }
+}
+
 if (-not $SkipFrontend) {
     Write-Header -Msg "Starting Angular frontend"
     $ngCmd = "& { `$host.UI.RawUI.WindowTitle = 'Angular'; Set-Location '$Frontend'; ng serve --open }"
@@ -144,6 +164,12 @@ if (-not $SkipFrontend) {
 Write-Header -Msg "All services started"
 foreach ($svc in $Services) {
     Write-Host ("  {0,-25} http://localhost:{1}" -f $svc.Name, $svc.Port)
+}
+if (-not $SkipChatbot) {
+    Write-Host ("  {0,-25} {1}" -f "Chatbot", "http://localhost:8000")
+}
+if (-not $SkipInvestigationCopilot) {
+    Write-Host ("  {0,-25} {1}" -f "Investigation Copilot", "http://localhost:8001")
 }
 
 Write-Host ""

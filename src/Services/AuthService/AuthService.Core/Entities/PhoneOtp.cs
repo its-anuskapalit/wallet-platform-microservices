@@ -1,6 +1,6 @@
 namespace AuthService.Core.Entities;
 
-public class PhoneOtp
+public class PhoneOtp //standalone
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Phone { get; set; } = string.Empty;

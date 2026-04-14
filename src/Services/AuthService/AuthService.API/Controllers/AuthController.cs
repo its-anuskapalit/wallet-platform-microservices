@@ -16,13 +16,9 @@ public class AuthController : ControllerBase
     private readonly IAuthService _auth;
     private readonly IOtpService _otp;
     private readonly ILogger<AuthController> _logger;
-    private readonly IWebHostEnvironment _env;
+    private readonly IWebHostEnvironment _env; // new — detects Dev vs Prod
 
-    public AuthController(
-        IAuthService auth,
-        IOtpService otp,
-        ILogger<AuthController> logger,
-        IWebHostEnvironment env)
+    public AuthController( IAuthService auth, IOtpService otp, ILogger<AuthController> logger,  IWebHostEnvironment env)
     {
         _auth   = auth;
         _otp    = otp;
@@ -108,10 +104,11 @@ public class AuthController : ControllerBase
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
     {
-        var userId = Guid.Parse(
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub")!);
         var result = await _auth.ChangePasswordAsync(userId, dto);
-        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        if (!result.IsSuccess) {
+            return BadRequest(new { error = result.Error });
+        }
         return NoContent();
     }
 
@@ -126,7 +123,9 @@ public class AuthController : ControllerBase
             return BadRequest(new { error = "Email is required to send OTP." });
 
         var result = await _otp.SendOtpAsync(dto.Phone, dto.Email, _env.IsDevelopment());
-        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        if (!result.IsSuccess) {
+            return BadRequest(new { error = result.Error });
+        }
         return Ok(result.Data);
     }
 
@@ -135,7 +134,9 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto dto)
     {
         var result = await _otp.VerifyOtpAsync(dto.Phone, dto.OtpCode);
-        if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+        if (!result.IsSuccess) {
+            return BadRequest(new { error = result.Error });
+        }
         return Ok(new { verified = true, message = "Phone number verified successfully." });
     }
 

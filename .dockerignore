@@ -1,0 +1,21 @@
+# Git / IDE
+.git
+.gitignore
+.cursor
+**/.vs
+**/.idea
+
+# Frontend / tooling (not used by Dockerfile, which only COPY src + slnx)
+**/node_modules
+frontend
+investigation_copilot
+
+# Build outputs — Dockerfile runs dotnet restore/publish inside the image
+**/bin
+**/obj
+**/dist
+
+# Misc
+**/*.user
+**/*.md
+**/.claude
