@@ -19,10 +19,7 @@ public class RedemptionDomainService : IRedemptionService
     private readonly IRedemptionRepository _redemptions;
     private readonly IRewardsClient        _rewardsClient;
 
-    public RedemptionDomainService(
-        ICatalogRepository    catalog,
-        IRedemptionRepository redemptions,
-        IRewardsClient        rewardsClient)
+    public RedemptionDomainService( ICatalogRepository    catalog, IRedemptionRepository redemptions, IRewardsClient        rewardsClient)
     {
         _catalog       = catalog;
         _redemptions   = redemptions;

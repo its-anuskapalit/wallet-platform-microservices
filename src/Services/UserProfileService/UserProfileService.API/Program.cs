@@ -133,8 +133,7 @@ if (app.Environment.IsDevelopment())
 
 // ── Pipeline ──────────────────────────────────────────────────────
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserProfile API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "UserProfile API v1"));
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseSerilogRequestLogging();
 app.UseAuthentication();

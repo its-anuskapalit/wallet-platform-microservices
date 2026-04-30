@@ -21,7 +21,7 @@ public static class EventQueues
     public const string TransactionFailedNotification = "transaction.failed.notification.queue";
     public const string WalletFrozenNotification = "wallet.frozen.notification.queue";
 
-    // Dead Letter
+    // Dead Letter-Stores messages that cannot be processed.
     public const string DeadLetterExchange = "dead.letter.exchange";
     public const string DeadLetterQueue = "dead.letter.queue";
 }

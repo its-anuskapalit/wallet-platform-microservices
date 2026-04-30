@@ -1,7 +1,7 @@
 import { Component, signal, ViewChild, ElementRef, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -11,12 +11,15 @@ interface CopilotMessage {
   timestamp: Date;
   toolsUsed?: string[];
   ragChunksUsed?: number;
+  /** True when Gemini quota failed but server returned live JSON instead */
+  llmDegraded?: boolean;
 }
 
 interface InvestigateResponse {
   reply: string;
   rag_chunks_used: number;
   tools_used: string[];
+  llm_degraded?: boolean;
 }
 
 @Component({
@@ -60,8 +63,11 @@ interface InvestigateResponse {
             <div class="msg" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
               <div class="msg-meta">{{ msg.role === 'user' ? 'You' : 'Copilot' }} · {{ msg.timestamp | date:'medium' }}</div>
               <div class="msg-body" [innerHTML]="formatMessage(msg.content)"></div>
-              @if (msg.role === 'assistant' && (msg.toolsUsed?.length || msg.ragChunksUsed != null)) {
+              @if (msg.role === 'assistant' && (msg.llmDegraded || msg.toolsUsed?.length || msg.ragChunksUsed != null)) {
                 <div class="msg-foot">
+                  @if (msg.llmDegraded) {
+                    <span class="degraded-pill">Live data only (Gemini quota)</span>
+                  }
                   @if (msg.ragChunksUsed != null) {
                     <span>KB chunks: {{ msg.ragChunksUsed }}</span>
                   }
@@ -144,6 +150,11 @@ interface InvestigateResponse {
       background: var(--surface); color: var(--on-surface); font-family: var(--font-body); font-size: 14px;
     }
     .send-btn { flex-shrink: 0; min-width: 120px; }
+    .degraded-pill {
+      font-size: 11px; padding: 2px 8px; border-radius: 999px;
+      background: var(--surface-container-highest); color: var(--on-surface-variant);
+      margin-right: 8px;
+    }
   `]
 })
 export class InvestigationCopilotComponent implements AfterViewChecked {
@@ -228,17 +239,17 @@ export class InvestigationCopilotComponent implements AfterViewChecked {
             content: res.reply,
             timestamp: new Date(),
             toolsUsed: res.tools_used,
-            ragChunksUsed: res.rag_chunks_used
+            ragChunksUsed: res.rag_chunks_used,
+            llmDegraded: !!res.llm_degraded
           };
           this.messages.update(m => [...m, bot]);
           this.loading.set(false);
           this.shouldScroll = true;
         },
-        error: err => {
-          const detail = err?.error?.detail ?? err?.message ?? 'Request failed';
+        error: (err: HttpErrorResponse) => {
           const bot: CopilotMessage = {
             role: 'assistant',
-            content: typeof detail === 'string' ? `❌ ${detail}` : `❌ ${JSON.stringify(detail)}`,
+            content: this.copilotErrorMessage(err),
             timestamp: new Date()
           };
           this.messages.update(m => [...m, bot]);
@@ -246,6 +257,44 @@ export class InvestigationCopilotComponent implements AfterViewChecked {
           this.shouldScroll = true;
         }
       });
+  }
+
+  /** Maps HTTP errors to short user-facing text (no raw API payloads). */
+  private copilotErrorMessage(err: HttpErrorResponse): string {
+    const status = err.status;
+    if (status === 0) {
+      return (
+        'Could not reach the Investigation Copilot. Check that the service is running ' +
+        '(see start-all / port 8001) and that your browser can reach this origin.'
+      );
+    }
+    if (status === 429) {
+      return 'AI service is temporarily busy. Please try again in a minute.';
+    }
+    if (status === 503) {
+      const d = err.error?.detail;
+      if (typeof d === 'string' && d.includes('not configured')) {
+        return d;
+      }
+      return 'Service temporarily unavailable. Please try again.';
+    }
+    if (status === 504) {
+      return (
+        'This investigation took too long. Try a shorter question, or ask an admin to set ' +
+        'INVESTIGATION_FAST=1 or a higher INVESTIGATION_REQUEST_TIMEOUT_SEC on the server.'
+      );
+    }
+    if (status === 502) {
+      const d = err.error?.detail;
+      if (typeof d === 'string' && d.length > 0 && d.length < 400) {
+        return d;
+      }
+      return 'The assistant could not complete this step. Please try again.';
+    }
+    if (status >= 400 && status < 500) {
+      return 'Request could not be completed. Please sign in as Admin if live data is required, then try again.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 
   formatMessage(text: string): string {

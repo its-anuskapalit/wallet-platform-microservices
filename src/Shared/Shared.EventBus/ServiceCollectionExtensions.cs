@@ -18,16 +18,13 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
         return services;
     }
-
     /// <summary>
     /// Binds <see cref="RabbitMqOptions"/> from an inline configuration delegate.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configure">A delegate that sets RabbitMQ connection properties.</param>
     /// <returns>The same <see cref="IServiceCollection"/> for chaining.</returns>
-    public static IServiceCollection AddRabbitMqOptions(
-        this IServiceCollection services,
-        Action<RabbitMqOptions> configure)
+    public static IServiceCollection AddRabbitMqOptions( this IServiceCollection services,Action<RabbitMqOptions> configure)
     {
         services.Configure(configure);
         return services;

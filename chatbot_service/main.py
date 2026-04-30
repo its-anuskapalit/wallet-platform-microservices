@@ -7,7 +7,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
+# Metadata for Swagger documentation
 app = FastAPI(title="WalletPlatform Chatbot Service", version="3.0.0")
 
 app.add_middleware(

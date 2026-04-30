@@ -28,11 +28,7 @@ public class WalletFrozenConsumer : BaseConsumer<WalletFrozenEvent>
     /// <param name="options">RabbitMQ connection options.</param>
     /// <param name="logger">Logger for this consumer.</param>
     /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
-    public WalletFrozenConsumer(
-        IOptions<RabbitMqOptions> options,
-        ILogger<WalletFrozenConsumer> logger,
-        IServiceScopeFactory scopeFactory)
-        : base(options, logger)
+    public WalletFrozenConsumer(IOptions<RabbitMqOptions> options, ILogger<WalletFrozenConsumer> logger,IServiceScopeFactory scopeFactory): base(options, logger)
     {
         _scopeFactory = scopeFactory;
     }
@@ -47,7 +43,7 @@ public class WalletFrozenConsumer : BaseConsumer<WalletFrozenEvent>
 
         await svc.SendAsync(
             userId:  message.UserId,
-            email:   message.Email,
+            email:   message.Email, // ← email comes in the event payload
             subject: "Your Wallet Has Been Frozen",
             body:    $"""
                      <h2>Wallet Frozen</h2>

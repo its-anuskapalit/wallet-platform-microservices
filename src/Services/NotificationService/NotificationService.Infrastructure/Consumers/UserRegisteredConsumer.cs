@@ -18,9 +18,9 @@ public class UserRegisteredConsumer : BaseConsumer<UserRegisteredEvent>
 {
     private readonly IServiceScopeFactory _scopeFactory;
 
-    protected override string QueueName    => EventQueues.UserRegisteredNotification;
-    protected override string ExchangeName => EventQueues.UserExchange;
-    protected override string RoutingKey   => "user.registered";
+    protected override string QueueName    => EventQueues.UserRegisteredNotification; //mailbox
+    protected override string ExchangeName => EventQueues.UserExchange; //route
+    protected override string RoutingKey   => "user.registered"; //which queue reeceives the message
 
     /// <summary>
     /// Initializes a new instance of <see cref="UserRegisteredConsumer"/>.
@@ -28,11 +28,7 @@ public class UserRegisteredConsumer : BaseConsumer<UserRegisteredEvent>
     /// <param name="options">RabbitMQ connection options.</param>
     /// <param name="logger">Logger for this consumer.</param>
     /// <param name="scopeFactory">Factory used to create DI scopes per message.</param>
-    public UserRegisteredConsumer(
-        IOptions<RabbitMqOptions> options,
-        ILogger<UserRegisteredConsumer> logger,
-        IServiceScopeFactory scopeFactory)
-        : base(options, logger)
+    public UserRegisteredConsumer( IOptions<RabbitMqOptions> options,ILogger<UserRegisteredConsumer> logger,IServiceScopeFactory scopeFactory): base(options, logger)
     {
         _scopeFactory = scopeFactory;
     }

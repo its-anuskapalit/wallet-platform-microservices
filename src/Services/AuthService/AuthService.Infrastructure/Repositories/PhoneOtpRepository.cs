@@ -11,8 +11,10 @@ public class PhoneOtpRepository : IPhoneOtpRepository
 
     public PhoneOtpRepository(AuthDbContext db) => _db = db;
 
+    //Adds a new OTP record to the database.
     public async Task AddAsync(PhoneOtp otp) => await _db.PhoneOtps.AddAsync(otp);
 
+    //gets most recent and unused OTP
     public async Task<PhoneOtp?> GetLatestActiveAsync(string phone) =>
         await _db.PhoneOtps
             .Where(o => o.Phone == phone && !o.IsUsed)

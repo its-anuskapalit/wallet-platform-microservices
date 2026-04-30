@@ -30,10 +30,8 @@ public class KycRepository : IKycRepository
 
     /// <summary>Stages a new <see cref="KycDocument"/> entity for insertion.</summary>
     /// <param name="document">The KYC document to add.</param>
-    public async Task AddAsync(KycDocument document) =>
-        await _db.KycDocuments.AddAsync(document);
+    public async Task AddAsync(KycDocument document) => await _db.KycDocuments.AddAsync(document);
 
     /// <summary>Persists all pending changes to the database.</summary>
-    public async Task SaveChangesAsync() =>
-        await _db.SaveChangesAsync();
+    public async Task SaveChangesAsync() => await _db.SaveChangesAsync();
 }

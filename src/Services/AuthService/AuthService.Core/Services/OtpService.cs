@@ -17,10 +17,7 @@ public class OtpDomainService : IOtpService
     private readonly IEmailSender        _email;
     private readonly ILogger<OtpDomainService> _log;
 
-    public OtpDomainService(
-        IPhoneOtpRepository otpRepo,
-        IEmailSender        email,
-        ILogger<OtpDomainService> log)
+    public OtpDomainService(IPhoneOtpRepository otpRepo,IEmailSender email, ILogger<OtpDomainService> log)
     {
         _otpRepo = otpRepo;
         _email   = email;
@@ -30,8 +27,8 @@ public class OtpDomainService : IOtpService
     public async Task<Result<SendOtpResponseDto>> SendOtpAsync(string phone, string recipientEmail, bool isDevelopment)
     {
         if (string.IsNullOrWhiteSpace(phone) || phone.Length < 10)
-            return Result<SendOtpResponseDto>.Failure("Please provide a valid 10-digit phone number.");
-
+            {return Result<SendOtpResponseDto>.Failure("Please provide a valid 10-digit phone number.");
+            }
         var code = GenerateCode();
 
         await _otpRepo.AddAsync(new PhoneOtp
@@ -40,6 +37,8 @@ public class OtpDomainService : IOtpService
             OtpCode   = code,
             ExpiresAt = DateTime.UtcNow.AddMinutes(2)   // 2-minute window
         });
+
+        //Store OTP in Database
         await _otpRepo.SaveChangesAsync();
 
         // Send email with OTP
@@ -83,10 +82,11 @@ public class OtpDomainService : IOtpService
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
-
+//Generates a random 6-digit OTP.
     private static string GenerateCode() =>
         Random.Shared.Next(100_000, 999_999).ToString();
 
+    //prevents exposure of sensitive personal data in API responses,
     private static string MaskEmail(string email)
     {
         var at = email.IndexOf('@');

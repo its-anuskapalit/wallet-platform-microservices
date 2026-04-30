@@ -1,6 +1,6 @@
-using AuthService.Core.DTOs;
-using AuthService.Core.Entities;
-using AuthService.Core.Interfaces;
+using AuthService.Core.DTOs; //tranfer data btw layers
+using AuthService.Core.Entities; //represents database models
+using AuthService.Core.Interfaces; 
 using BCrypt.Net;
 using Shared.Common;
 using Shared.Contracts.Events;

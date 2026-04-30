@@ -7,6 +7,7 @@ A production-grade **Wallet & Loyalty Platform** built with .NET 10 microservice
 ## Table of contents
 
 - [Recent updates](#recent-updates)
+- [Design docs](#design-docs)
 - [Architecture overview](#architecture-overview)
 - [Tech stack](#tech-stack)
 - [Microservices](#microservices)
@@ -28,6 +29,12 @@ A production-grade **Wallet & Loyalty Platform** built with .NET 10 microservice
 
 ---
 
+## Design docs
+
+- **High-Level Design (HLD)**: [`docs/HLD.md`](docs/HLD.md)
+- **Low-Level Design (LLD)**: [`docs/LLD.md`](docs/LLD.md)
+- **API Reference (Gateway-first)**: [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
+
 ## Recent updates
 
 The following reflects automation, packaging, and quality-gate work added to the repository:
@@ -40,6 +47,7 @@ The following reflects automation, packaging, and quality-gate work added to the
 | **Docker — API images** | Multi-stage [`docker/Dockerfile`](docker/Dockerfile): `PROJECT_PATH` + `APP_DLL` build args publish one Web API per image (default example: Wallet Service). Root [`.dockerignore`](.dockerignore) shrinks build context (excludes `frontend/node_modules`, build outputs, VCS noise) so builds stay fast. |
 | **Docker — build all services** | [`docker/build-all.ps1`](docker/build-all.ps1) builds **ten** images: nine `*Service.API` projects plus [`ApiGateway`](src/Gateway/ApiGateway/ApiGateway.csproj), tagged `walletplatform-*:latest`. Run when you are ready: `powershell -ExecutionPolicy Bypass -File docker/build-all.ps1` from the repo root (Docker Desktop must be running). |
 | **Docker — local dependencies** | [`docker/docker-compose.yml`](docker/docker-compose.yml) + `docker/compose.env` (create it with `MSSQL_SA_PASSWORD` and optional RabbitMQ vars; see comments in the compose file): brings up **SQL Server 2022** and **RabbitMQ** (management UI) for local development. Comments note gateway/Ocelot `localhost` vs container DNS when every app runs in Docker. |
+| **Investigation Copilot (quota-safe mode)** | `investigation_copilot` now supports a **degraded** mode when Gemini hits **HTTP 429 / quota**: it returns **HTTP 200** with a **read-only live JSON snapshot** from the API Gateway (`llm_degraded=true`) instead of failing the request. The Angular UI shows a “**Live data only (Gemini quota)**” pill when this happens. Tuning flags and guidance were expanded in [`investigation_copilot/.env.example`](investigation_copilot/.env.example). |
 
 **Note:** Container **images** do not need to be running for local development; you can keep using `dotnet run`, `ng serve`, and optionally Compose only for SQL/RabbitMQ. Building all API images is optional and can be done later—the script is ready when you are.
 
@@ -410,6 +418,15 @@ For the chatbot, create `chatbot_service/.env`:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_from_aistudio
 ```
+
+For the **Investigation Copilot** (admin AI, FastAPI on port `8001`), copy [`investigation_copilot/.env.example`](investigation_copilot/.env.example) to `investigation_copilot/.env` and set `GEMINI_API_KEY`. Useful optional flags (see the example file for full notes):
+
+- **`GEMINI_MODEL`**: switch models to use a different quota bucket when free-tier limits are hit.
+- **`INVESTIGATION_FAST=1`**: skips the planner LLM call (only one Gemini call per request).
+- **`GEMINI_INTER_CALL_DELAY_SEC`**: pauses between planner and synthesis to reduce per-minute bursts.
+- **`INVESTIGATION_LLM_FALLBACK_ON_QUOTA`** (default `1`): when quota is hit, returns **HTTP 200** with **live gateway JSON** and sets `llm_degraded=true` (instead of failing with 429).
+- **`GEMINI_MAX_RETRIES`**: how many times Gemini calls retry on 429/quota.
+- **`INVESTIGATION_TOOL_JSON_MAX_CHARS`**: truncation limit for live tool JSON included in responses (reduce tokens / output size).
 
 ### 5. Chatbot Python environment
 

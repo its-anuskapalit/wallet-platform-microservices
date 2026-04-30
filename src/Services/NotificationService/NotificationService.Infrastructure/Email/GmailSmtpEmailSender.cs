@@ -53,11 +53,10 @@ public class GmailSmtpEmailSender : IEmailSender
 
             using var client = new SmtpClient();
 
-            await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+            await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls); //upgrades the connection
             await client.AuthenticateAsync(fromEmail, password);
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
-
             _logger.LogInformation("Email sent to {Email} — {Subject}", email.To, email.Subject);
             return true;
         }

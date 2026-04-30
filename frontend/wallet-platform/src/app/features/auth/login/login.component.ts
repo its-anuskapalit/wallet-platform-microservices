@@ -115,7 +115,6 @@ import { AuthService } from '../../../core/services/auth.service';
               }
             </button>
           </form>
-
           <p class="auth-switch body-sm text-muted">
             Don't have an account?
             <a routerLink="/auth/register" class="text-primary">Create one</a>

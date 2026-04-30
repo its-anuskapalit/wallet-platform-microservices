@@ -9,7 +9,6 @@ from contextlib import asynccontextmanager
 from urllib.parse import quote
 from pathlib import Path
 from typing import Any
-
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException
@@ -20,10 +19,10 @@ from google.genai import types as genai_types
 from pydantic import BaseModel, Field
 
 try:
-    from .gemini_retry import GEMINI_MAX_RETRIES, call_with_retry
+    from .gemini_retry import GEMINI_MAX_RETRIES, call_with_retry, is_ratelimit
     from .rag_store import RagStore
 except ImportError:
-    from gemini_retry import GEMINI_MAX_RETRIES, call_with_retry
+    from gemini_retry import GEMINI_MAX_RETRIES, call_with_retry, is_ratelimit
     from rag_store import RagStore
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -39,6 +38,9 @@ GEMINI_INTER_CALL_DELAY_SEC = float(os.getenv("GEMINI_INTER_CALL_DELAY_SEC", "0"
 INVESTIGATION_FAST = (os.getenv("INVESTIGATION_FAST", "").strip().lower() in ("1", "true", "yes"))
 INVESTIGATION_SKIP_RAG = (os.getenv("INVESTIGATION_SKIP_RAG", "").strip().lower() in ("1", "true", "yes"))
 INVESTIGATION_SKIP_RAG_INDEX = (os.getenv("INVESTIGATION_SKIP_RAG_INDEX", "").strip().lower() in ("1", "true", "yes"))
+INVESTIGATION_LLM_FALLBACK_ON_QUOTA = (
+    os.getenv("INVESTIGATION_LLM_FALLBACK_ON_QUOTA", "1").strip().lower() not in ("0", "false", "no")
+)
 _TOOL_JSON_MAX_CHARS = int(os.getenv("INVESTIGATION_TOOL_JSON_MAX_CHARS", "20000") or "20000")
 _gemini_max_out = os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "").strip()
 GEMINI_MAX_OUTPUT_TOKENS: int | None = int(_gemini_max_out) if _gemini_max_out.isdigit() else None
@@ -145,6 +147,7 @@ class InvestigateResponse(BaseModel):
     reply: str
     rag_chunks_used: int = 0
     tools_used: list[str] = Field(default_factory=list)
+    llm_degraded: bool = False
 
 
 PLAN_SYSTEM = """You are a routing planner for a fraud investigation assistant.
@@ -397,6 +400,68 @@ async def _run_tools(
     return out, used
 
 
+def _raise_safe_gemini_error(exc: BaseException, *, step: str) -> None:
+    """Log full error server-side; raise HTTPException with a short client-safe message."""
+    print(f"[gemini:{step}] {exc!r}")
+    tb = getattr(exc, "__traceback__", None)
+    if tb is not None:
+        traceback.print_exception(type(exc), exc, tb)
+    else:
+        traceback.print_exc()
+    if is_ratelimit(exc):
+        raise HTTPException(
+            status_code=429,
+            detail="AI service is temporarily busy. Please try again in a minute.",
+        ) from None
+    raise HTTPException(
+        status_code=502,
+        detail="The assistant could not complete this step. Please try again.",
+    ) from None
+
+
+def _fallback_report_from_tools(
+    user_message: str,
+    tool_payload: dict[str, Any],
+    rag_chunks: list[str],
+) -> str:
+    """
+    When Gemini synthesis fails (quota), return useful output from live gateway JSON + optional KB snippets.
+    """
+    lines: list[str] = [
+        "**Gemini is temporarily unavailable (quota or rate limit).** Below is a **read-only [Live]** snapshot — not an AI narrative.",
+        "",
+    ]
+    if rag_chunks:
+        lines.append("**Knowledge excerpts (retrieved)**")
+        for i, c in enumerate(rag_chunks[:5], 1):
+            snippet = c.strip().replace("\n", " ")
+            if len(snippet) > 500:
+                snippet = snippet[:500] + "…"
+            lines.append(f"- ({i}) {snippet}")
+        lines.append("")
+
+    if not tool_payload:
+        lines.append(
+            "**No live data was fetched.** Sign in as **Admin**, ensure the **API Gateway** is running, "
+            "and include an email or transaction GUID in your question if you need profile or ledger data."
+        )
+        lines.append("")
+        lines.append(f"**Your question:** {user_message}")
+        return "\n".join(lines)
+
+    lines.append("**Live API payload (JSON)** — use this for facts until LLM quota recovers.")
+    lines.append("")
+    raw = json.dumps(tool_payload, indent=2, default=str)
+    if len(raw) > 14000:
+        raw = raw[:14000] + "\n\n… [truncated — increase INVESTIGATION_TOOL_JSON_MAX_CHARS]"
+    lines.append(raw)
+    lines.append("")
+    lines.append(
+        "_When Gemini works again, ask the same question for a full analyst-style write-up._"
+    )
+    return "\n".join(lines)
+
+
 def _live_json_for_prompt(tool_payload: dict[str, Any]) -> str:
     if not tool_payload:
         return "{}"
@@ -477,7 +542,15 @@ async def investigate(
             try:
                 plan = await asyncio.to_thread(_plan_tools, augmented)
             except Exception as e:
-                raise HTTPException(status_code=502, detail=f"Planner error: {e}") from e
+                if INVESTIGATION_LLM_FALLBACK_ON_QUOTA and is_ratelimit(e):
+                    print("[gemini:planner] Quota/rate limit — using keyword-only tool plan (no LLM planner).")
+                    traceback.print_exception(type(e), e, e.__traceback__)
+                    plan = _normalize_plan(
+                        {"tools": [], "transaction_ids": [], "emails": []},
+                        req.message,
+                    )
+                else:
+                    _raise_safe_gemini_error(e, step="planner")
 
         if GEMINI_INTER_CALL_DELAY_SEC > 0:
             await asyncio.sleep(GEMINI_INTER_CALL_DELAY_SEC)
@@ -500,10 +573,14 @@ async def investigate(
             try:
                 return await _run_tools(plan, authorization)
             except httpx.RequestError as e:
+                print(f"[gateway] RequestError: {e!r}")
+                traceback.print_exception(type(e), e, e.__traceback__)
                 raise HTTPException(
                     status_code=502,
-                    detail=f"Gateway unreachable ({GATEWAY_BASE_URL}). Start API Gateway and services. Error: {e}",
-                ) from e
+                    detail=(
+                        f"Gateway unreachable. Ensure the API Gateway is running and reachable at {GATEWAY_BASE_URL}."
+                    ),
+                ) from None
 
         rag_result, tools_result = await asyncio.gather(
             _safe_retrieve(),
@@ -519,14 +596,24 @@ async def investigate(
             reply = await asyncio.to_thread(
                 _synthesize, req.message, req.history, rag_chunks, tool_payload
             )
+            return InvestigateResponse(
+                reply=reply,
+                rag_chunks_used=len(rag_chunks),
+                tools_used=tools_used,
+                llm_degraded=False,
+            )
         except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Synthesis error: {e}") from e
-
-        return InvestigateResponse(
-            reply=reply,
-            rag_chunks_used=len(rag_chunks),
-            tools_used=tools_used,
-        )
+            if INVESTIGATION_LLM_FALLBACK_ON_QUOTA and is_ratelimit(e):
+                print("[gemini:synthesis] Quota/rate limit — returning live-data fallback (no LLM narrative).")
+                traceback.print_exception(type(e), e, e.__traceback__)
+                reply = _fallback_report_from_tools(req.message, tool_payload, rag_chunks)
+                return InvestigateResponse(
+                    reply=reply,
+                    rag_chunks_used=len(rag_chunks),
+                    tools_used=tools_used,
+                    llm_degraded=True,
+                )
+            _raise_safe_gemini_error(e, step="synthesis")
 
     if INVESTIGATION_REQUEST_TIMEOUT_SEC is not None:
         try:
@@ -562,6 +649,7 @@ async def health():
         "rag_indexing_in_progress": _rag_indexing,
         "request_timeout_sec": INVESTIGATION_REQUEST_TIMEOUT_SEC,
         "gemini_max_retries": GEMINI_MAX_RETRIES,
+        "llm_fallback_on_quota": INVESTIGATION_LLM_FALLBACK_ON_QUOTA,
     }
 
 

@@ -7,7 +7,7 @@ using WalletService.Core.DTOs;
 using WalletService.Core.Interfaces;
 
 namespace WalletService.Infrastructure.Clients;
-
+//HTTP client wrapper that interacts with the Ledger Service
 public sealed class LedgerApiClient : ILedgerClient
 {
     private readonly HttpClient _http;

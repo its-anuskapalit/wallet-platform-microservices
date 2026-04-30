@@ -13,7 +13,6 @@ public class NotificationDomainService
 {
     private readonly IEmailSender _emailSender;
     private readonly INotificationRepository _repo;
-
     /// <summary>
     /// Initializes a new instance of <see cref="NotificationDomainService"/>.
     /// </summary>
@@ -24,7 +23,6 @@ public class NotificationDomainService
         _emailSender = emailSender;
         _repo        = repo;
     }
-
     /// <summary>
     /// Sends an HTML email to the specified recipient and logs the outcome to the database.
     /// Failures are caught and recorded rather than propagated to the caller.
@@ -38,7 +36,6 @@ public class NotificationDomainService
     {
         var success = false;
         string? error = null;
-
         try
         {
             success = await _emailSender.SendAsync(new EmailDto
@@ -52,7 +49,7 @@ public class NotificationDomainService
         {
             error = ex.Message;
         }
-
+        //// ALWAYS log — regardless of success or failure
         await _repo.AddAsync(new NotificationLog
         {
             UserId       = userId,

@@ -23,7 +23,7 @@ public class TokenService : ITokenService
     /// <param name="config">Application configuration providing JWT key, issuer, audience, and expiry.</param>
     public TokenService(IConfiguration config)
     {
-        _config = config;
+        _config = config; //ads JWT settings from appsettings.json
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class TokenService : ITokenService
         var token = new JwtSecurityToken(
             issuer:             _config["Jwt:Issuer"],
             audience:           _config["Jwt:Audience"],
-            claims:             claims,
+            claims:             claims, //user data
             expires:            expiry,
             signingCredentials: creds);
 

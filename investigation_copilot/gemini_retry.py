@@ -15,7 +15,8 @@ T = TypeVar("T")
 GEMINI_MAX_RETRIES = max(1, int(os.getenv("GEMINI_MAX_RETRIES", "3") or "3"))
 
 
-def _is_ratelimit(err: BaseException) -> bool:
+def is_ratelimit(err: BaseException) -> bool:
+    """True if the exception looks like a Gemini 429 / quota / rate-limit error."""
     msg = str(err).lower()
     if "429" in msg:
         return True
@@ -56,7 +57,7 @@ def call_with_retry(
             return fn()
         except Exception as e:
             last = e
-            if not _is_ratelimit(e) or attempt == cap - 1:
+            if not is_ratelimit(e) or attempt == cap - 1:
                 raise
             delay = _sleep_seconds(e, attempt)
             print(f"[{label}] 429/quota on attempt {attempt + 1}/{cap}. Retrying in {delay:.1f}s ...")

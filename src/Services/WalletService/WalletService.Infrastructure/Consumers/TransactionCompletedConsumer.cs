@@ -18,16 +18,11 @@ public class TransactionCompletedConsumer : BaseConsumer<TransactionCompletedEve
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<TransactionCompletedConsumer> _log;
-
     protected override string QueueName    => EventQueues.TransactionCompletedWallet;
     protected override string ExchangeName => EventQueues.TransactionExchange;
     protected override string RoutingKey   => "transaction.completed";
 
-    public TransactionCompletedConsumer(
-        IOptions<RabbitMqOptions> options,
-        ILogger<TransactionCompletedConsumer> logger,
-        IServiceScopeFactory scopeFactory)
-        : base(options, logger)
+    public TransactionCompletedConsumer(IOptions<RabbitMqOptions> options,ILogger<TransactionCompletedConsumer> logger,IServiceScopeFactory scopeFactory)   : base(options, logger)
     {
         _scopeFactory = scopeFactory;
         _log = logger;
