@@ -1,0 +1,292 @@
+
+    <div class="transactions-page page-enter">
+      <div class="page-header">
+        <div>
+          <p class="label-sm text-muted">FINANCE</p>
+          <h1 class="headline-lg">Transactions</h1>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-secondary" (click)="exportCsv()" [disabled]="filteredTxns().length === 0">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7.5 1v9M4 7l3.5 3.5L11 7"/><path d="M2 12h11"/></svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary" (click)="openSendModal()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2L2 6l5 3 3 5 4-12z"/></svg>
+            Send Money
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        @for (f of filters; track f.value) {
+          <button class="filter-btn" [class.active]="activeFilter() === f.value" (click)="activeFilter.set(f.value)">
+            {{ f.label }}
+          </button>
+        }
+        <div class="filter-spacer"></div>
+        <span class="label-sm text-muted">{{ filteredTxns().length }} records</span>
+      </div>
+
+      <!-- Search + Date Range -->
+      <div class="search-bar">
+        <div class="search-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--on-surface-variant)" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="5"/><path d="M13 13l-3-3"/></svg>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Search by type, amount or ID…"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)"
+          />
+          @if (searchQuery()) {
+            <button class="search-clear" (click)="searchQuery.set('')">×</button>
+          }
+        </div>
+        <div class="date-range">
+          <input type="date" class="date-input" [value]="dateFrom()" (change)="dateFrom.set($any($event.target).value)" title="From date"/>
+          <span class="date-sep">—</span>
+          <input type="date" class="date-input" [value]="dateTo()" (change)="dateTo.set($any($event.target).value)" title="To date"/>
+          @if (dateFrom() || dateTo()) {
+            <button class="search-clear" (click)="dateFrom.set(''); dateTo.set('')">×</button>
+          }
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card table-card">
+        @if (loading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="table-row skeleton-row">
+              <div class="skeleton" style="width:36px;height:36px;border-radius:10px;"></div>
+              <div style="flex:1"><div class="skeleton" style="height:13px;width:50%;"></div></div>
+              <div class="skeleton" style="height:13px;width:80px;"></div>
+              <div class="skeleton" style="height:13px;width:100px;"></div>
+              <div class="skeleton" style="height:22px;width:70px;border-radius:20px;"></div>
+            </div>
+          }
+        } @else if (filteredTxns().length === 0) {
+          <div class="empty-state">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="var(--outline-variant)" stroke-width="1.5"><rect x="8" y="14" width="40" height="28" rx="4"/><path d="M8 22h40"/></svg>
+            <p class="title-sm">No transactions found</p>
+            <p class="body-sm text-muted">Transactions will appear here once you send or receive funds.</p>
+          </div>
+        } @else {
+          <div class="table-header">
+            <span></span><span>Transaction</span><span>Amount</span><span>Date</span><span>Status</span><span></span>
+          </div>
+          @for (group of groupedTxns(); track group.label) {
+            <div class="date-group-label">{{ group.label }}</div>
+            @for (txn of group.txns; track txn.id) {
+              <div class="table-row" (click)="selectedTxn.set(txn)" style="cursor:pointer;">
+                <div class="txn-type-icon" [class]="txnIconClass(txn)">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    @if (txn.type === 'TopUp') { <path d="M8 3v10M3 8h10"/> }
+                    @else { <path d="M14 2L2 6l5 3 3 5 4-12z"/> }
+                  </svg>
+                </div>
+                <div class="txn-meta">
+                  <span class="title-sm">{{ txnLabel(txn) }}</span>
+                  <div class="txn-ref-row">
+                    <span class="label-sm text-muted">Ref: {{ txn.id | slice:0:8 }}…</span>
+                    <button
+                      type="button"
+                      class="btn-copy-ref"
+                      title="Copy transaction ID"
+                      aria-label="Copy transaction ID"
+                      (click)="copyTxnId(txn.id, $event)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2"/>
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="txn-amount" [class]="amountClass(txn)">
+                  {{ isCredit(txn) ? '+' : '-' }}{{ txn.amount | currency:txn.currency }}
+                </div>
+                <div class="label-md text-muted">{{ txn.createdAt | date:'h:mm a' }}</div>
+                <span class="badge" [class]="statusClass(txn.status)">{{ txn.status }}</span>
+                <button class="btn-pdf" title="Download PDF Receipt"
+                        [disabled]="downloadingPdfId() === txn.id"
+                        (click)="$event.stopPropagation(); downloadPdf(txn)">
+                  @if (downloadingPdfId() === txn.id) {
+                    <span class="spinner-sm"></span>
+                  } @else {
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1v8M4 6l3 3 3-3"/><path d="M2 11h10"/></svg>
+                  }
+                </button>
+              </div>
+            }
+          }
+        }
+      </div>
+
+    </div>
+
+    <!-- ══ Send Money Modal ══ -->
+    @if (showSendModal()) {
+      <div class="modal-overlay" (click)="closeSendModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <div>
+              <h3 class="title-lg">Send Money</h3>
+              <p class="label-sm text-muted" style="margin-top:2px;">
+                {{ sendStep() === 'email' ? 'Enter recipient email' : 'Confirm transfer' }}
+              </p>
+            </div>
+            <button class="modal-close" (click)="closeSendModal()">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 5L5 15M5 5l10 10"/></svg>
+            </button>
+          </div>
+
+          <!-- Step 1: Enter email -->
+          @if (sendStep() === 'email') {
+            <form [formGroup]="emailForm" (ngSubmit)="onLookupRecipient()">
+              <div class="form-group">
+                <label>Recipient's Email Address</label>
+                <div class="email-lookup-row">
+                  <input
+                    type="email"
+                    class="form-control"
+                    formControlName="email"
+                    placeholder="e.g. john@example.com"
+                    [class.error]="emailForm.get('email')?.invalid && emailForm.get('email')?.touched"
+                  />
+                  <button type="submit" class="btn btn-secondary" [disabled]="resolvingRecipient()">
+                    @if (resolvingRecipient()) { <span class="spinner-sm spinner-dark"></span> } @else {
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><path d="M13 13l-3-3"/></svg>
+                    }
+                    Find
+                  </button>
+                </div>
+                @if (recipientError()) {
+                  <p class="field-error" style="margin-top:8px;">{{ recipientError() }}</p>
+                }
+              </div>
+
+              <!-- Recipient preview card -->
+              @if (resolvedRecipient()) {
+                <div class="recipient-card">
+                  <div class="rc-avatar">{{ recipientInitials() }}</div>
+                  <div class="rc-info">
+                    <p class="title-sm">{{ resolvedRecipient()!.fullName }}</p>
+                    <p class="label-sm text-muted">{{ resolvedRecipient()!.email }}</p>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><path d="M15 5L7 13l-4-4"/></svg>
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                  <label>Amount ({{ senderWallet()?.currency ?? 'INR' }})</label>
+                  <div class="amount-input-wrap">
+                    <span class="currency-prefix">{{ senderWallet()?.currency ?? 'INR' }}</span>
+                    <input
+                      type="number"
+                      class="form-control amount-input"
+                      [formControl]="amountForm.controls.amount"
+                      placeholder="0.00"
+                      min="0.01"
+                      step="0.01"
+                    />
+                  </div>
+                  @if (amountForm.get('amount')?.invalid && amountForm.get('amount')?.touched) {
+                    <span class="field-error">Enter a valid amount</span>
+                  }
+                  <p class="label-sm text-muted" style="margin-top:6px;">
+                    Available:
+                    @if (balanceVis.visible()) {
+                      {{ senderWallet()?.balance | currency:senderWallet()?.currency }}
+                    } @else {
+                      <span style="letter-spacing:0.06em;user-select:none;">{{ balanceVis.maskedAmount(senderWallet()?.currency) }}</span>
+                    }
+                  </p>
+                </div>
+
+                @if (amountForm.get('amount')?.value && +amountForm.get('amount')!.value! > 0) {
+                  <div class="transfer-summary">
+                    <div class="ts-row">
+                      <span class="label-md text-muted">Sending to</span>
+                      <span class="title-sm">{{ resolvedRecipient()!.fullName }}</span>
+                    </div>
+                    <div class="ts-row">
+                      <span class="label-md text-muted">Amount</span>
+                      <span class="title-sm amount-positive">{{ amountForm.get('amount')?.value | currency:senderWallet()?.currency }}</span>
+                    </div>
+                  </div>
+                }
+              }
+
+              @if (resolvedRecipient()) {
+                <div class="modal-actions">
+                  <button type="button" class="btn btn-secondary" (click)="closeSendModal()">Cancel</button>
+                  <button type="button" class="btn btn-primary" (click)="onConfirmSend()" [disabled]="submitting() || amountForm.invalid">
+                    @if (submitting()) { <span class="spinner-sm"></span> }
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2L2 6l5 3 3 5 4-12z"/></svg>
+                    Send Money
+                  </button>
+                </div>
+              }
+            </form>
+
+            @if (sendError()) {
+              <div class="alert-error" style="margin-top:14px;">{{ sendError() }}</div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ══ Transaction Detail Modal ══ -->
+    @if (selectedTxn()) {
+      <div class="modal-overlay" (click)="selectedTxn.set(null)">
+        <div class="modal modal--detail" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3 class="title-lg">Transaction Detail</h3>
+            <button class="modal-close" (click)="selectedTxn.set(null)">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 5L5 15M5 5l10 10"/></svg>
+            </button>
+          </div>
+
+          <div class="detail-amount" [class]="amountClass(selectedTxn()!)">
+            {{ isCredit(selectedTxn()!) ? '+' : '-' }}{{ selectedTxn()!.amount | currency:selectedTxn()!.currency }}
+          </div>
+
+          <div class="detail-rows">
+            <div class="detail-row">
+              <span class="text-muted label-md">Type</span>
+              <span class="title-sm">{{ txnLabel(selectedTxn()!) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="text-muted label-md">Status</span>
+              <span class="badge" [class]="statusClass(selectedTxn()!.status)">{{ selectedTxn()!.status }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="text-muted label-md">Currency</span>
+              <span class="title-sm">{{ selectedTxn()!.currency }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="text-muted label-md">Date</span>
+              <span class="title-sm">{{ selectedTxn()!.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
+            </div>
+            <div class="detail-row detail-row--ref">
+              <span class="text-muted label-md">Reference ID</span>
+              <div class="detail-ref-wrap">
+                <span class="mono-text detail-ref-text">{{ selectedTxn()!.id }}</span>
+                <button
+                  type="button"
+                  class="btn-copy-ref btn-copy-ref--detail"
+                  title="Copy reference ID"
+                  aria-label="Copy reference ID"
+                  (click)="copyTxnId(selectedTxn()!.id, $event)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  

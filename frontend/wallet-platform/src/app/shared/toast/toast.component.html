@@ -1,0 +1,18 @@
+
+    <div class="toast-container" aria-live="polite" aria-relevant="additions">
+      @for (toast of toastSvc.toasts(); track toast.id) {
+        <div class="toast toast--{{ toast.type }}" role="alert">
+          <span class="toast-icon" aria-hidden="true">
+            @switch (toast.type) {
+              @case ('success') { ✓ }
+              @case ('error')   { ✕ }
+              @case ('warning') { ⚠ }
+              @default          { ℹ }
+            }
+          </span>
+          <span class="toast-msg">{{ toast.message }}</span>
+          <button type="button" class="toast-close" (click)="toastSvc.dismiss(toast.id)" aria-label="Dismiss">×</button>
+        </div>
+      }
+    </div>
+  

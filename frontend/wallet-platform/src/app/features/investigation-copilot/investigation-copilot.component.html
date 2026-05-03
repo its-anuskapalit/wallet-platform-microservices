@@ -1,0 +1,79 @@
+
+    <div class="inv-page page-enter">
+      <div class="page-header">
+        <p class="label-sm text-muted">ADMIN · AI</p>
+        <h1 class="headline-lg">Investigation Copilot</h1>
+      </div>
+
+      <div class="inv-shell card">
+        <div class="inv-toolbar">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="clear()" [disabled]="loading()">
+            Clear conversation
+          </button>
+          @if (lastHealth()) {
+            <span class="health-pill" [class.ok]="lastHealth()?.ai_configured">
+              AI: {{ lastHealth()?.ai_configured ? 'ready' : 'not configured' }}
+              · RAG chunks: {{ lastHealth()?.rag_chunks_indexed ?? '—' }}
+            </span>
+          }
+        </div>
+
+        <div class="inv-messages" #scrollBox>
+          @if (messages().length === 0) {
+            <div class="empty">
+              <p class="title-md">Ask by email, transaction GUID, or fraud triage</p>
+              <p class="body-md text-muted">Examples:</p>
+              <ul class="examples">
+                @for (ex of examples; track ex) {
+                  <li><button type="button" class="linkish" (click)="useExample(ex)">{{ ex }}</button></li>
+                }
+              </ul>
+            </div>
+          }
+
+          @for (msg of messages(); track $index) {
+            <div class="msg" [class.user]="msg.role === 'user'" [class.assistant]="msg.role === 'assistant'">
+              <div class="msg-meta">{{ msg.role === 'user' ? 'You' : 'Copilot' }} · {{ msg.timestamp | date:'medium' }}</div>
+              <div class="msg-body" [innerHTML]="formatMessage(msg.content)"></div>
+              @if (msg.role === 'assistant' && (msg.llmDegraded || msg.toolsUsed?.length || msg.ragChunksUsed != null)) {
+                <div class="msg-foot">
+                  @if (msg.llmDegraded) {
+                    <span class="degraded-pill">Live data only (Gemini quota)</span>
+                  }
+                  @if (msg.ragChunksUsed != null) {
+                    <span>KB chunks: {{ msg.ragChunksUsed }}</span>
+                  }
+                  @if (msg.toolsUsed && msg.toolsUsed.length > 0) {
+                    <span>Tools: {{ msg.toolsUsed.join(', ') }}</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (loading()) {
+            <div class="msg assistant">
+              <div class="msg-meta">Copilot</div>
+              <div class="typing"><span></span><span></span><span></span></div>
+            </div>
+          }
+        </div>
+
+        <div class="inv-input">
+          <textarea
+            #inputEl
+            rows="2"
+            class="input"
+            [(ngModel)]="inputText"
+            placeholder="e.g. Investigate yash@test.com — profile, KYC, wallet, rewards…"
+            (keydown.ctrl.enter)="send()"
+            (keydown.meta.enter)="send()"
+            [disabled]="loading()"
+          ></textarea>
+          <button type="button" class="btn btn-primary send-btn" (click)="send()" [disabled]="!inputText.trim() || loading()">
+            @if (loading()) { <span>Working…</span> } @else { <span>Investigate</span> }
+          </button>
+        </div>
+      </div>
+    </div>
+  

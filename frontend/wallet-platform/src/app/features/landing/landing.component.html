@@ -1,0 +1,355 @@
+
+    <!-- ══ NAVBAR ══ -->
+    <nav class="navbar" [class.scrolled]="scrolled()">
+      <div class="nav-inner">
+        <a routerLink="/" class="nav-logo">
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="14" fill="url(#landGrad)"/>
+            <path d="M15 33L24 15L33 33" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.5 27H29.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="landGrad" x1="0" y1="0" x2="48" y2="48">
+                <stop offset="0%" stop-color="#944a00"/>
+                <stop offset="100%" stop-color="#e87f24"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="nav-brand">Aurelian</span>
+        </a>
+
+        <div class="nav-links">
+          <button class="nav-link" (click)="scrollTo('features')">Features</button>
+          <button class="nav-link" (click)="scrollTo('how')">How it works</button>
+          <button class="nav-link" (click)="scrollTo('rewards')">Rewards</button>
+        </div>
+
+        <div class="nav-actions">
+          @if (isLoggedIn()) {
+            <a routerLink="/dashboard" class="btn btn-primary btn-sm">Go to Dashboard</a>
+          } @else {
+            <a routerLink="/auth/login" class="btn btn-ghost btn-sm">Sign in</a>
+            <a routerLink="/auth/register" class="btn btn-primary btn-sm">Get started</a>
+          }
+        </div>
+      </div>
+    </nav>
+
+    <!-- ══ HERO ══ -->
+    <section class="hero">
+      <div class="hero-bg">
+        <div class="hero-blob hero-blob--1"></div>
+        <div class="hero-blob hero-blob--2"></div>
+        <div class="hero-blob hero-blob--3"></div>
+        <div class="hero-grid"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badge anim-fade-up" style="animation-delay:0.1s">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.67 3.39L12.5 5.05l-2.75 2.68.65 3.77L7 9.69l-3.4 1.81.65-3.77L1.5 5.05l3.83-.66z" fill="#f57f17"/></svg>
+          Earn rewards on every transaction
+        </div>
+        <h1 class="hero-headline">
+          <span class="anim-fade-up" style="animation-delay:0.22s;display:block;">Your money,</span>
+          <span class="gradient-text anim-fade-up" style="animation-delay:0.38s;display:block;">smarter.</span>
+        </h1>
+        <p class="hero-sub anim-fade-up" style="animation-delay:0.5s">
+          Aurelian is a modern digital wallet that lets you send money instantly,
+          earn loyalty points, redeem real rewards — and stay in control of every rupee.
+        </p>
+        <div class="hero-cta anim-fade-up" style="animation-delay:0.62s">
+          <a routerLink="/auth/register" class="btn btn-hero-primary">
+            Open free account
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+          </a>
+          <a routerLink="/auth/login" class="btn btn-hero-ghost">Sign in</a>
+        </div>
+        <div class="hero-trust anim-fade-up" style="animation-delay:0.74s">
+          <div class="trust-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="1.8" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
+            Free to join
+          </div>
+          <div class="trust-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="1.8" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
+            KYC secured
+          </div>
+          <div class="trust-item">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="1.8" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
+            Instant transfers
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero visual -->
+      <div class="hero-visual">
+        <div class="mockup-card">
+          <div class="mockup-header">
+            <div class="mockup-avatar">A</div>
+            <div>
+              <div class="mockup-name">Aurelian Wallet</div>
+              <div class="mockup-sub">Personal Account</div>
+            </div>
+            <div class="mockup-badge">Active</div>
+          </div>
+          <div class="mockup-balance-label">Total Balance</div>
+          <div class="mockup-balance">₹12,450.00</div>
+          <div class="mockup-row">
+            <div class="mockup-stat">
+              <span class="mockup-stat-label">Points</span>
+              <span class="mockup-stat-val">1,240 pts</span>
+            </div>
+            <div class="mockup-stat">
+              <span class="mockup-stat-label">Tier</span>
+              <span class="mockup-stat-val">🥈 Silver</span>
+            </div>
+          </div>
+          <div class="mockup-txns">
+            <div class="mockup-txn">
+              <div class="mockup-txn-icon credit">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 2v10M2 7h10"/></svg>
+              </div>
+              <div class="mockup-txn-info">
+                <span>Top Up</span><span class="muted">Today</span>
+              </div>
+              <span class="pos">+₹5,000</span>
+            </div>
+            <div class="mockup-txn">
+              <div class="mockup-txn-icon debit">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 2L2 5.5l4 2.5 2.5 4L13 2z"/></svg>
+              </div>
+              <div class="mockup-txn-info">
+                <span>Transfer</span><span class="muted">Yesterday</span>
+              </div>
+              <span class="neg">-₹1,200</span>
+            </div>
+            <div class="mockup-txn">
+              <div class="mockup-txn-icon reward">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 1l1.67 3.39L12.5 5.05l-2.75 2.68.65 3.77L7 9.69l-3.4 1.81.65-3.77L1.5 5.05l3.83-.66z"/></svg>
+              </div>
+              <div class="mockup-txn-info">
+                <span>Points Earned</span><span class="muted">Yesterday</span>
+              </div>
+              <span class="pos">+50 pts</span>
+            </div>
+          </div>
+        </div>
+        <!-- Floating chips -->
+        <div class="float-chip float-chip--1">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><path d="M13 4l-7 7-3-3"/></svg>
+          Transfer sent!
+        </div>
+        <div class="float-chip float-chip--2">
+          ⭐ +50 bonus points
+        </div>
+        <div class="float-chip float-chip--3">
+          🎁 Voucher redeemed
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ STATS STRIP ══ -->
+    <div class="stats-strip">
+      <div class="strip-stat"><span class="strip-num">₹0</span><span class="strip-label">Joining fee</span></div>
+      <div class="strip-divider"></div>
+      <div class="strip-stat"><span class="strip-num">1 pt</span><span class="strip-label">Per ₹10 spent</span></div>
+      <div class="strip-divider"></div>
+      <div class="strip-stat"><span class="strip-num">12+</span><span class="strip-label">Catalog rewards</span></div>
+      <div class="strip-divider"></div>
+      <div class="strip-stat"><span class="strip-num">Instant</span><span class="strip-label">Transfers</span></div>
+    </div>
+
+    <!-- ══ FEATURES ══ -->
+    <section class="section" id="features">
+      <div class="section-inner">
+        <p class="section-eyebrow reveal">Everything you need</p>
+        <h2 class="section-title reveal">Built for real-world finance</h2>
+        <p class="section-sub reveal">From wallet management to AI support — Aurelian has you covered.</p>
+
+        <div class="features-grid">
+          <div class="feature-card feature-card--accent reveal">
+            <div class="feature-icon" style="background:#fff3e0;color:#e65100;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="15" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </div>
+            <h3>Digital Wallet</h3>
+            <p>Top up, send, and receive money instantly. Full transaction history with PDF receipts.</p>
+          </div>
+          <div class="feature-card reveal" style="--reveal-delay:0.1s">
+            <div class="feature-icon" style="background:#e8f5e9;color:#2e7d32;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            </div>
+            <h3>KYC Verification</h3>
+            <p>Submit your identity documents in minutes. Admin-reviewed for full account access.</p>
+          </div>
+          <div class="feature-card reveal" style="--reveal-delay:0.2s">
+            <div class="feature-icon" style="background:#fff8e1;color:#f57f17;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>
+            </div>
+            <h3>Loyalty Rewards</h3>
+            <p>Earn points on every transaction. Milestones unlock bonus points — the more you use, the more you earn.</p>
+          </div>
+          <div class="feature-card reveal" style="--reveal-delay:0.3s">
+            <div class="feature-icon" style="background:#f3e5f5;color:#6a1b9a;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+            </div>
+            <h3>Reward Catalog</h3>
+            <p>Redeem points for vouchers, cashback, food, travel, and entertainment — instantly delivered with a unique code.</p>
+          </div>
+          <div class="feature-card reveal" style="--reveal-delay:0.4s">
+            <div class="feature-icon" style="background:#e3f2fd;color:#1565c0;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </div>
+            <h3>AI Chatbot</h3>
+            <p>Ask WalletBot anything — rewards, transfers, KYC, or how to get started. Available 24/7.</p>
+          </div>
+          <div class="feature-card reveal" style="--reveal-delay:0.5s">
+            <div class="feature-icon" style="background:#fce4ec;color:#c62828;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <h3>Secure & Compliant</h3>
+            <p>JWT-secured sessions, OTP email verification, and admin-controlled account management.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ HOW IT WORKS ══ -->
+    <section class="section section--alt" id="how">
+      <div class="section-inner">
+        <p class="section-eyebrow reveal">Simple by design</p>
+        <h2 class="section-title reveal">Up and running in minutes</h2>
+        <div class="steps-row">
+          <div class="step reveal" style="--reveal-delay:0.05s">
+            <div class="step-num">1</div>
+            <h3 class="step-title">Create account</h3>
+            <p class="step-desc">Register with your email, verify with OTP. Takes under a minute.</p>
+          </div>
+          <div class="step-arrow">
+            <svg width="32" height="16" viewBox="0 0 32 16" fill="none" stroke="var(--outline-variant)" stroke-width="1.5" stroke-linecap="round"><path d="M2 8h26M22 3l6 5-6 5"/></svg>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <h3 class="step-title">Complete KYC</h3>
+            <p class="step-desc">Submit your documents. Admin approves within hours — unlocking full features.</p>
+          </div>
+          <div class="step-arrow">
+            <svg width="32" height="16" viewBox="0 0 32 16" fill="none" stroke="var(--outline-variant)" stroke-width="1.5" stroke-linecap="round"><path d="M2 8h26M22 3l6 5-6 5"/></svg>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <h3 class="step-title">Top up & send</h3>
+            <p class="step-desc">Add funds, transfer to anyone by email, and earn points automatically.</p>
+          </div>
+          <div class="step-arrow">
+            <svg width="32" height="16" viewBox="0 0 32 16" fill="none" stroke="var(--outline-variant)" stroke-width="1.5" stroke-linecap="round"><path d="M2 8h26M22 3l6 5-6 5"/></svg>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <h3 class="step-title">Redeem rewards</h3>
+            <p class="step-desc">Browse the catalog and redeem your points for vouchers, food, travel & more.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ REWARDS HIGHLIGHT ══ -->
+    <section class="section" id="rewards">
+      <div class="section-inner">
+        <p class="section-eyebrow reveal">Loyalty program</p>
+        <h2 class="section-title reveal">Earn more, every time</h2>
+        <div class="rewards-highlight">
+          <div class="rh-left">
+            <div class="rh-item reveal" style="--reveal-delay:0.05s">
+              <div class="rh-icon">🎉</div>
+              <div>
+                <div class="rh-title">Welcome Bonus</div>
+                <div class="rh-desc">Get +10 points just for signing up</div>
+              </div>
+              <div class="rh-pts">+10 pts</div>
+            </div>
+            <div class="rh-item">
+              <div class="rh-icon">💸</div>
+              <div>
+                <div class="rh-title">Every Transaction</div>
+                <div class="rh-desc">1 point per ₹10 on every transfer</div>
+              </div>
+              <div class="rh-pts">1 pt / ₹10</div>
+            </div>
+            <div class="rh-item">
+              <div class="rh-icon">🚀</div>
+              <div>
+                <div class="rh-title">Big Transfer Bonus</div>
+                <div class="rh-desc">Send ₹1,000+ and earn extra points</div>
+              </div>
+              <div class="rh-pts">+50 pts</div>
+            </div>
+            <div class="rh-item">
+              <div class="rh-icon">💎</div>
+              <div>
+                <div class="rh-title">High-Value Bonus</div>
+                <div class="rh-desc">Send ₹5,000+ for maximum bonus</div>
+              </div>
+              <div class="rh-pts">+200 pts</div>
+            </div>
+          </div>
+          <div class="rh-right">
+            <div class="tier-cards">
+              <div class="tier-card">
+                <div class="tier-badge-icon">🥉</div>
+                <div class="tier-name">Bronze</div>
+                <div class="tier-range">0 – 499 pts</div>
+              </div>
+              <div class="tier-card tier-card--active">
+                <div class="tier-badge-icon">🥈</div>
+                <div class="tier-name">Silver</div>
+                <div class="tier-range">500 – 1,999 pts</div>
+              </div>
+              <div class="tier-card">
+                <div class="tier-badge-icon">🥇</div>
+                <div class="tier-name">Gold</div>
+                <div class="tier-range">2,000 – 4,999 pts</div>
+              </div>
+              <div class="tier-card">
+                <div class="tier-badge-icon">💎</div>
+                <div class="tier-name">Platinum</div>
+                <div class="tier-range">5,000+ pts</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ CTA BANNER ══ -->
+    <section class="cta-banner">
+      <h2 class="cta-title">Ready to get started?</h2>
+      <p class="cta-sub">Join Aurelian today — it's free, fast, and rewarding.</p>
+      <div class="cta-actions">
+        <a routerLink="/auth/register" class="btn btn-hero-primary">
+          Create free account
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
+        </a>
+        <a routerLink="/auth/login" class="btn btn-hero-ghost" style="border-color:rgba(255,255,255,0.4);color:white;">
+          Sign in
+        </a>
+      </div>
+    </section>
+
+    <!-- ══ FOOTER ══ -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <svg width="24" height="24" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="14" fill="url(#footGrad)"/>
+            <path d="M15 33L24 15L33 33" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.5 27H29.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="footGrad" x1="0" y1="0" x2="48" y2="48">
+                <stop offset="0%" stop-color="#944a00"/>
+                <stop offset="100%" stop-color="#e87f24"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>Aurelian Finance</span>
+        </div>
+        <p class="footer-copy">© 2026 Aurelian. Built with WalletPlatform.</p>
+      </div>
+    </footer>
+  

@@ -1,0 +1,244 @@
+
+    <div class="wallet-page page-enter">
+      <div class="page-header">
+        <div>
+          <p class="label-sm text-muted">MY WALLET</p>
+          <h1 class="headline-lg">Wallet</h1>
+        </div>
+      </div>
+
+      <!-- Wallet Card -->
+      @if (loadingWallet()) {
+        <div class="skeleton" style="height: 200px; border-radius: 24px; margin-bottom: 28px;"></div>
+      } @else if (wallet()) {
+        <div class="wallet-hero" [class.frozen]="wallet()!.isFrozen">
+          <!-- Nickname row -->
+          <div class="wallet-nickname-row">
+            @if (editingNickname()) {
+              <input
+                #nicknameInput
+                class="nickname-input"
+                [value]="nicknameSvc.nickname()"
+                placeholder="e.g. My Business Wallet"
+                maxlength="40"
+                (keyup.enter)="saveNickname(nicknameInput.value)"
+                (keyup.escape)="editingNickname.set(false)"
+                (blur)="saveNickname(nicknameInput.value)"
+                autofocus
+              />
+            } @else {
+              <span class="nickname-display" (click)="startEditNickname()">
+                {{ nicknameSvc.nickname() || 'Personal Wallet' }}
+                <svg class="edit-pencil" width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2l2 2L4 11H2V9L9 2z"/></svg>
+              </span>
+            }
+          </div>
+
+          <div class="wallet-hero-top">
+            <div>
+              <p class="wallet-hero-label">Available Balance</p>
+              <div class="wallet-hero-balance-row">
+                <div class="wallet-hero-balance-slot">
+                  @if (balanceVis.visible()) {
+                    <div class="wallet-hero-balance">{{ wallet()!.balance | currency:wallet()!.currency }}</div>
+                  } @else {
+                    <div class="wallet-hero-balance balance-masked">{{ balanceVis.maskedAmount(wallet()!.currency) }}</div>
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="balance-visibility-btn-hero"
+                  (click)="balanceVis.toggle()"
+                  [attr.aria-label]="balanceVis.visible() ? 'Hide balance' : 'Show balance'"
+                  [attr.aria-pressed]="!balanceVis.visible()">
+                  @if (balanceVis.visible()) {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1 4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  } @else {
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  }
+                </button>
+              </div>
+            </div>
+            <div class="wallet-chip">
+              <svg width="36" height="28" viewBox="0 0 36 28" fill="none">
+                <rect x="1" y="1" width="34" height="26" rx="4" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+                <rect x="6" y="8" width="8" height="12" rx="1" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+                <path d="M14 8v12" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+              </svg>
+            </div>
+          </div>
+          <div class="wallet-hero-bottom">
+            <div class="wallet-id">
+              <p class="wallet-label-sm">Wallet ID</p>
+              <div class="wallet-id-row">
+                <p class="wallet-id-value">•••• •••• {{ shortId(wallet()!.id) }}</p>
+                <button
+                  type="button"
+                  class="copy-id-btn"
+                  (click)="copyWalletId(wallet()!.id)"
+                  title="Copy full wallet ID"
+                  aria-label="Copy full wallet ID">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            @if (wallet()!.isFrozen) {
+              <div class="frozen-badge">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="6" width="8" height="7" rx="1"/><path d="M5 6V4.5a2 2 0 014 0V6"/></svg>
+                Frozen
+              </div>
+            } @else {
+              <div class="currency-tag">{{ wallet()!.currency }}</div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Action Buttons -->
+      <div class="wallet-actions">
+        <button class="btn btn-primary" (click)="openModal('topup')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+          Top Up
+        </button>
+        <button class="btn btn-secondary" (click)="openModal('send')">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2L2 6l5 3 3 5 4-12z"/></svg>
+          Send
+        </button>
+      </div>
+
+      <!-- Wallet Info Cards -->
+      <div class="info-grid">
+        <div class="card">
+          <div class="info-item">
+            <div class="info-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l3 3"/></svg>
+            </div>
+            <div>
+              <p class="label-sm text-muted">CREATED</p>
+              <p class="title-sm">{{ wallet()?.createdAt | date:'MMM d, yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="info-item">
+            <div class="info-icon info-icon--green">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5"/><path d="M19 7H1l9-5 9 5z"/></svg>
+            </div>
+            <div>
+              <p class="label-sm text-muted">STATUS</p>
+              <p class="title-sm">{{ wallet()?.isFrozen ? 'Frozen' : 'Active' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="info-item">
+            <div class="info-icon info-icon--gold">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2C5.58 2 2 5.58 2 10s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8z"/><path d="M10 6v4M10 14h.01"/></svg>
+            </div>
+            <div>
+              <p class="label-sm text-muted">CURRENCY</p>
+              <p class="title-sm">{{ wallet()?.currency ?? 'USD' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (errorMsg()) {
+        <div class="alert-error">{{ errorMsg() }}</div>
+      }
+    </div>
+
+    <!-- Modal Overlay -->
+    @if (activeModal()) {
+      <div class="modal-overlay" (click)="closeModal()">
+        <div class="modal" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <h3 class="title-lg">{{ activeModal() === 'topup' ? 'Top Up Wallet' : 'Send Money' }}</h3>
+            <button class="modal-close" (click)="closeModal()">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 5L5 15M5 5l10 10"/></svg>
+            </button>
+          </div>
+
+          <!-- TOP UP form -->
+          @if (activeModal() === 'topup') {
+            <form [formGroup]="topUpForm" (ngSubmit)="onTopUp()">
+              <div class="form-group">
+                <label>Amount ({{ wallet()?.currency ?? 'INR' }})</label>
+                <input type="number" class="form-control" formControlName="amount" placeholder="0.00" min="0.01" step="0.01"/>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" [disabled]="submitting()">
+                  @if (submitting()) { <span class="spinner-sm"></span> }
+                  Add Funds
+                </button>
+              </div>
+            </form>
+          }
+
+          <!-- SEND form — email-based -->
+          @if (activeModal() === 'send') {
+            <div>
+              <div class="form-group">
+                <label>Recipient Email</label>
+                <div style="display:flex;gap:10px;">
+                  <input type="email" class="form-control" [formControl]="sendForm.controls.email"
+                         placeholder="recipient@example.com" style="flex:1;"/>
+                  <button type="button" class="btn btn-secondary" (click)="onLookupSendRecipient()" [disabled]="resolvingRecipient()">
+                    @if (resolvingRecipient()) { <span class="spinner-sm spinner-dark"></span> } @else { Find }
+                  </button>
+                </div>
+                @if (recipientError()) {
+                  <p class="field-error" style="margin-top:8px;">{{ recipientError() }}</p>
+                }
+              </div>
+
+              @if (resolvedRecipient()) {
+                <div class="recipient-card">
+                  <div class="rc-avatar">{{ recipientInitials() }}</div>
+                  <div style="flex:1;">
+                    <p class="title-sm">{{ resolvedRecipient()!.fullName }}</p>
+                    <p class="label-sm text-muted">{{ resolvedRecipient()!.email }}</p>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round"><path d="M15 5L7 13l-4-4"/></svg>
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                  <label>Amount ({{ wallet()?.currency ?? 'INR' }})</label>
+                  <input type="number" class="form-control" [formControl]="sendForm.controls.amount"
+                         placeholder="0.00" min="0.01" step="0.01"/>
+                  <p class="label-sm text-muted" style="margin-top:6px;">
+                    Balance:
+                    @if (balanceVis.visible()) {
+                      {{ wallet()?.balance | currency:wallet()?.currency }}
+                    } @else {
+                      <span class="balance-masked-inline">{{ balanceVis.maskedAmount(wallet()?.currency) }}</span>
+                    }
+                  </p>
+                </div>
+              }
+
+              <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+                @if (resolvedRecipient()) {
+                  <button type="button" class="btn btn-primary" (click)="onSend()" [disabled]="submitting() || sendForm.controls.amount.invalid">
+                    @if (submitting()) { <span class="spinner-sm"></span> }
+                    Send Money
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  

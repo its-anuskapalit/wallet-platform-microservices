@@ -4,15 +4,8 @@ import { Component, input } from '@angular/core';
 @Component({
   selector: 'app-skeleton-block',
   standalone: true,
-  template: `
-    <div
-      class="skeleton"
-      [style.width]="w()"
-      [style.height]="h()"
-      [style.border-radius]="radius()"
-      [style.margin-bottom]="mb()"></div>
-  `,
-  styles: [`:host { display: block; }`]
+  templateUrl: './skeleton-block.component.html',
+  styleUrls: ['./skeleton-block.component.scss']
 })
 export class SkeletonBlockComponent {
   w = input<string>('100%');

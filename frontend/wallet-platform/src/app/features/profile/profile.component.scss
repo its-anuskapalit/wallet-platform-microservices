@@ -1,0 +1,411 @@
+
+    .profile-page { max-width: 1060px; }
+
+    .profile-skel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .profile-skel-grid { grid-template-columns: 1fr; }
+    }
+
+    .email-copy-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .email-copy-row p { margin: 0; }
+
+    .btn-copy-email {
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-copy-email:hover {
+      background: var(--surface-container);
+      color: var(--primary);
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 24px;
+      h1 { margin-top: 4px; }
+    }
+
+    // ── Avatar card ───────────────────────────────────────────────────────
+    .avatar-card {
+      margin-bottom: 24px;
+      padding: 28px 32px 0;
+    }
+
+    .avatar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-container));
+      color: white;
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .avatar-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      display: inline-block;
+      margin-right: 2px;
+    }
+
+    // ── KYC progress strip ─────────────────────────────────────────────────
+    .kyc-progress-strip {
+      display: flex;
+      align-items: center;
+      padding: 20px 0 24px;
+      border-top: 1px solid rgba(200,197,192,0.25);
+    }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .ps-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--outline-variant);
+      background: var(--surface-container);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--on-surface-variant);
+      transition: all 0.2s;
+
+      &.done {
+        background: var(--success);
+        border-color: var(--success);
+      }
+
+      &.active {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-fixed);
+      }
+    }
+
+    .ps-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+
+      .done & , .active & { color: var(--on-surface); }
+    }
+
+    .ps-line {
+      flex: 1;
+      height: 2px;
+      background: var(--outline-variant);
+      margin: 0 12px;
+      border-radius: 2px;
+      transition: background 0.3s;
+
+      &.done { background: var(--success); }
+    }
+
+    // ── Main grid ──────────────────────────────────────────────────────────
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 20px;
+      align-items: start;
+
+      @media (max-width: 960px) { grid-template-columns: 1fr; }
+    }
+
+    .kyc-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    // ── Section head ───────────────────────────────────────────────────────
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    // ── Info table ─────────────────────────────────────────────────────────
+    .info-table {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 0;
+
+      & + & { border-top: 1px solid rgba(200,197,192,0.25); }
+
+      .empty { color: var(--on-surface-variant); font-style: italic; }
+    }
+
+    // ── Form ───────────────────────────────────────────────────────────────
+    .form-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .required { color: var(--primary); font-size: 14px; }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    // ── Incomplete notice ──────────────────────────────────────────────────
+    .incomplete-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--warning-container);
+      color: var(--warning);
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+    }
+
+    // ── KYC document type grid ─────────────────────────────────────────────
+    .doc-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .doc-type-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 10px;
+      border-radius: var(--radius-md);
+      background: var(--surface-container-low);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 2px solid transparent;
+      text-align: center;
+
+      &:hover { background: var(--surface-container); }
+
+      &.selected {
+        background: var(--primary-fixed);
+        border-color: var(--primary);
+      }
+    }
+
+    .doc-type-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+    }
+
+    .doc-type-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--on-surface);
+    }
+
+    // ── KYC consent ────────────────────────────────────────────────────────
+    .kyc-consent {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: var(--surface-container-low);
+      border-radius: var(--radius-md);
+    }
+
+    .consent-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--on-surface-variant);
+
+      input[type="checkbox"] {
+        margin-top: 2px;
+        accent-color: var(--primary);
+        width: 15px;
+        height: 15px;
+        flex-shrink: 0;
+      }
+    }
+
+    // ── KYC blocked state ──────────────────────────────────────────────────
+    .kyc-blocked {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      padding: 32px 20px;
+      color: var(--on-surface-variant);
+    }
+
+    .kyc-blocked-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--surface-container-low);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    // ── KYC status cards ───────────────────────────────────────────────────
+    .kyc-status-card {
+      display: flex;
+      gap: 14px;
+      padding: 18px;
+      border-radius: var(--radius-md);
+      margin-bottom: 20px;
+      align-items: flex-start;
+
+      &.pending  { background: var(--warning-container); color: var(--warning); }
+      &.approved { background: var(--success-container); color: var(--success); }
+      &.rejected { background: var(--error-container); color: var(--error); }
+    }
+
+    .ksc-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    // ── Submitted details (pending state) ──────────────────────────────────
+    .submitted-details {
+      padding-top: 16px;
+      border-top: 1px solid rgba(200,197,192,0.25);
+    }
+
+    // ── Verified perks ─────────────────────────────────────────────────────
+    .verified-perks {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .perk-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--on-surface);
+    }
+
+    // ── Rejection reason ───────────────────────────────────────────────────
+    .rejection-reason {
+      padding: 14px 16px;
+      background: var(--surface-container-low);
+      border-radius: var(--radius-md);
+      margin: 16px 0;
+    }
+
+    .rejected-actions { display: flex; gap: 10px; }
+
+    // ── Info box (accepted docs) ───────────────────────────────────────────
+    .info-box { padding: 20px 24px; }
+
+    .doc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .doc-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    // ── Alerts ─────────────────────────────────────────────────────────────
+    .alert-success, .alert-error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      margin-top: 14px;
+    }
+    .alert-success { background: var(--success-container); color: var(--success); }
+    .alert-error   { background: var(--error-container);   color: var(--error); }
+
+    .spinner-sm {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  

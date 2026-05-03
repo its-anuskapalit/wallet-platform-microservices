@@ -1,0 +1,99 @@
+
+    <!-- Floating button -->
+    <button class="chat-fab" (click)="toggleOpen()" [class.open]="isOpen()" title="WalletBot">
+      @if (isOpen()) {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      } @else {
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        @if (unread() > 0) {
+          <span class="fab-badge">{{ unread() }}</span>
+        }
+      }
+    </button>
+
+    <!-- Chat panel -->
+    @if (isOpen()) {
+      <div class="chat-panel">
+        <!-- Header -->
+        <div class="chat-header">
+          <div class="chat-header-left">
+            <div class="bot-avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3v4M8 11V7a4 4 0 018 0v4"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="16" r="1" fill="currentColor"/></svg>
+            </div>
+            <div>
+              <div class="bot-name">WalletBot</div>
+              <div class="bot-status">
+                <span class="status-dot"></span> Online
+              </div>
+            </div>
+          </div>
+          <button class="icon-btn" (click)="clearChat()" title="Clear chat">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" #messagesContainer>
+          @if (messages().length === 0) {
+            <div class="welcome-block">
+              <div class="welcome-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3v4M8 11V7a4 4 0 018 0v4"/><circle cx="9" cy="16" r="1" fill="currentColor"/><circle cx="15" cy="16" r="1" fill="currentColor"/></svg>
+              </div>
+              <p class="welcome-title">Hi! I'm WalletBot 👋</p>
+              <p class="welcome-sub">Ask me anything about your wallet, rewards, transactions, or KYC.</p>
+              <div class="suggestion-chips">
+                @for (s of suggestions; track s) {
+                  <button class="chip" (click)="sendSuggestion(s)">{{ s }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          @for (msg of messages(); track msg.timestamp) {
+            <div class="msg-row" [class.user]="msg.role === 'user'" [class.bot]="msg.role === 'assistant'">
+              @if (msg.role === 'assistant') {
+                <div class="msg-avatar">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3v4M8 11V7a4 4 0 018 0v4"/></svg>
+                </div>
+              }
+              <div class="msg-bubble">
+                <div class="msg-text" [innerHTML]="formatMessage(msg.content)"></div>
+                <div class="msg-time">{{ msg.timestamp | date:'h:mm a' }}</div>
+              </div>
+            </div>
+          }
+
+          @if (loading()) {
+            <div class="msg-row bot">
+              <div class="msg-avatar">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3v4M8 11V7a4 4 0 018 0v4"/></svg>
+              </div>
+              <div class="msg-bubble typing-bubble">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-bar">
+          <input
+            #inputEl
+            class="chat-input"
+            [(ngModel)]="inputText"
+            placeholder="Ask WalletBot…"
+            (keydown.enter)="send()"
+            [disabled]="loading()"
+            maxlength="500"
+          />
+          <button class="send-btn" (click)="send()" [disabled]="!inputText.trim() || loading()">
+            @if (loading()) {
+              <svg class="spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a10 10 0 0110 10"/></svg>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            }
+          </button>
+        </div>
+      </div>
+    }
+  

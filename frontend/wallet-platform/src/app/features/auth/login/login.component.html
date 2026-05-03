@@ -1,0 +1,115 @@
+
+    <div class="auth-page">
+      <!-- Left panel: Branding -->
+      <div class="auth-brand">
+        <div class="brand-content">
+          <div class="brand-logo-wrap">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="14" fill="url(#loginGrad)"/>
+              <path d="M15 33L24 15L33 33" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.5 27H29.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="loginGrad" x1="0" y1="0" x2="48" y2="48">
+                  <stop offset="0%" stop-color="#944a00"/>
+                  <stop offset="100%" stop-color="#e87f24"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <h1 class="brand-headline">Aurelian Finance</h1>
+          <p class="brand-tagline">A modern heirloom for your financial life. Secure, intelligent, and beautifully designed.</p>
+          <div class="brand-features">
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Real-time wallet management</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Seamless money transfers</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-dot"></span>
+              <span>Rewards on every transaction</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel: Form -->
+      <div class="auth-form-panel">
+        <div class="auth-form-wrap">
+          <div class="form-header">
+            <h2 class="headline-md">Welcome back</h2>
+            <p class="body-md text-muted">Sign in to your account to continue</p>
+          </div>
+
+          @if (errorMessage()) {
+            <div class="alert-error">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              {{ errorMessage() }}
+            </div>
+          }
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="auth-form">
+            <div class="form-group">
+              <label for="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                class="form-control"
+                formControlName="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                [class.error]="isFieldInvalid('email')"
+              />
+              @if (isFieldInvalid('email')) {
+                <span class="field-error">Please enter a valid email</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="password-wrap">
+                <input
+                  id="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="form-control"
+                  formControlName="password"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  [class.error]="isFieldInvalid('password')"
+                />
+                <button type="button" class="toggle-password" (click)="togglePassword()">
+                  @if (showPassword()) {
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1.5 9s2.5-5 7.5-5 7.5 5 7.5 5-2.5 5-7.5 5-7.5-5-7.5-5z"/><circle cx="9" cy="9" r="2.5"/><path d="M2 2l14 14" stroke-width="1.5"/></svg>
+                  } @else {
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1.5 9s2.5-5 7.5-5 7.5 5 7.5 5-2.5 5-7.5 5-7.5-5-7.5-5z"/><circle cx="9" cy="9" r="2.5"/></svg>
+                  }
+                </button>
+              </div>
+              @if (isFieldInvalid('password')) {
+                <span class="field-error">Password is required</span>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary w-full"
+              [disabled]="loading()"
+            >
+              @if (loading()) {
+                <span class="spinner"></span>
+                Signing in...
+              } @else {
+                Sign in
+              }
+            </button>
+          </form>
+          <p class="auth-switch body-sm text-muted">
+            Don't have an account?
+            <a routerLink="/auth/register" class="text-primary">Create one</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  

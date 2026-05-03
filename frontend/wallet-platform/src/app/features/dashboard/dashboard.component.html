@@ -1,0 +1,297 @@
+
+    <div class="dashboard page-enter">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <p class="label-sm text-muted">{{ greeting() }}</p>
+          <h1 class="headline-lg">{{ displayName() }}</h1>
+        </div>
+        <div class="header-actions">
+          <a routerLink="/wallet" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
+            Add Funds
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-row">
+        <a routerLink="/wallet" class="qa-btn">
+          <span class="qa-icon qa-icon--topup">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+          </span>
+          <span class="qa-label">Top Up</span>
+        </a>
+        <a routerLink="/wallet" class="qa-btn">
+          <span class="qa-icon qa-icon--send">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h14M11 4l6 6-6 6"/></svg>
+          </span>
+          <span class="qa-label">Send</span>
+        </a>
+        <a routerLink="/transactions" class="qa-btn">
+          <span class="qa-icon qa-icon--history">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5"/></svg>
+          </span>
+          <span class="qa-label">History</span>
+        </a>
+        <a routerLink="/rewards" class="qa-btn">
+          <span class="qa-icon qa-icon--rewards">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.46L10 14.27 5.06 17l.94-5.46-4-3.9 5.61-.8z"/></svg>
+          </span>
+          <span class="qa-label">Rewards</span>
+        </a>
+        <a routerLink="/profile" class="qa-btn">
+          <span class="qa-icon qa-icon--profile">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="7" r="3"/><path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6"/></svg>
+          </span>
+          <span class="qa-label">Profile</span>
+        </a>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-grid">
+        <!-- Balance Card -->
+        <div class="stat-card stat-card--primary">
+          <div class="stat-header">
+            <span class="stat-label">{{ nicknameSvc.nickname() || 'Total Balance' }}</span>
+            <div class="stat-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="16" height="12" rx="2"/><path d="M2 8h16"/><circle cx="14" cy="13" r="1.5" fill="currentColor" stroke="none"/></svg>
+            </div>
+          </div>
+          @if (loadingWallet()) {
+            <div class="skeleton" style="height: 40px; width: 180px; margin: 8px 0;"></div>
+          } @else {
+            <div class="stat-value-row">
+              <div class="stat-balance-slot">
+                @if (balanceVis.visible()) {
+                  <div class="stat-value counter-animate">{{ displayBalance() | currency:wallet()?.currency ?? 'INR' }}</div>
+                } @else {
+                  <div class="stat-value balance-masked">{{ balanceVis.maskedAmount(wallet()?.currency) }}</div>
+                }
+              </div>
+              <button
+                type="button"
+                class="balance-visibility-btn"
+                (click)="balanceVis.toggle()"
+                [attr.aria-label]="balanceVis.visible() ? 'Hide balance' : 'Show balance'"
+                [attr.aria-pressed]="!balanceVis.visible()">
+                @if (balanceVis.visible()) {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1 4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                } @else {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
+            </div>
+          }
+          <div class="stat-meta">
+            @if (wallet()?.isFrozen) {
+              <span class="badge badge-error">Frozen</span>
+            } @else {
+              <span class="badge badge-success">Active</span>
+            }
+          </div>
+        </div>
+
+        <!-- Monthly Sent -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Sent This Month</span>
+            <div class="stat-icon stat-icon--red">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6h12M4 14h8"/><path d="M15 11l3 3-3 3"/></svg>
+            </div>
+          </div>
+          @if (loadingTxns()) {
+            <div class="skeleton" style="height: 40px; width: 120px; margin: 8px 0;"></div>
+          } @else {
+            <div class="stat-value stat-value--sm">{{ txnSummary()?.thisMonthSent | currency:'INR' }}</div>
+          }
+          <span class="stat-meta text-muted label-md">{{ txnSummary()?.thisMonthTransactionCount ?? 0 }} transactions</span>
+        </div>
+
+        <!-- Rewards Points -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">Reward Points</span>
+            <div class="stat-icon stat-icon--gold">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.46L10 14.27 5.06 17l.94-5.46-4-3.9 5.61-.8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          @if (loadingRewards()) {
+            <div class="skeleton" style="height: 40px; width: 100px; margin: 8px 0;"></div>
+          } @else {
+            <div class="stat-value counter-animate">{{ displayPoints() | number }}</div>
+          }
+          <span class="stat-meta text-muted label-md">{{ rewards()?.tier ?? 'Standard' }} tier</span>
+        </div>
+
+        <!-- KYC Status -->
+        <div class="stat-card" style="cursor:pointer;" [routerLink]="'/profile'">
+          <div class="stat-header">
+            <span class="stat-label">KYC Status</span>
+            <div class="stat-icon" [class]="kycIconClass()">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 10.5V17a1 1 0 01-1 1H4a1 1 0 01-1-1V10.5"/><path d="M19 7H1l9-5 9 5z"/></svg>
+            </div>
+          </div>
+          @if (loadingProfile()) {
+            <div class="skeleton" style="height: 30px; width: 100px; margin: 8px 0;"></div>
+          } @else {
+            <div class="stat-value stat-value--sm">{{ kycStatusLabel() }}</div>
+            <span class="badge" [class]="kycBadgeClass()" style="margin-top:4px;">{{ kycStatus() }}</span>
+          }
+        </div>
+      </div>
+
+      <!-- Main content grid -->
+      <div class="content-grid">
+        <!-- Recent Transactions -->
+        <div class="card transactions-card">
+          <div class="card-header">
+            <h3 class="title-md">Recent Transactions</h3>
+            <a routerLink="/transactions" class="btn btn-ghost btn-sm">View all</a>
+          </div>
+
+          @if (loadingTxns()) {
+            @for (i of [1,2,3]; track i) {
+              <div class="txn-skeleton">
+                <div class="skeleton" style="width: 40px; height: 40px; border-radius: 12px;"></div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+                  <div class="skeleton" style="height: 14px; width: 60%;"></div>
+                  <div class="skeleton" style="height: 12px; width: 40%;"></div>
+                </div>
+                <div class="skeleton" style="height: 14px; width: 80px;"></div>
+              </div>
+            }
+          } @else if (recentTransactions().length === 0) {
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="var(--outline-variant)" stroke-width="1.5" stroke-linecap="round"><rect x="8" y="12" width="32" height="24" rx="4"/><path d="M8 20h32"/></svg>
+              <p class="body-md text-muted">No transactions yet</p>
+            </div>
+          } @else {
+            <div class="list-spaced">
+              @for (txn of recentTransactions(); track txn.id) {
+                <div class="txn-item">
+                  <div class="txn-icon" [class]="txnIconClass(txn)">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 3v12M3 9h12"/></svg>
+                  </div>
+                  <div class="txn-info">
+                    <span class="title-sm">{{ txn.type }}</span>
+                    <span class="label-sm text-muted">{{ txn.createdAt | date:'MMM d, h:mm a' }}</span>
+                  </div>
+                  <div class="txn-amount" [class]="txnAmountClass(txn)">
+                    {{ txn.amount | currency:txn.currency }}
+                  </div>
+                  <span class="badge" [class]="statusBadgeClass(txn.status)">{{ txn.status }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Quick Actions + Spending Chart -->
+        <div class="quick-actions-panel">
+          <!-- Spending Breakdown -->
+          @if (!loadingTxns() && spendingData().total > 0) {
+            <div class="card spending-card">
+              <h3 class="title-md" style="margin-bottom:16px;">Spending Breakdown</h3>
+              <div class="donut-wrap">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  @for (seg of donutSegments(); track seg.label; let i = $index) {
+                    <circle
+                      cx="60" cy="60" r="46"
+                      fill="none"
+                      [attr.stroke]="seg.color"
+                      stroke-width="20"
+                      [attr.stroke-dasharray]="seg.dash + ' ' + (289 - seg.dash)"
+                      [attr.stroke-dashoffset]="seg.offset"
+                      transform="rotate(-90 60 60)"
+                      style="transition: stroke-dasharray 0.8s ease;"
+                    />
+                  }
+                  <circle cx="60" cy="60" r="34" fill="var(--surface-container-lowest)"/>
+                  <text x="60" y="56" text-anchor="middle" font-size="11" font-weight="700" fill="var(--on-surface-variant)">Total</text>
+                  <text x="60" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="var(--on-surface)">{{ spendingData().total }}</text>
+                </svg>
+                <div class="donut-legend">
+                  @for (seg of donutSegments(); track seg.label) {
+                    <div class="legend-item">
+                      <span class="legend-dot" [style.background]="seg.color"></span>
+                      <span class="legend-label">{{ seg.label }}</span>
+                      <span class="legend-val">{{ seg.count }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <div class="card">
+            <h3 class="title-md" style="margin-bottom: 16px;">Quick Actions</h3>
+            <div class="actions-list">
+              <a routerLink="/wallet" class="action-item">
+                <div class="action-icon">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
+                </div>
+                <div class="action-info">
+                  <span class="title-sm">Top Up Wallet</span>
+                  <span class="label-sm text-muted">Add funds to your wallet</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 12l4-4-4-4"/></svg>
+              </a>
+
+              @if (kycApproved()) {
+                <a routerLink="/transactions" class="action-item">
+                  <div class="action-icon">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6h12M4 14h8"/><path d="M15 11l3 3-3 3"/></svg>
+                  </div>
+                  <div class="action-info">
+                    <span class="title-sm">Send Money</span>
+                    <span class="label-sm text-muted">Transfer to another wallet</span>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 12l4-4-4-4"/></svg>
+                </a>
+              } @else {
+                <a routerLink="/profile" class="action-item action-item--disabled">
+                  <div class="action-icon action-icon--muted">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 6h12M4 14h8"/><path d="M15 11l3 3-3 3"/></svg>
+                  </div>
+                  <div class="action-info">
+                    <span class="title-sm">Send Money</span>
+                    <span class="label-sm text-muted" style="color:var(--warning);">KYC verification required</span>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--warning)" stroke-width="1.5" stroke-linecap="round"><path d="M8 4v5M8 11h.01"/></svg>
+                </a>
+              }
+
+              <a routerLink="/rewards" class="action-item">
+                <div class="action-icon action-icon--gold">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2l2.39 4.84L18 7.64l-4 3.9.94 5.46L10 14.27 5.06 17l.94-5.46-4-3.9 5.61-.8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div class="action-info">
+                  <span class="title-sm">Redeem Rewards</span>
+                  <span class="label-sm text-muted">{{ rewards()?.availablePoints ?? 0 }} points available</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 12l4-4-4-4"/></svg>
+              </a>
+
+              <a routerLink="/profile" class="action-item">
+                <div class="action-icon action-icon--green">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3"/><path d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6"/></svg>
+                </div>
+                <div class="action-info">
+                  <span class="title-sm">{{ kycApproved() ? 'KYC Verified' : 'Complete KYC' }}</span>
+                  <span class="label-sm text-muted">{{ kycApproved() ? 'Identity verified ✓' : 'Verify your identity' }}</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 12l4-4-4-4"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  

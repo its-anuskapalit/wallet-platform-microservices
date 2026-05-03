@@ -1,0 +1,178 @@
+
+    <div class="auth-page">
+      <!-- Left Brand Panel -->
+      <div class="auth-brand">
+        <div class="brand-content">
+          <div class="brand-logo-wrap">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="14" fill="rgba(255,255,255,0.2)"/>
+              <path d="M15 33L24 15L33 33" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.5 27H29.5" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 class="brand-headline">Start your journey</h1>
+          <p class="brand-tagline">Join thousands of users managing their finances with clarity, confidence, and elegance.</p>
+
+          <!-- Step indicator -->
+          <div class="step-indicator">
+            <div class="step-dot" [class.active]="step() === 'details'" [class.done]="step() === 'otp'">
+              <span>1</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-dot" [class.active]="step() === 'otp'">
+              <span>2</span>
+            </div>
+          </div>
+          <div class="step-labels">
+            <span [class.active]="step() === 'details'">Your Details</span>
+            <span [class.active]="step() === 'otp'">Verify Phone</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Form Panel -->
+      <div class="auth-form-panel">
+        <div class="auth-form-wrap">
+
+          <!-- ── Step 1: Details ── -->
+          @if (step() === 'details') {
+            <div class="form-header">
+              <h2 class="headline-md">Create account</h2>
+              <p class="body-md text-muted">Fill in your details to get started</p>
+            </div>
+
+            @if (errorMessage()) {
+              <div class="alert-error">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                {{ errorMessage() }}
+              </div>
+            }
+
+            <form [formGroup]="form" (ngSubmit)="onSendOtp()" class="auth-form">
+              <div class="form-group">
+                <label for="fullName">Full name</label>
+                <input id="fullName" type="text" class="form-control" formControlName="fullName"
+                       placeholder="Jane Doe" autocomplete="name"
+                       [class.error]="isFieldInvalid('fullName')"/>
+                @if (isFieldInvalid('fullName')) {
+                  <span class="field-error">Full name is required</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email address</label>
+                <input id="email" type="email" class="form-control" formControlName="email"
+                       placeholder="you@example.com" autocomplete="email"
+                       [class.error]="isFieldInvalid('email')"/>
+                @if (isFieldInvalid('email')) {
+                  <span class="field-error">Please enter a valid email</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="phone">
+                  Phone number
+                  <span class="field-badge">OTP will be sent</span>
+                </label>
+                <div class="phone-input-wrap">
+                  <span class="phone-prefix">+91</span>
+                  <input id="phone" type="tel" class="form-control phone-input" formControlName="phone"
+                         placeholder="10-digit mobile number" autocomplete="tel" maxlength="10"
+                         [class.error]="isFieldInvalid('phone')"/>
+                </div>
+                @if (isFieldInvalid('phone')) {
+                  <span class="field-error">Please enter a valid 10-digit phone number</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" class="form-control" formControlName="password"
+                       placeholder="Minimum 8 characters" autocomplete="new-password"
+                       [class.error]="isFieldInvalid('password')"/>
+                @if (isFieldInvalid('password')) {
+                  <span class="field-error">Password must be at least 8 characters</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label for="confirmPassword">Confirm password</label>
+                <input id="confirmPassword" type="password" class="form-control" formControlName="confirmPassword"
+                       placeholder="Repeat your password" autocomplete="new-password"
+                       [class.error]="isFieldInvalid('confirmPassword') || form.errors?.['passwordMismatch']"/>
+                @if (form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched) {
+                  <span class="field-error">Passwords do not match</span>
+                }
+              </div>
+
+              <button type="submit" class="btn btn-primary w-full" [disabled]="sendingOtp()">
+                @if (sendingOtp()) {
+                  <span class="spinner"></span> Sending OTP...
+                } @else {
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2L2 6l5 3 3 5 4-12z"/></svg>
+                  Send OTP & Continue
+                }
+              </button>
+            </form>
+          }
+
+          <!-- ── Step 2: OTP Verification ── -->
+          @if (step() === 'otp') {
+            <div class="form-header">
+              <h2 class="headline-md">Verify your phone</h2>
+              <p class="body-md text-muted">
+                Enter the 6-digit OTP sent to <strong>{{ form.value.email }}</strong>
+              </p>
+              @if (otpSentMsg()) {
+                <div class="otp-sent-banner">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13 2L1 5.5l4.5 2.5 2.5 4.5L13 2z"/></svg>
+                  {{ otpSentMsg() }}
+                </div>
+              }
+            </div>
+
+            @if (otpError()) {
+              <div class="alert-error">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3M8 11h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                {{ otpError() }}
+              </div>
+            }
+
+            <form [formGroup]="otpForm" (ngSubmit)="onVerifyAndRegister()" class="auth-form">
+              <div class="otp-boxes-wrap">
+                <label class="form-label">Enter 6-digit OTP</label>
+                <input type="text" class="form-control otp-input" formControlName="otpCode"
+                       placeholder="e.g. 483921" maxlength="6" autocomplete="one-time-code"
+                       [class.error]="otpForm.get('otpCode')?.invalid && otpForm.get('otpCode')?.touched"/>
+                @if (otpForm.get('otpCode')?.invalid && otpForm.get('otpCode')?.touched) {
+                  <span class="field-error">Please enter the 6-digit OTP</span>
+                }
+              </div>
+
+              <button type="submit" class="btn btn-primary w-full" [disabled]="loading()">
+                @if (loading()) {
+                  <span class="spinner"></span> Creating account...
+                } @else {
+                  Verify & Create Account
+                }
+              </button>
+            </form>
+
+            <button class="resend-btn" (click)="onResendOtp()" [disabled]="sendingOtp()">
+              @if (sendingOtp()) { Resending... }
+              @else { Didn't receive it? Resend OTP }
+            </button>
+
+            <button class="back-btn" (click)="goBack()">
+              ← Back to details
+            </button>
+          }
+
+          <p class="auth-switch body-sm text-muted">
+            Already have an account?
+            <a routerLink="/auth/login" class="text-primary">Sign in</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  
