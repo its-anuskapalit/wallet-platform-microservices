@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rewards + Catalog + Notification — Deep Dive</title>
+<style>
+:root{
+  --bg:#f8f9fa;--card:#fff;--border:#e2e8f0;
+  --r:#b45309;--ra:#f59e0b;        /* Rewards - amber */
+  --c:#0f766e;--ca:#14b8a6;        /* Catalog - teal */
+  --n:#6d28d9;--na:#8b5cf6;        /* Notification - purple */
+  --green:#16a34a;--red:#dc2626;--blue:#1d4ed8;--orange:#d97706;
+  --text:#1e293b;--muted:#64748b;--code:#0f172a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+nav{background:#0f172a;color:white;padding:14px 32px;position:sticky;top:0;z-index:100;}
+nav .logo{font-size:1rem;font-weight:700;}
+nav .sub{font-size:.75rem;opacity:.6;}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);position:sticky;top:51px;background:var(--bg);z-index:50;padding:0 32px;}
+.tab{padding:12px 24px;cursor:pointer;font-weight:600;font-size:.88rem;border-bottom:3px solid transparent;color:var(--muted);transition:all .2s;margin-bottom:-2px;}
+.tab.r.active{color:var(--r);border-bottom-color:var(--r);}
+.tab.c.active{color:var(--c);border-bottom-color:var(--c);}
+.tab.n.active{color:var(--n);border-bottom-color:var(--n);}
+.tab:hover{color:var(--text);}
+.pane{display:none;padding:0 32px 48px;}
+.pane.active{display:block;}
+.section{margin-bottom:44px;scroll-margin-top:120px;}
+h2{font-size:1.25rem;font-weight:700;padding-bottom:10px;border-bottom:2px solid;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+h2.r{color:var(--r);border-color:var(--ra);}
+h2.c{color:var(--c);border-color:var(--ca);}
+h2.n{color:var(--n);border-color:var(--na);}
+h2 .num{color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0;}
+h2.r .num{background:var(--ra);}
+h2.c .num{background:var(--ca);}
+h2.n .num{background:var(--na);}
+h3{font-size:.93rem;font-weight:700;margin:16px 0 8px;}
+p{margin-bottom:10px;font-size:.9rem;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+.ct{font-weight:700;font-size:.87rem;margin-bottom:10px;}
+.ct.r{color:var(--r);}
+.ct.c{color:var(--c);}
+.ct.n{color:var(--n);}
+pre{background:var(--code);color:#e2e8f0;border-radius:8px;padding:16px;font-size:.79rem;overflow-x:auto;margin:10px 0;line-height:1.75;}
+code{font-family:'Consolas','Cascadia Code',monospace;}
+.ic{background:#f1f5f9;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.83em;}
+.callout{border-left:4px solid;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:.86rem;}
+.callout-red{border-color:var(--red);background:#fef2f2;}
+.callout-green{border-color:var(--green);background:#f0fdf4;}
+.callout-orange{border-color:var(--orange);background:#fffbeb;}
+.callout-blue{border-color:var(--blue);background:#eff6ff;}
+.callout-amber{border-color:var(--ra);background:#fffbeb;}
+.callout-teal{border-color:var(--ca);background:#f0fdfa;}
+.callout-purple{border-color:var(--na);background:#f5f3ff;}
+.callout strong{display:block;margin-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:.83rem;margin:10px 0;}
+th{background:#f1f5f9;font-weight:700;padding:9px 12px;text-align:left;border:1px solid var(--border);}
+td{padding:8px 12px;border:1px solid var(--border);}
+tr:nth-child(even) td{background:#f8fafc;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:.72rem;font-weight:600;}
+.b-green{background:#dcfce7;color:var(--green);}
+.b-red{background:#fee2e2;color:var(--red);}
+.b-blue{background:#dbeafe;color:var(--blue);}
+.b-orange{background:#fef3c7;color:var(--orange);}
+.b-amber{background:#fef9c3;color:var(--r);}
+.b-teal{background:#ccfbf1;color:var(--c);}
+.b-purple{background:#ede9fe;color:var(--n);}
+.qa-item{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+.qa-q{background:#f8fafc;padding:11px 16px;font-weight:700;font-size:.87rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.qa-a{padding:14px 16px;font-size:.86rem;display:none;border-top:1px solid var(--border);line-height:1.75;}
+.qa-a.open{display:block;}
+.hero{border-radius:12px;padding:22px;margin-bottom:24px;color:white;}
+.hero.r{background:linear-gradient(135deg,#92400e,#f59e0b);}
+.hero.c{background:linear-gradient(135deg,#0f766e,#14b8a6);}
+.hero.n{background:linear-gradient(135deg,#5b21b6,#8b5cf6);}
+.hero h1{font-size:1.35rem;margin-bottom:4px;}
+.hero p{opacity:.9;font-size:.87rem;margin:0;}
+.stat-row{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;}
+.stat .val{font-size:1.4rem;font-weight:800;}
+.stat .lbl{font-size:.68rem;opacity:.8;text-transform:uppercase;letter-spacing:.05em;}
+.flow-step{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;}
+.fn{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:2px;color:white;}
+.fn.r{background:var(--ra);}
+.fn.c{background:var(--ca);}
+.fn.n{background:var(--na);}
+.ft{font-size:.87rem;line-height:1.6;}
+/* tier badges */
+.tier-bronze{background:#fed7aa;color:#7c2d12;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700;}
+.tier-silver{background:#e2e8f0;color:#334155;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700;}
+.tier-gold{background:#fef08a;color:#713f12;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700;}
+/* email card */
+.email-card{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;margin:8px 0;font-size:.85rem;}
+.email-subject{font-weight:700;color:var(--green);margin-bottom:4px;}
+.email-trigger{color:var(--muted);font-size:.78rem;}
+@media(max-width:700px){.grid2{grid-template-columns:1fr;}.tabs,.pane{padding-left:12px;padding-right:12px;}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">🎁 Rewards · 🛍️ Catalog · 🔔 Notification — Deep Dive</div>
+  <div class="sub">WalletPlatform · Supporting Services · Senior Architect Analysis</div>
+</nav>
+
+<div class="tabs">
+  <div class="tab r active" onclick="switchTab('r')">🎁 Rewards (5005)</div>
+  <div class="tab c" onclick="switchTab('c')">🛍️ Catalog (5006)</div>
+  <div class="tab n" onclick="switchTab('n')">🔔 Notification (5007)</div>
+</div>
+
+<!-- ═══ REWARDS PANE ═══ -->
+<div id="r-pane" class="pane active">
+<div class="hero r">
+  <h1>Rewards Service</h1>
+  <p>Loyalty engine — points accumulation, tier progression, transaction-driven</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">2</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">DB Tables</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Consumed</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events Published</div></div>
+    <div class="stat"><div class="val">÷10</div><div class="lbl">Points Formula</div></div>
+    <div class="stat"><div class="val">3</div><div class="lbl">Tiers</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="ct r">Exact Responsibility</div>
+    <p>Rewards Service owns the <strong>loyalty programme</strong>. Every time a transaction completes anywhere in the platform, the sender earns points. Points accumulate and automatically unlock tiers. The service is <strong>entirely event-driven</strong> — it never gets called via HTTP for business logic. It only responds to <span class="ic">TransactionCompletedEvent</span> from RabbitMQ.</p>
+    <p>It is a <strong>pure downstream consumer</strong>. It produces no events, makes no synchronous calls, and never affects the transaction flow. If Rewards goes down, transactions still work perfectly — the user just doesn't earn points until the service recovers and processes the backlog.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct r">✅ Invariants</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>One RewardsAccount per user</strong> — created lazily on first event</li>
+        <li><strong>Points = Floor(Amount / 10)</strong> — always integer, never fractional</li>
+        <li><strong>Tier never decreases</strong> — only calculated upward</li>
+        <li><strong>Same TransactionId = points awarded only once</strong> — idempotency</li>
+        <li><strong>TotalPoints = sum of all PointsTransactions</strong> — always consistent</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ct r">💥 What Breaks If Rewards Goes Down</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>Transactions still process normally</strong> — Rewards is downstream only</li>
+        <li><strong>Events queue in RabbitMQ</strong> — durable queue holds them until recovery</li>
+        <li><strong>Points delayed, not lost</strong> — processed when service restarts</li>
+        <li>Users can still redeem existing points via Catalog Service</li>
+      </ul>
+    </div>
+  </div>
+  <table>
+    <tr><th>Direction</th><th>Partner</th><th>Method</th><th>What</th></tr>
+    <tr><td><span class="badge b-blue">IN async</span></td><td>Ledger Service</td><td>RabbitMQ</td><td>TransactionCompletedEvent → award points to sender</td></tr>
+    <tr><td><span class="badge b-orange">NONE</span></td><td>Any service</td><td>Sync HTTP / Events OUT</td><td>Rewards never calls or notifies other services</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">2</span> Entities + Domain Logic</h2>
+  <div class="card">
+    <div class="ct r">📄 Entities — Two Tables</div>
+    <pre><code>// RewardsAccount — one per user
+public class RewardsAccount : BaseEntity
+{
+    public Guid         UserId          { get; set; }   // UNIQUE — one account per user
+    public string       Email           { get; set; } = string.Empty;
+    public int          TotalPoints     { get; set; } = 0;
+    public int          RedeemedPoints  { get; set; } = 0;
+    public RewardsTier  Tier            { get; set; } = RewardsTier.Bronze;
+    // Computed property — not stored in DB
+    public int AvailablePoints =&gt; TotalPoints - RedeemedPoints;
+
+    public ICollection&lt;PointsTransaction&gt; PointsTransactions { get; set; } = new List&lt;&gt;();
+}
+
+// PointsTransaction — append-only history (like ledger entries)
+public class PointsTransaction : BaseEntity
+{
+    public Guid   RewardsAccountId { get; set; }  // FK
+    public Guid   TransactionId    { get; set; }  // links to Ledger transaction
+    public int    Points           { get; set; }
+    public string Description      { get; set; } = string.Empty;
+    // CreatedAt from BaseEntity — never updated after insert
+}
+
+public enum RewardsTier { Bronze = 1, Silver = 2, Gold = 3 }</code></pre>
+    <p><strong>Why store TransactionId on PointsTransaction?</strong> Idempotency — if the <span class="ic">TransactionCompletedEvent</span> is delivered twice (RabbitMQ at-least-once), you can check whether points were already awarded for this TransactionId. Also provides an audit trail linking financial transactions to loyalty points.</p>
+  </div>
+
+  <div class="card">
+    <div class="ct r">📄 RewardsDomainService.cs — Pure Calculation Logic</div>
+    <pre><code>// Static pure functions — no dependencies, fully testable in isolation
+public static class RewardsDomainService
+{
+    // Points formula: Floor(amount / 10)
+    // 100 INR = 10 pts | 500 INR = 50 pts | 999 INR = 99 pts | 1500 INR = 150 pts
+    public static int CalculatePoints(decimal amount)
+        =&gt; (int)Math.Floor(amount / 10m);
+    // Math.Floor → always rounds DOWN. 99 INR = 9 points, not 10.
+    // Use decimal literal 10m — not float 10.0 (precision)
+
+    // Tier calculation — switch expression
+    public static RewardsTier CalculateTier(int totalPoints) =&gt; totalPoints switch
+    {
+        &gt;= 5000 =&gt; RewardsTier.Gold,
+        &gt;= 1000 =&gt; RewardsTier.Silver,
+        _        =&gt; RewardsTier.Bronze
+    };
+    // Pattern: single responsibility — this method only calculates, never persists
+}</code></pre>
+    <div class="callout callout-amber"><strong>Why static pure functions?</strong> Tier and points calculation have no side effects and no dependencies. They're pure math — given the same input, always same output. Static pure functions are the easiest to unit test: no mocking needed. <span class="ic">CalculatePoints(500)</span> should always return <span class="ic">50</span> — one line test, zero setup.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct r">📄 TransactionCompletedConsumer.cs — The Heart of Rewards</div>
+    <pre><code>public class TransactionCompletedConsumer : BaseConsumer&lt;TransactionCompletedEvent&gt;
+{
+    protected override string QueueName    =&gt; EventQueues.TransactionCompletedRewards;
+    protected override string ExchangeName =&gt; EventQueues.TransactionExchange;
+    protected override string RoutingKey   =&gt; "transaction.completed";
+
+    protected override async Task HandleAsync(TransactionCompletedEvent message, CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService&lt;IRewardsRepository&gt;();
+
+        // LAZY ACCOUNT CREATION — account created on first transaction, not on registration
+        // Why? UserRegistered event isn't always processed before first transaction
+        // This is more resilient — account always exists when needed
+        var account = await repo.GetByUserIdAsync(message.SenderUserId);
+        if (account is null)
+        {
+            account = new RewardsAccount { UserId = message.SenderUserId, Email = string.Empty };
+            await repo.AddAsync(account);
+        }
+
+        // Calculate points — pure function, no side effects
+        var points = RewardsDomainService.CalculatePoints(message.Amount);
+        if (points &lt;= 0) return;  // micro-transactions under 10 INR earn 0 points → skip
+
+        // Update account state
+        account.TotalPoints += points;
+        account.Tier         = RewardsDomainService.CalculateTier(account.TotalPoints);
+        account.UpdatedAt    = DateTime.UtcNow;
+
+        // Append points history — never updated after insert
+        await repo.AddPointsTransactionAsync(new PointsTransaction
+        {
+            RewardsAccountId = account.Id,
+            TransactionId    = message.TransactionId,   // for idempotency check
+            Points           = points,
+            Description      = $"Earned {points} points for {message.TransactionType} of {message.Amount} {message.Currency}"
+        });
+
+        await repo.SaveChangesAsync();
+        // BaseConsumer → BasicAck on success, BasicNack(requeue:false) on exception → DLQ
+    }
+}</code></pre>
+    <div class="callout callout-red"><strong>Missing idempotency gap:</strong> The consumer doesn't check if points were already awarded for this <span class="ic">TransactionId</span> before creating the PointsTransaction. If the event is delivered twice, the user earns double points. The fix: <span class="ic">if (await repo.ExistsByTransactionIdAsync(message.TransactionId)) return;</span> — check before processing. The <span class="ic">TransactionId</span> field exists on <span class="ic">PointsTransaction</span> specifically for this check.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">3</span> Tier System + Points State</h2>
+  <div class="card">
+    <div class="ct r">Tier Thresholds and State Transitions</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+      <div style="text-align:center"><span class="tier-bronze">🥉 Bronze</span><div style="font-size:.75rem;color:var(--muted);margin-top:4px">0 – 999 pts</div></div>
+      <div style="font-size:1.2rem;color:var(--muted)">→</div>
+      <div style="text-align:center"><span class="tier-silver">🥈 Silver</span><div style="font-size:.75rem;color:var(--muted);margin-top:4px">1,000 – 4,999 pts</div></div>
+      <div style="font-size:1.2rem;color:var(--muted)">→</div>
+      <div style="text-align:center"><span class="tier-gold">🥇 Gold</span><div style="font-size:.75rem;color:var(--muted);margin-top:4px">5,000+ pts</div></div>
+    </div>
+    <p><strong>Upgrade is automatic and immediate</strong> — recalculated every time points are added. No separate upgrade job needed. <strong>Tier never decreases</strong> — even if points are redeemed, the tier based on total earned (not available) points stands. This is a deliberate business decision to reward loyalty, not punish redemptions.</p>
+    <table>
+      <tr><th>Amount (INR)</th><th>Points Earned</th><th>Running Total</th><th>Tier</th></tr>
+      <tr><td>500</td><td>50</td><td>50</td><td><span class="tier-bronze">Bronze</span></td></tr>
+      <tr><td>5000</td><td>500</td><td>550</td><td><span class="tier-bronze">Bronze</span></td></tr>
+      <tr><td>5000</td><td>500</td><td>1050</td><td><span class="tier-silver">Silver ← upgraded</span></td></tr>
+      <tr><td>40000</td><td>4000</td><td>5050</td><td><span class="tier-gold">Gold ← upgraded</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">4</span> Interview Q&A — Rewards</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why is RewardsAccount created lazily in the consumer instead of on UserRegistered? <span>▼</span></div>
+    <div class="qa-a">Resilience. The UserRegistered event could fail to reach Rewards (RabbitMQ down, service restart, queue not yet bound). If the account is only created on UserRegistered, a transaction event arriving before the account exists would fail with "account not found" and the points would be lost.<br><br>Lazy creation in the TransactionCompleted consumer means: the account is guaranteed to exist before points are awarded. If it doesn't exist, create it on the spot. This makes the consumer self-healing — it doesn't depend on prior events having been processed correctly. Trade-off: the RewardsAccount won't exist for users who never transact — but that's fine, there's nothing to show them anyway.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: What is the idempotency gap in this service and how would you fix it? <span>▼</span></div>
+    <div class="qa-a">RabbitMQ delivers at-least-once. If a TransactionCompletedEvent is delivered twice (network hiccup, service restart during processing), the consumer runs HandleAsync twice for the same event. Both calls create a PointsTransaction for the same TransactionId — double points.<br><br>Fix: Before creating the PointsTransaction, check: <span class="ic">if (await repo.ExistsByTransactionIdAsync(message.TransactionId)) return;</span> The TransactionId field on PointsTransaction already exists for this purpose. Additionally, add a unique index on (RewardsAccountId, TransactionId) in the DbContext — this provides DB-level protection as a second line of defence.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: Why use static pure functions for CalculatePoints and CalculateTier? <span>▼</span></div>
+    <div class="qa-a">Business rules like "1 point per 10 INR" and "Gold at 5000 points" are pure calculations — same input always gives same output, no side effects, no database, no external calls. Static pure functions are the right pattern for this: they're easily unit-tested in one line with no mocking, they can't accidentally mutate state, and they make the business rule explicit and visible rather than buried in a service method. If a business analyst asks "how are points calculated?" you can point them directly to one static method.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">5</span> 30s + 2min Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ct r">⚡ 30-Second</div>
+    <p>Rewards Service is a pure downstream consumer. It listens to TransactionCompletedEvents from RabbitMQ, calculates points using Floor(Amount/10), updates the user's RewardsAccount and tier, and appends an immutable PointsTransaction record. Accounts are created lazily on first transaction. Tier auto-upgrades via a switch expression: Bronze→Silver at 1000 points, Silver→Gold at 5000. If the service goes down, events queue in RabbitMQ and process when it recovers — no transactions are affected.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--ra)">
+    <div class="ct r">🎯 2-Minute Deep Dive</div>
+    <p>The key architectural decision is lazy account creation. Rather than depending on a UserRegistered event, the account is created the first time a transaction event arrives. This makes the consumer self-healing — it works correctly regardless of event ordering.</p>
+    <p>Points calculation uses static pure functions in RewardsDomainService — Floor(Amount/10) and a switch expression for tier. These are zero-dependency, fully unit testable in one line. Tier is recalculated on every points award and never decreases, even when points are redeemed.</p>
+    <p>The main gap I'd flag is the missing idempotency check. RabbitMQ guarantees at-least-once delivery, so the same TransactionCompletedEvent could arrive twice. The fix is a TransactionId existence check before inserting, backed by a unique DB index. The infrastructure is already in place — TransactionId is stored on PointsTransaction specifically for this.</p>
+  </div>
+</div>
+</div><!-- end rewards -->
+
+<!-- ═══ CATALOG PANE ═══ -->
+<div id="c-pane" class="pane">
+<div class="hero c">
+  <h1>Catalog Service</h1>
+  <p>Points redemption marketplace — the bridge between loyalty points and real value</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">4</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">DB Tables</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events Consumed</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events Published</div></div>
+    <div class="stat"><div class="val">Stock</div><div class="lbl">Mgmt</div></div>
+    <div class="stat"><div class="val">REST</div><div class="lbl">Only</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="ct c">Exact Responsibility</div>
+    <p>Catalog Service is the <strong>redemption marketplace</strong>. Admins create catalog items (gift cards, vouchers, cashback offers) with a points price and stock count. Users browse and redeem items by spending their loyalty points. When a redemption succeeds, stock decrements by one.</p>
+    <p>This is the <strong>only service with no RabbitMQ</strong> at all — no events consumed, no events published. It's pure synchronous REST. This is correct: redemption is a user-initiated, interactive action that needs an immediate result. The user clicks "Redeem" and waits for a response — async event-driven processing would be wrong here.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct c">✅ Invariants</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>Stock never goes below 0</strong> — checked before decrement</li>
+        <li><strong>Only active items are redeemable</strong> — IsActive flag checked</li>
+        <li><strong>Redemption is atomic</strong> — stock decrement + redemption record in one save</li>
+        <li><strong>Only Admin can create/deactivate items</strong> — role-based access</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ct c">⚠️ Known Design Gap</div>
+      <p><strong>Points balance not verified at redemption.</strong> The service calls <span class="ic">item.PointsRequired</span> but never checks if the user actually has enough available points in their RewardsAccount. This is a real bug — a user with 0 points could redeem a 500-point item.</p>
+      <p><strong>Fix:</strong> Call <span class="ic">GET /rewards</span> for the user's available points before allowing redemption, OR implement a cross-service points deduction via a shared contract.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">2</span> Entities + Business Logic</h2>
+  <div class="card">
+    <div class="ct c">📄 Entities</div>
+    <pre><code>public class CatalogItem : BaseEntity
+{
+    public string Name           { get; set; } = string.Empty;
+    public string Description    { get; set; } = string.Empty;
+    public int    PointsRequired { get; set; }   // cost in points to redeem
+    public string Category       { get; set; } = string.Empty;  // GiftCard | Voucher | Cashback
+    public bool   IsActive       { get; set; } = true;
+    public int    Stock          { get; set; }   // available quantity — decrements on redemption
+}
+
+public class Redemption : BaseEntity
+{
+    public Guid             UserId        { get; set; }
+    public Guid             CatalogItemId { get; set; }
+    public int              PointsUsed    { get; set; }
+    public RedemptionStatus Status        { get; set; } = RedemptionStatus.Completed;
+    public string?          FailureReason { get; set; }
+
+    public CatalogItem CatalogItem { get; set; } = null!;  // navigation — loaded with Include
+}
+
+public enum RedemptionStatus { Completed, Failed }</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="ct c">📄 RedemptionService.cs — Redemption Logic</div>
+    <pre><code>public async Task&lt;Result&lt;RedemptionDto&gt;&gt; RedeemAsync(Guid userId, RedeemRequestDto dto)
+{
+    var item = await _catalog.GetByIdAsync(dto.CatalogItemId);
+    if (item is null)
+        return Result&lt;RedemptionDto&gt;.Failure("Catalog item not found.");
+
+    // Guard 1 — item must be active (admin hasn't deactivated it)
+    if (!item.IsActive)
+        return Result&lt;RedemptionDto&gt;.Failure("Item is no longer available.");
+
+    // Guard 2 — stock must be available
+    if (item.Stock &lt;= 0)
+        return Result&lt;RedemptionDto&gt;.Failure("Item is out of stock.");
+
+    // NOTE: No points balance check here — known gap (see §1)
+
+    // Decrement stock — EF tracks this as a dirty change
+    item.Stock--;
+    item.UpdatedAt = DateTime.UtcNow;
+
+    var redemption = new Redemption
+    {
+        UserId        = userId,
+        CatalogItemId = item.Id,
+        PointsUsed    = item.PointsRequired,
+        Status        = RedemptionStatus.Completed
+    };
+
+    await _redemptions.AddAsync(redemption);
+    await _redemptions.SaveChangesAsync();
+    // Single SaveChangesAsync: stock UPDATE + redemption INSERT — atomic
+
+    return Result&lt;RedemptionDto&gt;.Success(MapToDto(redemption, item.Name));
+}
+
+public async Task&lt;Result&lt;IEnumerable&lt;CatalogItemDto&gt;&gt;&gt; GetAllActiveAsync()
+    =&gt; Result&lt;...&gt;.Success(
+        (await _catalog.GetAllActiveAsync()).Select(MapToDto));</code></pre>
+    <div class="callout callout-red"><strong>Race condition on stock:</strong> Two users both read Stock=1. Both pass the <span class="ic">Stock &lt;= 0</span> check. Both call <span class="ic">item.Stock--</span>. Stock goes to -1 — one item was sold twice. Fix: add a <span class="ic">RowVersion</span> on <span class="ic">CatalogItem</span> exactly like Wallet — optimistic concurrency catches the second writer. Or use a SQL <span class="ic">UPDATE ... WHERE Stock &gt; 0</span> approach.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct c">📄 CatalogDbContext.cs — Schema</div>
+    <pre><code>mb.Entity&lt;Redemption&gt;(e =&gt; {
+    e.HasOne(r =&gt; r.CatalogItem)
+     .WithMany()
+     .HasForeignKey(r =&gt; r.CatalogItemId)
+     .OnDelete(DeleteBehavior.Restrict);  // can't delete a catalog item that has redemptions
+    e.Property(r =&gt; r.Status).HasConversion&lt;string&gt;();
+});
+// Note: No RowVersion on CatalogItem — the stock race condition gap</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="ct c">📄 Controllers — Two Controllers, Clear Separation</div>
+    <pre><code>[ApiController][Route("api/catalog")]
+public class CatalogController : ControllerBase
+{
+    [HttpGet]
+    [AllowAnonymous]              // ← public browse — no login needed
+    public async Task&lt;IActionResult&gt; GetAll() { ... }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")] // ← only admin creates items
+    public async Task&lt;IActionResult&gt; Create([FromBody] CreateCatalogItemDto dto) { ... }
+}
+
+[ApiController][Route("api/redemptions")]
+[Authorize]                      // ← all redemption ops need JWT
+public class RedemptionController : ControllerBase
+{
+    private Guid CurrentUserId =&gt; Guid.Parse(
+        User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Redeem([FromBody] RedeemRequestDto dto)
+    {
+        var result = await _redemptionService.RedeemAsync(CurrentUserId, dto);
+        return result.IsSuccess ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    [HttpGet("my")]
+    public async Task&lt;IActionResult&gt; GetMine()
+    {
+        var result = await _redemptionService.GetMyRedemptionsAsync(CurrentUserId);
+        return Ok(result.Data);
+    }
+}</code></pre>
+    <p><strong>Why <span class="ic">AllowAnonymous</span> on GET /catalog?</strong> A user browsing the catalog before logging in should see what's available — it's a marketing/UX decision. You don't need to be authenticated to see "Amazon Gift Card costs 500 points." Authentication is only required when actually redeeming.</p>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">3</span> Execution Trace — Redeem Flow</h2>
+  <div class="card">
+    <div class="ct c">Scenario: POST /gateway/redemptions → { catalogItemId: "item-001" }</div>
+    <div class="flow-step"><div class="fn c">1</div><div class="ft"><strong>Gateway</strong> validates JWT, routes to Catalog (5006). UserId extracted from token inside controller.</div></div>
+    <div class="flow-step"><div class="fn c">2</div><div class="ft"><strong>RedemptionService.RedeemAsync()</strong> — loads CatalogItem by ID. If null → 400.</div></div>
+    <div class="flow-step"><div class="fn c">3</div><div class="ft"><strong>Guards</strong> — IsActive check, Stock &gt; 0 check. Both must pass.</div></div>
+    <div class="flow-step"><div class="fn c">4</div><div class="ft"><strong>Mutate state</strong> — <span class="ic">item.Stock--</span>. EF tracks this as dirty.</div></div>
+    <div class="flow-step"><div class="fn c">5</div><div class="ft"><strong>Create Redemption entity</strong> — PointsUsed = item.PointsRequired, Status = Completed.</div></div>
+    <div class="flow-step"><div class="fn c">6</div><div class="ft"><strong>Single SaveChangesAsync()</strong> — two operations in one transaction: UPDATE CatalogItems SET Stock=N-1 + INSERT INTO Redemptions. Atomic.</div></div>
+    <div class="flow-step"><div class="fn c">7</div><div class="ft"><strong>200 OK</strong> with RedemptionDto. Note: no event published — no async side effects.</div></div>
+    <table style="margin-top:12px">
+      <tr><th>Failure</th><th>Outcome</th></tr>
+      <tr><td>Item not found</td><td>400 — "Catalog item not found"</td></tr>
+      <tr><td>Item deactivated</td><td>400 — "Item is no longer available"</td></tr>
+      <tr><td>Stock = 0</td><td>400 — "Item is out of stock"</td></tr>
+      <tr><td>Two concurrent users, Stock=1</td><td>Race condition — one may oversell (known gap)</td></tr>
+      <tr><td>DB crash after Stock--, before insert</td><td>Both roll back — EF atomicity</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">4</span> Interview Q&A — Catalog</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why does Catalog have no RabbitMQ at all, while every other service does? <span>▼</span></div>
+    <div class="qa-a">Redemption is a synchronous, user-initiated action. The user clicks "Redeem", expects immediate feedback — "Congrats, you've redeemed Amazon Gift Card" or "Out of stock." Async processing would mean they get a "processing" response and have to poll for the result — terrible UX for a simple operation.<br><br>RabbitMQ is for fire-and-forget notifications or decoupled reactions to events. Redemption is neither. The stock decrement must happen atomically with the redemption record — if you split them into events, you'd need a saga pattern to handle failures. Synchronous REST + single DB transaction is simpler, faster, and correct here.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: There's a race condition on stock — two users both see Stock=1 and both redeem. How do you fix it? <span>▼</span></div>
+    <div class="qa-a">Two approaches: (1) Optimistic concurrency — add RowVersion to CatalogItem exactly like Wallet. EF wraps the update with WHERE RowVersion=@original. The second concurrent writer finds RowVersion changed → DbUpdateConcurrencyException → return 400 "Item is out of stock." (2) SQL-level atomic decrement — use a raw SQL UPDATE: <span class="ic">UPDATE CatalogItems SET Stock = Stock - 1 WHERE Id = @id AND Stock &gt; 0</span>. Check rows affected — if 0, stock was already gone. The first approach uses the same pattern already in the codebase (Wallet). The second is more explicit but requires raw SQL in EF.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: What's the missing check in RedeemAsync and why does it matter? <span>▼</span></div>
+    <div class="qa-a">There's no verification that the user has enough points to cover the redemption. A user with 0 available points could successfully redeem a 500-point item — their points just go negative or the PointsUsed is recorded but never actually deducted from RewardsAccount.<br><br>Fix options: (1) Catalog service calls Rewards service synchronously (GET /rewards/{userId}) before redemption — introduces coupling. (2) Rewards service exposes a RedeemPoints(userId, points) endpoint — Catalog calls it as part of redemption. If it fails, the redemption fails. (3) Move points deduction into an event-driven saga. Option 2 is cleanest — it keeps Rewards as the authoritative source of points balance.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">5</span> 30s + 2min Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ct c">⚡ 30-Second</div>
+    <p>Catalog Service is the points redemption marketplace. Admins create items with a points cost and stock count. Users browse publicly and redeem by spending points. Redemption is synchronous REST — no events — because users need immediate feedback. Stock decrement and redemption record are written atomically in one SaveChangesAsync. The main gap is no points balance verification at redemption and no optimistic concurrency on stock, which creates an oversell race condition under concurrent load.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--ca)">
+    <div class="ct c">🎯 2-Minute Deep Dive</div>
+    <p>Catalog is deliberately the simplest service in the platform — no RabbitMQ, no idempotency keys, straightforward CRUD. The design choice to keep it synchronous-only is intentional: redemption is interactive and needs immediate feedback. The GET /catalog endpoint is public (AllowAnonymous) for browse-before-login UX. Only POST /catalog is Admin-restricted.</p>
+    <p>The atomic stock+redemption write is important — stock decrements and the Redemption record insert in the same EF SaveChangesAsync transaction. No partial state is possible. However there are two production gaps I'd call out: no optimistic concurrency on CatalogItem.Stock (two concurrent redemptions on Stock=1 can oversell), and no points balance verification (user could redeem without having enough points). The fixes are RowVersion on CatalogItem and a cross-service points deduction call to Rewards Service before committing the redemption.</p>
+  </div>
+</div>
+</div><!-- end catalog -->
+
+<!-- ═══ NOTIFICATION PANE ═══ -->
+<div id="n-pane" class="pane">
+<div class="hero n">
+  <h1>Notification Service</h1>
+  <p>The platform's communication layer — 5 event types, real Gmail SMTP, zero REST endpoints</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">0</div><div class="lbl">REST Endpoints</div></div>
+    <div class="stat"><div class="val">5</div><div class="lbl">Consumers</div></div>
+    <div class="stat"><div class="val">5</div><div class="lbl">Events Consumed</div></div>
+    <div class="stat"><div class="val">Gmail</div><div class="lbl">SMTP</div></div>
+    <div class="stat"><div class="val">MailKit</div><div class="lbl">Library</div></div>
+    <div class="stat"><div class="val">Log</div><div class="lbl">Every Send</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="n"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="ct n">Exact Responsibility</div>
+    <p>Notification Service is the <strong>communication gateway</strong> of the platform. It translates internal domain events into user-facing emails. It is the <strong>only service with no REST endpoints at all</strong> — Swagger shows "No operations defined" and that is correct by design.</p>
+    <p>Every other service publishes events about what happened (user registered, KYC approved, transaction completed). Notification subscribes to all of them and sends the appropriate email. It is a pure leaf node — downstream only, no events published, no services called.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct n">✅ Invariants</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>Every send attempt is logged</strong> — success or failure, always recorded</li>
+        <li><strong>Email failure never crashes the consumer</strong> — SMTP errors are caught, logged, Acked</li>
+        <li><strong>No event is re-queued on SMTP failure</strong> — email is best-effort</li>
+        <li><strong>HTML emails only</strong> — Content-Type: text/html</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ct n">💥 What Breaks If Notification Goes Down</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>No emails sent</strong> — users don't get notifications</li>
+        <li><strong>All other services unaffected</strong> — Notification is pure downstream</li>
+        <li><strong>Events queue in RabbitMQ</strong> — when service recovers, backlog is processed</li>
+        <li>Users may receive a burst of old emails after recovery</li>
+      </ul>
+    </div>
+  </div>
+  <table>
+    <tr><th>Consumer</th><th>Exchange</th><th>Queue</th><th>Email Sent</th></tr>
+    <tr><td>UserRegisteredConsumer</td><td>user.exchange</td><td>user.registered.notification.queue</td><td>Welcome to WalletPlatform!</td></tr>
+    <tr><td>KycStatusUpdatedConsumer</td><td>user.exchange</td><td>kyc.updated.notification.queue</td><td>KYC Approved / KYC Rejected</td></tr>
+    <tr><td>TransactionCompletedConsumer</td><td>transaction.exchange</td><td>transaction.completed.notification.queue</td><td>Transaction Successful</td></tr>
+    <tr><td>TransactionFailedConsumer</td><td>transaction.exchange</td><td>transaction.failed.notification.queue</td><td>Transaction Failed</td></tr>
+    <tr><td>WalletFrozenConsumer</td><td>wallet.exchange</td><td>wallet.frozen.notification.queue</td><td>Your Wallet Has Been Frozen</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <h2 class="n"><span class="num">2</span> Deep File Review</h2>
+
+  <div class="card">
+    <div class="ct n">📄 GmailSmtpEmailSender.cs — MailKit Implementation</div>
+    <pre><code>public class GmailSmtpEmailSender : IEmailSender
+{
+    private readonly IConfiguration _config;
+
+    public async Task SendAsync(string toEmail, string subject, string htmlBody)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(
+            _config["Smtp:FromName"],   // "WalletPlatform"
+            _config["Smtp:FromEmail"])); // dotnet904training@gmail.com
+        message.To.Add(MailboxAddress.Parse(toEmail));
+        message.Subject = subject;
+
+        // HTML email body
+        message.Body = new TextPart("html") { Text = htmlBody };
+
+        using var client = new SmtpClient();
+
+        // CRITICAL: StartTls on port 587 — NOT SslOnConnect on 465
+        // System.Net.Mail fails with Gmail — MailKit's StartTls is required
+        await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+
+        // Gmail App Password — NOT your account password
+        // Generate at: Google Account → Security → 2FA → App Passwords
+        await client.AuthenticateAsync(
+            _config["Smtp:FromEmail"],
+            _config["Smtp:Password"]);  // 16-char App Password, no spaces
+
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
+    }
+}</code></pre>
+    <div class="callout callout-purple"><strong>Why MailKit instead of System.Net.Mail?</strong> Gmail requires STARTTLS negotiation on port 587. System.Net.Mail's <span class="ic">SmtpClient</span> has a <span class="ic">EnableSsl</span> flag but it uses SSL from the start (SslOnConnect), not STARTTLS — Gmail rejects this. MailKit's <span class="ic">SecureSocketOptions.StartTls</span> correctly upgrades the connection. This was a hard-won lesson in building the platform — this was the specific fix that made real emails work.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct n">📄 NotificationDomainService.cs — Log + Send</div>
+    <pre><code>public class NotificationDomainService
+{
+    private readonly IEmailSender _emailSender;
+    private readonly INotificationRepository _repo;
+    private readonly ILogger&lt;NotificationDomainService&gt; _logger;
+
+    public async Task SendAsync(Guid userId, string email, string subject, string body, NotificationType type)
+    {
+        var log = new NotificationLog
+        {
+            UserId  = userId,
+            Email   = email,
+            Subject = subject,
+            Body    = body,
+            Type    = type
+        };
+
+        try
+        {
+            await _emailSender.SendAsync(email, subject, body);
+            log.IsSuccess = true;
+            _logger.LogInformation("Email sent to {Email} — {Subject}", email, subject);
+        }
+        catch (Exception ex)
+        {
+            // EMAIL FAILURE IS NOT RE-QUEUED — it's caught here and logged
+            // Why? Transient SMTP failures shouldn't block the queue
+            // The message is BasicAcked (not Nacked) — we accept delivery, even if email fails
+            log.IsSuccess    = false;
+            log.ErrorMessage = ex.Message;
+            _logger.LogError(ex, "Failed to send email to {Email}", email);
+        }
+        finally
+        {
+            // ALWAYS log — regardless of success or failure
+            await _repo.AddAsync(log);
+            await _repo.SaveChangesAsync();
+        }
+    }
+}</code></pre>
+    <div class="callout callout-red"><strong>Email failure = BasicAck, not BasicNack.</strong> If the SMTP send fails (Gmail rate limit, network issue), the exception is caught, logged, and the RabbitMQ message is still Acked. Why? If we Nacked on SMTP failure, the message would requeue and retry. But if Gmail is rate-limiting, every retry would also fail — infinite loop. Email delivery is best-effort. The notification log records the failure for manual investigation. In production, you'd add retry logic with exponential backoff specifically for transient SMTP errors.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct n">📄 A Typical Consumer — WalletFrozenConsumer.cs</div>
+    <pre><code>public class WalletFrozenConsumer : BaseConsumer&lt;WalletFrozenEvent&gt;
+{
+    protected override string QueueName    =&gt; EventQueues.WalletFrozenNotification;
+    protected override string ExchangeName =&gt; EventQueues.WalletExchange;
+    protected override string RoutingKey   =&gt; "wallet.frozen";
+
+    protected override async Task HandleAsync(WalletFrozenEvent message, CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var svc = scope.ServiceProvider.GetRequiredService&lt;NotificationDomainService&gt;();
+
+        await svc.SendAsync(
+            userId:  message.UserId,
+            email:   message.Email,   // ← email comes in the event payload
+            subject: "Your Wallet Has Been Frozen",
+            body:    $"""
+                     &lt;h2&gt;Wallet Frozen&lt;/h2&gt;
+                     &lt;p&gt;Your wallet has been frozen.&lt;/p&gt;
+                     &lt;p&gt;Reason: {message.Reason}&lt;/p&gt;
+                     &lt;p&gt;Please contact support if you have questions.&lt;/p&gt;
+                     """,
+            type: NotificationType.WalletFrozen);
+        // NotificationDomainService handles try/catch — this never throws
+    }
+}
+// All 5 consumers follow this exact same pattern — same structure, different event type</code></pre>
+    <p><strong>Why does the event carry the email address?</strong> Notification Service has no database of users — it doesn't know <span class="ic">UserId → Email</span>. The email address must be included in the event payload by the publishing service. This means Auth/Wallet/Ledger must always include the recipient email when publishing events that will trigger notifications.</p>
+  </div>
+
+  <div class="card">
+    <div class="ct n">📄 NotificationLog Entity — The Audit Record</div>
+    <pre><code>public class NotificationLog : BaseEntity
+{
+    public Guid             UserId       { get; set; }
+    public string           Email        { get; set; } = string.Empty;
+    public string           Subject      { get; set; } = string.Empty;
+    public string           Body         { get; set; } = string.Empty;
+    public NotificationType Type         { get; set; }
+    public bool             IsSuccess    { get; set; }
+    public string?          ErrorMessage { get; set; }   // null on success, exception message on failure
+}
+
+public enum NotificationType
+{
+    UserRegistered, KycApproved, KycRejected,
+    TransactionCompleted, TransactionFailed, WalletFrozen
+}</code></pre>
+    <p>Every email attempt — success or failure — creates a NotificationLog row. This serves as a compliance audit trail: "prove that user X was notified of transaction Y on date Z." In a regulated fintech environment, this log may be legally required. It also enables ops teams to manually investigate why a user didn't receive an expected email.</p>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="n"><span class="num">3</span> Email Templates + SMTP Configuration</h2>
+  <div class="card">
+    <div class="ct n">All 5 Email Triggers</div>
+    <div class="email-card"><div class="email-subject">Welcome to WalletPlatform!</div><div class="email-trigger">Trigger: UserRegisteredEvent → Auth publishes on register</div></div>
+    <div class="email-card"><div class="email-subject">KYC Approved! / KYC Rejected</div><div class="email-trigger">Trigger: KycStatusUpdatedEvent → UserProfile publishes on admin review</div></div>
+    <div class="email-card"><div class="email-subject">Transaction Successful</div><div class="email-trigger">Trigger: TransactionCompletedEvent → Ledger publishes after double-entry commit</div></div>
+    <div class="email-card"><div class="email-subject">Transaction Failed</div><div class="email-trigger">Trigger: TransactionFailedEvent → Ledger publishes on failure path</div></div>
+    <div class="email-card"><div class="email-subject">Your Wallet Has Been Frozen</div><div class="email-trigger">Trigger: WalletFrozenEvent → Wallet publishes after freeze</div></div>
+  </div>
+  <div class="card">
+    <div class="ct n">SMTP Configuration — The Exact Settings That Work</div>
+    <pre><code>// .env (exact format — no quotes, no spaces in password)
+Smtp__FromEmail=dotnet904training@gmail.com
+Smtp__Password=abcdefghijklmnop    ← 16-char App Password, no spaces
+Smtp__FromName=WalletPlatform
+
+// Gmail setup required:
+// 1. Google Account → Security → 2-Step Verification → ON
+// 2. Google Account → Security → App Passwords → Generate
+// 3. Copy the 16-char password WITHOUT spaces
+
+// MailKit settings that MUST be used:
+// Port: 587 (not 465)
+// SecureSocketOptions.StartTls (not SslOnConnect)
+// System.Net.Mail SmtpClient DOES NOT WORK with Gmail → always use MailKit</code></pre>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="n"><span class="num">4</span> Distributed Systems Concerns</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct n">Why No REST Endpoints?</div>
+      <p>Notification Service has no reason to be called directly by any other service or by clients. It is a pure side-effect service — it reacts to things that happened. No service needs to "ask Notification to send an email" via HTTP — it just publishes an event and Notification picks it up.</p>
+      <p>This keeps Notification completely decoupled. If you want to add SMS later, you add a new consumer implementation without changing any other service. The event contract is the only interface.</p>
+    </div>
+    <div class="card">
+      <div class="ct n">Fan-In Pattern</div>
+      <p>While Ledger's TransactionCompletedEvent is a fan-out (one event → many consumers), Notification is a fan-in — it subscribes to events from <em>multiple</em> different exchanges/services and handles them all in one place.</p>
+      <p>This centralises all email logic: templates, SMTP config, retry logic, audit logging. The alternative — each service sends its own emails — means 8 copies of GmailSmtpEmailSender and 8 places where the App Password is configured.</p>
+    </div>
+  </div>
+  <div class="callout callout-purple"><strong>What happens if Notification consumes an event but SMTP fails, then the service crashes before SaveChangesAsync?</strong> The RabbitMQ message was not Acked (service crashed before returning from HandleAsync). RabbitMQ re-delivers it when the service restarts. HandleAsync runs again — email send is retried. If SMTP succeeds this time, the log is created. If SMTP fails again, the log records the failure and the message is Acked. The user may or may not receive the email, but the platform is self-healing for most cases.</div>
+</div>
+
+<div class="section">
+  <h2 class="n"><span class="num">5</span> Interview Q&A — Notification</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why does Notification Service have no REST endpoints? Is that a design choice or a gap? <span>▼</span></div>
+    <div class="qa-a">Deliberate design choice. Notification is a pure side-effect service — it reacts to domain events, it doesn't need to be called directly. No service needs to say "please send an email to user X" via HTTP. Instead, services publish events about what happened, and Notification handles the email delivery independently.<br><br>This gives complete decoupling: adding a new notification type means adding a new consumer in Notification, not modifying any other service. Adding SMS later means adding an SmsConsumer alongside the email consumers. The event contract is the interface — no HTTP contracts to evolve.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: Why BasicAck on SMTP failure instead of BasicNack with requeue? <span>▼</span></div>
+    <div class="qa-a">Because email delivery is best-effort, and SMTP failures are often persistent (Gmail rate limiting, account issues). If we Nacked with requeue=true on SMTP failure, the message goes back to the queue and is immediately re-delivered. If Gmail is rate-limiting, the retry also fails — infinite loop that floods the queue and the logs.<br><br>Instead: catch the exception, log it with IsSuccess=false in NotificationLogs, and Ack the message (accept delivery, mark as processed). The notification log is the fallback — ops can query "all failed notifications" and manually trigger resend. In production, add retry logic with exponential backoff specifically for transient SMTP errors before falling through to this Ack-on-failure behaviour.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: Why must event payloads include the recipient's email address? <span>▼</span></div>
+    <div class="qa-a">Notification Service has no database of users — it doesn't store email addresses. If an event only carried UserId, the Notification consumer would need to call Auth or UserProfile service to resolve UserId → Email. This introduces a synchronous dependency: if Auth is down, notifications fail.<br><br>By requiring publishing services to include the email in the event payload, Notification remains completely self-contained. The trade-off: every service that publishes notification-triggering events must know and include the email. This is an API contract between the event publisher and Notification. A schema registry or shared event contracts (Shared.Contracts) enforce this.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q4: Why MailKit instead of System.Net.Mail for Gmail? <span>▼</span></div>
+    <div class="qa-a">Gmail requires STARTTLS — a connection is first established on port 587 unencrypted, then upgraded to TLS. System.Net.Mail's SmtpClient with EnableSsl=true tries to start with SSL (SslOnConnect), which Gmail rejects with an authentication failure. MailKit explicitly supports STARTTLS via SecureSocketOptions.StartTls on port 587. This is a real implementation-level detail that comes up with Gmail SMTP — we discovered this during development when System.Net.Mail kept failing authentication.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="n"><span class="num">6</span> 30s + 2min Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ct n">⚡ 30-Second</div>
+    <p>Notification Service is a pure consumer — no REST endpoints, no events published, just five RabbitMQ consumers mapped to five email types. It uses MailKit with STARTTLS on port 587 for real Gmail SMTP delivery. Every send attempt — success or failure — is logged to NotificationLogs. Email failure is absorbed (BasicAck) because SMTP errors are persistent and requeueing would cause infinite retries. All five consumers share the same pattern: scope factory, NotificationDomainService, HTML body, log result.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--na)">
+    <div class="ct n">🎯 2-Minute Deep Dive</div>
+    <p>Notification demonstrates the fan-in pattern — multiple exchanges, multiple event types, all handled in one place. This centralises all email logic: templates, SMTP config, retry handling, audit logging. The alternative of each service sending its own emails would mean eight copies of SMTP configuration and eight places where a credential change would need to be made.</p>
+    <p>The key design decision is the email-in-event-payload approach. Notification has no user database — the publishing service must include the recipient email in the event. This keeps Notification self-contained but creates a contract: all notification-triggering events must carry the email field.</p>
+    <p>For SMTP, we use MailKit with SecureSocketOptions.StartTls on port 587 — this is the specific configuration required for Gmail. System.Net.Mail fails because it uses SslOnConnect, which Gmail rejects. The Gmail App Password must be used — not the account password — and must be 16 chars with no spaces.</p>
+    <p>Email failure is treated as best-effort: SMTP exceptions are caught inside NotificationDomainService, logged with IsSuccess=false, and the RabbitMQ message is still Acked. This prevents infinite retry loops when Gmail is rate-limiting. The NotificationLogs table provides the audit trail for failed deliveries.</p>
+  </div>
+</div>
+</div><!-- end notification -->
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.tab.'+t).classList.add('active');
+  document.getElementById(t+'-pane').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggle(el){
+  const a=el.nextElementSibling;
+  a.classList.toggle('open');
+  el.querySelector('span').textContent=a.classList.contains('open')?'▲':'▼';
+}
+</script>
+</body>
+</html>

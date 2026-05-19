@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallet + Ledger — Deep Dive</title>
+<style>
+:root{
+  --bg:#f8f9fa;--card:#fff;--border:#e2e8f0;
+  --w-primary:#1d4ed8;--w-accent:#3b82f6;
+  --l-primary:#7c3aed;--l-accent:#a78bfa;
+  --green:#16a34a;--red:#dc2626;--orange:#d97706;
+  --text:#1e293b;--muted:#64748b;--code-bg:#0f172a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+nav{background:#0f172a;color:white;padding:14px 32px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;}
+nav .logo{font-size:1rem;font-weight:700;}
+nav .sub{font-size:0.75rem;opacity:.6;}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px;position:sticky;top:51px;background:var(--bg);z-index:50;padding:0 32px;}
+.tab{padding:12px 28px;cursor:pointer;font-weight:600;font-size:.9rem;border-bottom:3px solid transparent;color:var(--muted);transition:all .2s;margin-bottom:-2px;}
+.tab.wallet.active{color:var(--w-primary);border-bottom-color:var(--w-primary);}
+.tab.ledger.active{color:var(--l-primary);border-bottom-color:var(--l-primary);}
+.tab:hover{color:var(--text);}
+.pane{display:none;padding:0 32px 40px;}
+.pane.active{display:block;}
+.section{margin-bottom:44px;scroll-margin-top:120px;}
+h2{font-size:1.3rem;font-weight:700;padding-bottom:10px;border-bottom:2px solid;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+h2.w{color:var(--w-primary);border-color:var(--w-accent);}
+h2.l{color:var(--l-primary);border-color:var(--l-accent);}
+h2 .num{color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;}
+h2.w .num{background:var(--w-accent);}
+h2.l .num{background:var(--l-accent);}
+h3{font-size:.95rem;font-weight:700;margin:18px 0 8px;color:var(--text);}
+p{margin-bottom:10px;font-size:.9rem;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+.card-title{font-weight:700;font-size:.88rem;margin-bottom:10px;}
+.card-title.w{color:var(--w-primary);}
+.card-title.l{color:var(--l-primary);}
+pre{background:var(--code-bg);color:#e2e8f0;border-radius:8px;padding:16px;font-size:.8rem;overflow-x:auto;margin:10px 0;line-height:1.75;}
+code{font-family:'Consolas','Cascadia Code',monospace;}
+.ic{background:#f1f5f9;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.83em;}
+.callout{border-left:4px solid;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:.87rem;}
+.callout-red{border-color:var(--red);background:#fef2f2;}
+.callout-green{border-color:var(--green);background:#f0fdf4;}
+.callout-orange{border-color:var(--orange);background:#fffbeb;}
+.callout-blue{border-color:var(--w-accent);background:#eff6ff;}
+.callout-purple{border-color:var(--l-accent);background:#f5f3ff;}
+.callout strong{display:block;margin-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:.84rem;margin:10px 0;}
+th{background:#f1f5f9;font-weight:700;padding:9px 12px;text-align:left;border:1px solid var(--border);}
+td{padding:8px 12px;border:1px solid var(--border);}
+tr:nth-child(even) td{background:#f8fafc;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:.73rem;font-weight:600;}
+.badge-green{background:#dcfce7;color:var(--green);}
+.badge-red{background:#fee2e2;color:var(--red);}
+.badge-blue{background:#dbeafe;color:var(--w-primary);}
+.badge-orange{background:#fef3c7;color:var(--orange);}
+.badge-purple{background:#ede9fe;color:var(--l-primary);}
+/* Q&A */
+.qa-item{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+.qa-q{background:#f8fafc;padding:11px 16px;font-weight:700;font-size:.87rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.qa-a{padding:14px 16px;font-size:.86rem;display:none;border-top:1px solid var(--border);line-height:1.75;}
+.qa-a.open{display:block;}
+/* Header cards */
+.hero{border-radius:12px;padding:22px;margin-bottom:28px;color:white;}
+.hero.wallet{background:linear-gradient(135deg,#1d4ed8,#3b82f6);}
+.hero.ledger{background:linear-gradient(135deg,#7c3aed,#a78bfa);}
+.hero h1{font-size:1.4rem;margin-bottom:4px;}
+.hero p{opacity:.9;font-size:.87rem;margin:0;}
+.stat-row{display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;}
+.stat .val{font-size:1.5rem;font-weight:800;}
+.stat .lbl{font-size:.7rem;opacity:.8;text-transform:uppercase;letter-spacing:.05em;}
+/* Flow steps */
+.flow-step{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;}
+.fn{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:2px;color:white;}
+.fn.w{background:var(--w-accent);}
+.fn.l{background:var(--l-accent);}
+.ft{font-size:.87rem;line-height:1.6;}
+/* Ledger table */
+.lt{width:100%;border-collapse:collapse;font-size:.83rem;}
+.lt th{background:#0f172a;color:#e2e8f0;padding:9px 12px;text-align:left;}
+.lt td{padding:8px 12px;border-bottom:1px solid var(--border);}
+.lt tr:last-child td{background:#f0fdf4;font-weight:700;}
+.dr{color:#dc2626;font-weight:700;}
+.cr{color:#16a34a;font-weight:700;}
+/* Divider between wallet and ledger */
+.compare-bar{background:linear-gradient(90deg,#dbeafe,#ede9fe);border-radius:8px;padding:12px 18px;margin:20px 0;font-size:.87rem;font-weight:600;color:#1e293b;}
+@media(max-width:700px){.grid2{grid-template-columns:1fr;}.tabs{padding:0 12px;}.pane{padding:0 12px 32px;}}
+</style>
+</head>
+<body>
+<nav>
+  <div>
+    <div class="logo">💳 Wallet + Ledger Services — Deep Dive</div>
+    <div class="sub">WalletPlatform · The Financial Core · Senior Architect Analysis</div>
+  </div>
+</nav>
+
+<div class="tabs">
+  <div class="tab wallet active" onclick="switchTab('wallet')">💳 Wallet Service (5003)</div>
+  <div class="tab ledger" onclick="switchTab('ledger')">📒 Ledger Service (5004)</div>
+</div>
+
+<!-- ═══════════════ WALLET PANE ═══════════════ -->
+<div id="wallet-pane" class="pane active">
+
+<div class="hero wallet">
+  <h1>Wallet Service</h1>
+  <p>Balance management — the financial state of every user in real time</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">5</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">DB Tables</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Consumed</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Published</div></div>
+    <div class="stat"><div class="val">RowVersion</div><div class="lbl">Concurrency</div></div>
+    <div class="stat"><div class="val">IdempKey</div><div class="lbl">Safety</div></div>
+  </div>
+</div>
+
+<!-- W-S1 -->
+<div class="section" id="ws1">
+  <h2 class="w"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="card-title w">Exact Responsibility</div>
+    <p>Wallet Service owns <strong>one number per user: their current balance</strong>. It's the financial state store — the fast-read source of truth for "how much money does this user have right now." It does not record history (that's Ledger), does not issue tokens (that's Auth), and does not verify identity (that's UserProfile).</p>
+    <p>Think of it as the <strong>bank account display</strong> — it shows your balance and lets you add or remove money, but it doesn't keep the full transaction history itself.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title w">✅ Invariants Always Maintained</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>Balance never goes negative</strong> — explicit check before deduct</li>
+        <li><strong>Same idempotency key = same result</strong> — no double top-ups</li>
+        <li><strong>Frozen wallet rejects all balance ops</strong> — no exceptions</li>
+        <li><strong>One wallet per user</strong> — unique index on UserId</li>
+        <li><strong>RowVersion increments on every write</strong> — concurrency safety</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title w">💥 What Breaks If Wallet Goes Down</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li>Top-up and deduct fail — no money movement possible</li>
+        <li>UserRegistered events queue in RabbitMQ — wallet creation delayed</li>
+        <li>Ledger service calls fail (Ledger needs WalletId to record entries)</li>
+        <li>Auth + UserProfile are completely unaffected</li>
+      </ul>
+    </div>
+  </div>
+  <table>
+    <tr><th>Direction</th><th>Partner</th><th>Method</th><th>What</th></tr>
+    <tr><td><span class="badge badge-blue">IN async</span></td><td>Auth Service</td><td>RabbitMQ</td><td>UserRegisteredEvent → auto-create wallet</td></tr>
+    <tr><td><span class="badge badge-green">OUT async</span></td><td>Notification Service</td><td>RabbitMQ</td><td>WalletFrozenEvent → sends freeze alert email</td></tr>
+    <tr><td><span class="badge badge-orange">NONE</span></td><td>Any service</td><td>Sync HTTP</td><td>Wallet never calls another service synchronously</td></tr>
+  </table>
+</div>
+
+<!-- W-S2 -->
+<div class="section" id="ws2">
+  <h2 class="w"><span class="num">2</span> Clean Architecture</h2>
+  <pre><code>WalletService.Core/
+  Entities/
+    Wallet.cs            ← Balance, Status, RowVersion — the aggregate root
+    IdempotencyKey.cs    ← key + JSON-serialised response cache
+  Enums/
+    WalletStatus.cs      ← Active | Frozen | Closed
+  Interfaces/
+    IWalletService.cs    IWalletRepository.cs  IIdempotencyRepository.cs
+  Services/
+    WalletService.cs     ← ALL business logic lives here
+
+WalletService.Infrastructure/
+  Data/
+    WalletDbContext.cs   ← RowVersion config, unique index, decimal precision
+  Repositories/
+    WalletRepository.cs
+    IdempotencyRepository.cs
+  Consumers/
+    UserRegisteredConsumer.cs  ← BaseConsumer&lt;UserRegisteredEvent&gt;
+
+WalletService.API/
+  Controllers/
+    WalletController.cs  ← thin HTTP layer
+  Program.cs             ← DI wiring</code></pre>
+  <div class="callout callout-blue"><strong>Two repositories for two concerns:</strong> <span class="ic">WalletRepository</span> owns the money state. <span class="ic">IdempotencyRepository</span> owns duplicate-prevention. Keeping them separate means the idempotency logic can be independently tested and swapped (e.g., move to Redis) without touching wallet logic.</div>
+</div>
+
+<!-- W-S3 -->
+<div class="section" id="ws3">
+  <h2 class="w"><span class="num">3</span> Deep File-by-File Review</h2>
+
+  <div class="card">
+    <div class="card-title w">📄 Wallet.cs — The Entity (Most Critical Fields)</div>
+    <pre><code>public class Wallet : BaseEntity
+{
+    public Guid         Id        { get; set; }
+    public Guid         UserId    { get; set; }    // unique — one wallet per user
+    public string       Email     { get; set; } = string.Empty;
+    public string       FullName  { get; set; } = string.Empty;
+    public decimal      Balance   { get; set; } = 0;   // decimal, NOT float
+    public string       Currency  { get; set; } = "INR";
+    public WalletStatus Status    { get; set; } = WalletStatus.Active;
+    public string?      FreezeReason { get; set; }
+
+    // THE MOST IMPORTANT FIELD FOR CONCURRENCY:
+    public byte[]       RowVersion { get; set; } = null!;
+    // SQL Server TIMESTAMP — automatically increments on every UPDATE
+    // EF Core includes this in WHERE clause: UPDATE ... WHERE RowVersion = @original
+    // If two writers read the same RowVersion and both try to update,
+    // the second one finds RowVersion has changed → throws DbUpdateConcurrencyException
+}</code></pre>
+    <div class="callout callout-red"><strong>Why decimal, not float?</strong> Float/double use binary floating point. <span class="ic">0.1 + 0.2</span> in float gives <span class="ic">0.30000000000000004</span>. For money, that's a bug. Decimal uses base-10 arithmetic — exact for financial figures. Always use <span class="ic">decimal(18,4)</span> for money columns. This is configured in DbContext as <span class="ic">.HasColumnType("decimal(18,4)")</span>.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title w">📄 IdempotencyKey.cs — Duplicate Prevention Entity</div>
+    <pre><code>public class IdempotencyKey : BaseEntity
+{
+    public string   Key       { get; set; } = string.Empty;  // UNIQUE index in DB
+    public string   Response  { get; set; } = string.Empty;  // JSON-serialised WalletDto
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    // Note: no ExpiresAt in this implementation — keys accumulate over time
+    // Production improvement: add TTL + background cleanup job
+}</code></pre>
+    <p><strong>Why store the full response as JSON?</strong> When a duplicate request arrives, you return exactly the same response as the first call — same balance, same data. This is critical for clients: if a payment fails mid-flight, the client retries with the same key. They always get back "this is what happened" — not a new calculation.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title w">📄 WalletService.cs — TopUp + Deduct Logic (Core)</div>
+    <pre><code>public async Task&lt;Result&lt;WalletDto&gt;&gt; TopUpAsync(Guid userId, TopUpDto dto)
+{
+    // 1. Business rule validation — amount must be positive
+    if (dto.Amount &lt;= 0)
+        return Result&lt;WalletDto&gt;.Failure("Amount must be greater than zero.");
+
+    // 2. IDEMPOTENCY CHECK — first thing after validation
+    var cached = await _idempotency.GetAsync(dto.IdempotencyKey);
+    if (cached is not null)
+        return Result&lt;WalletDto&gt;.Success(
+            JsonSerializer.Deserialize&lt;WalletDto&gt;(cached.Response)!);
+    // If found → return cached response, DO NOT touch the balance again
+
+    // 3. Load wallet
+    var wallet = await _wallets.GetByUserIdAsync(userId);
+    if (wallet is null) return Result&lt;WalletDto&gt;.Failure("Wallet not found.");
+    if (wallet.Status == WalletStatus.Frozen)
+        return Result&lt;WalletDto&gt;.Failure("Wallet is frozen.");
+
+    // 4. Mutate balance — EF tracks this change
+    wallet.Balance  += dto.Amount;
+    wallet.UpdatedAt = DateTime.UtcNow;
+
+    // 5. Build response BEFORE saving (so we cache what we're about to return)
+    var response = MapToDto(wallet);
+
+    // 6. Store idempotency record — same key, serialised response
+    await _idempotency.AddAsync(new IdempotencyKey {
+        Key      = dto.IdempotencyKey,
+        Response = JsonSerializer.Serialize(response)
+    });
+
+    // 7. Single SaveChangesAsync — wallet UPDATE + idempotency INSERT in one transaction
+    await _wallets.SaveChangesAsync();
+    // EF Core wraps both in one SQL transaction automatically
+
+    return Result&lt;WalletDto&gt;.Success(response);
+}
+
+public async Task&lt;Result&lt;WalletDto&gt;&gt; DeductAsync(Guid userId, DeductDto dto)
+{
+    // Same pattern as TopUp, with one additional guard:
+    if (wallet.Balance &lt; dto.Amount)
+        return Result&lt;WalletDto&gt;.Failure("Insufficient balance.");
+    wallet.Balance -= dto.Amount;
+    // ... rest same as TopUp
+}
+
+public async Task&lt;Result&lt;WalletDto&gt;&gt; FreezeAsync(Guid userId, FreezeDto dto)
+{
+    // No idempotency key needed — freeze is idempotent by nature (already frozen = error)
+    if (wallet.Status == WalletStatus.Frozen)
+        return Result&lt;WalletDto&gt;.Failure("Wallet is already frozen.");
+
+    wallet.Status      = WalletStatus.Frozen;
+    wallet.FreezeReason = dto.Reason;
+    await _wallets.SaveChangesAsync();
+
+    // Publish event so Notification sends freeze alert email
+    await _publisher.PublishAsync("wallet.exchange", "wallet.frozen",
+        new WalletFrozenEvent { UserId = userId, Reason = dto.Reason });
+
+    return Result&lt;WalletDto&gt;.Success(MapToDto(wallet));
+}</code></pre>
+    <div class="callout callout-orange"><strong>Race condition between idempotency check and insert:</strong> Two concurrent requests with the same key both pass the "GetAsync = null" check simultaneously. Both try to INSERT into IdempotencyKeys. The second insert fails with unique constraint violation. This bubbles up as an unhandled exception → 500. In production, wrap in try-catch for DbUpdateException and return the cached record on collision. This is the idempotency race condition — a common interview question.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title w">📄 WalletDbContext.cs — Schema Configuration</div>
+    <pre><code>protected override void OnModelCreating(ModelBuilder mb)
+{
+    mb.Entity&lt;Wallet&gt;(e => {
+        // Decimal precision — CRITICAL for money
+        e.Property(w => w.Balance)
+         .HasColumnType("decimal(18,4)")  // 18 digits total, 4 decimal places
+         .IsRequired();
+
+        // RowVersion — enables optimistic concurrency
+        // SQL Server creates a TIMESTAMP column that auto-increments on every row update
+        e.Property(w => w.RowVersion)
+         .IsRowVersion();
+        // EF generates: UPDATE Wallets SET Balance=@b WHERE Id=@id AND RowVersion=@rv
+        // If RowVersion changed (concurrent update) → 0 rows affected → DbUpdateConcurrencyException
+
+        // One wallet per user — enforced at DB level
+        e.HasIndex(w => w.UserId).IsUnique();
+    });
+
+    mb.Entity&lt;IdempotencyKey&gt;(e => {
+        e.HasIndex(i => i.Key).IsUnique();  // prevents duplicate key inserts at DB level
+    });
+}</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="card-title w">📄 WalletController.cs — Authorization Pattern</div>
+    <pre><code>[ApiController]
+[Route("api/wallet")]
+[Authorize]                      // All endpoints need JWT
+public class WalletController : ControllerBase
+{
+    // UserId always from JWT — never from request body/URL
+    private Guid CurrentUserId =&gt;
+        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub")!);
+
+    [HttpPost("topup")]
+    public async Task&lt;IActionResult&gt; TopUp([FromBody] TopUpDto dto)
+    {
+        var result = await _walletService.TopUpAsync(CurrentUserId, dto);
+        return result.IsSuccess ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+
+    // Admin-only operations — [Authorize(Roles = "Admin")]
+    [HttpPost("freeze")]
+    [Authorize(Roles = "Admin")]   // non-admin gets 403 at gateway or here
+    public async Task&lt;IActionResult&gt; Freeze([FromBody] FreezeDto dto) { ... }
+
+    [HttpPost("unfreeze")]
+    [Authorize(Roles = "Admin")]
+    public async Task&lt;IActionResult&gt; Unfreeze() { ... }
+}</code></pre>
+  </div>
+</div>
+
+<!-- W-S4 -->
+<div class="section" id="ws4">
+  <h2 class="w"><span class="num">4</span> Execution Trace — TopUp with Idempotency</h2>
+  <div class="card">
+    <div class="card-title w">Scenario: POST /gateway/wallet/topup → ₹1000, idempotencyKey: "topup-001"</div>
+    <div class="flow-step"><div class="fn w">1</div><div class="ft"><strong>Gateway (5000)</strong> validates JWT, routes to Wallet Service (5003). No role check needed — any authenticated user can top up.</div></div>
+    <div class="flow-step"><div class="fn w">2</div><div class="ft"><strong>WalletController</strong> extracts <span class="ic">CurrentUserId</span> from JWT. No business logic here.</div></div>
+    <div class="flow-step"><div class="fn w">3</div><div class="ft"><strong>WalletService.TopUpAsync()</strong> — validates amount &gt; 0.</div></div>
+    <div class="flow-step"><div class="fn w">4</div><div class="ft"><strong>Idempotency check</strong> — <span class="ic">SELECT * FROM IdempotencyKeys WHERE Key = 'topup-001'</span>. First request: null → proceed. Retry: returns cached WalletDto immediately — balance not touched again.</div></div>
+    <div class="flow-step"><div class="fn w">5</div><div class="ft"><strong>Load wallet</strong> — <span class="ic">SELECT * FROM Wallets WHERE UserId = ?</span>. RowVersion value loaded into EF's change tracker. Check Status ≠ Frozen.</div></div>
+    <div class="flow-step"><div class="fn w">6</div><div class="ft"><strong>Mutate balance</strong> — <span class="ic">wallet.Balance += 1000</span>. EF marks entity as modified. RowVersion will be checked on save.</div></div>
+    <div class="flow-step"><div class="fn w">7</div><div class="ft"><strong>Store idempotency record</strong> — <span class="ic">INSERT INTO IdempotencyKeys (Key, Response)</span>. Response is JSON-serialised WalletDto with new balance.</div></div>
+    <div class="flow-step"><div class="fn w">8</div><div class="ft"><strong>SaveChangesAsync()</strong> — EF emits two SQL statements in ONE transaction: <span class="ic">UPDATE Wallets SET Balance=1000 WHERE Id=? AND RowVersion=@original</span> + <span class="ic">INSERT INTO IdempotencyKeys</span>. If RowVersion changed → exception → 500.</div></div>
+    <div class="flow-step"><div class="fn w">9</div><div class="ft"><strong>200 OK</strong> returned with updated WalletDto.</div></div>
+
+    <h3 style="margin-top:16px">Failure Table</h3>
+    <table>
+      <tr><th>Step</th><th>Failure</th><th>Outcome</th></tr>
+      <tr><td>3</td><td>amount ≤ 0</td><td>400 — validation failure</td></tr>
+      <tr><td>4</td><td>Duplicate idempotency key</td><td>200 — cached response, balance unchanged</td></tr>
+      <tr><td>5</td><td>Wallet frozen</td><td>400 — "Wallet is frozen"</td></tr>
+      <tr><td>8</td><td>Concurrent update (RowVersion mismatch)</td><td>DbUpdateConcurrencyException → 500 → client retries</td></tr>
+      <tr><td>8</td><td>Duplicate idempotency key INSERT race</td><td>DB unique constraint violation → 500 (unhandled gap)</td></tr>
+      <tr><td>8</td><td>DB crash after balance update, before idempotency insert</td><td>Both roll back — atomicity via EF transaction</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- W-S5 -->
+<div class="section" id="ws5">
+  <h2 class="w"><span class="num">5</span> Distributed Systems — Idempotency + Concurrency Deep Dive</h2>
+
+  <div class="card">
+    <div class="card-title w">Optimistic Concurrency with RowVersion</div>
+    <pre><code>// What SQL Server executes under the hood:
+UPDATE Wallets
+SET    Balance = @newBalance, RowVersion = &lt;auto-increment&gt;
+WHERE  Id = @walletId
+AND    RowVersion = @originalVersion   ← THE KEY LINE
+-- If RowVersion changed (concurrent writer already updated), 0 rows affected
+-- EF Core detects 0 rows → throws DbUpdateConcurrencyException
+
+// Two concurrent top-ups for the same wallet:
+Thread A: reads Balance=1000, RowVersion=0x0001
+Thread B: reads Balance=1000, RowVersion=0x0001
+Thread A: writes Balance=1500, RowVersion becomes 0x0002 → SUCCESS
+Thread B: tries to write Balance=1500 WHERE RowVersion=0x0001
+          → 0 rows affected → DbUpdateConcurrencyException → retry
+// Result: correct. Both top-ups applied, not just one.
+// Without RowVersion: both write Balance=1500 → one top-up silently lost (LOST UPDATE bug)</code></pre>
+    <div class="callout callout-red"><strong>Why optimistic, not pessimistic (SELECT FOR UPDATE)?</strong> Pessimistic locking with <span class="ic">BEGIN TRAN + UPDLOCK</span> locks the row for the entire operation — other transactions queue up. Under high load this causes deadlocks and poor throughput. Optimistic concurrency lets all transactions proceed in parallel and only conflicts at commit time. For fintech at scale, optimistic is preferred — conflicts are rare, not the norm.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title w">Idempotency Pattern — Why the Response is Cached as JSON</div>
+    <pre><code>// Network retry scenario:
+// 1. Client sends POST /topup { amount: 1000, key: "topup-001" }
+// 2. Server processes: balance 500 → 1500, stores idempotency record
+// 3. Network drops BEFORE response reaches client
+// 4. Client doesn't know if it worked — retries with same key "topup-001"
+// 5. Server: GetAsync("topup-001") → found! Returns cached { balance: 1500 }
+// 6. Client receives confirmation, sees balance = 1500 ← correct, not 2500
+
+// The cached response is the EXACT response from the first successful execution.
+// This means the client always sees a consistent view regardless of retries.
+
+// Alternative (worse): just return "already processed" without the response.
+// Client doesn't know the new balance — has to call GET /wallet separately.
+// By caching the full response, the retry is transparent to the client.</code></pre>
+  </div>
+</div>
+
+<!-- W-S6 -->
+<div class="section" id="ws6">
+  <h2 class="w"><span class="num">6</span> Security, Performance & Trade-offs</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title w">Security</div>
+      <table>
+        <tr><th>Attack</th><th>Mitigation</th></tr>
+        <tr><td>Double charge (network retry)</td><td>Idempotency key — same key = same result</td></tr>
+        <tr><td>User A deducts User B's balance</td><td>UserId always from JWT, never from body</td></tr>
+        <tr><td>Concurrent balance manipulation</td><td>RowVersion optimistic concurrency</td></tr>
+        <tr><td>Negative balance exploit</td><td>Explicit <span class="ic">Balance &lt; amount</span> check before deduct</td></tr>
+        <tr><td>User freezing own wallet</td><td><span class="ic">[Authorize(Roles="Admin")]</span> on freeze/unfreeze</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title w">Performance Gaps & Improvements</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>IdempotencyKeys grows unbounded</strong> — no TTL or cleanup. Fix: background job to delete keys older than 24h.</li>
+        <li><strong>No caching on GET /wallet</strong> — Redis with short TTL for balance reads would reduce DB load significantly.</li>
+        <li><strong>RowVersion retry logic not implemented</strong> — on DbUpdateConcurrencyException, client gets 500. Should auto-retry 1-2 times internally.</li>
+        <li><strong>Horizontal scaling works</strong> — no local state, all state in SQL. Multiple instances compete via RowVersion.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- W-S7 Interview -->
+<div class="section" id="ws7">
+  <h2 class="w"><span class="num">7</span> Interview Q&A — Wallet</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: What is optimistic concurrency and why use it over database locks? <span>▼</span></div>
+    <div class="qa-a">Optimistic concurrency assumes conflicts are rare and lets all transactions proceed. At commit time, EF Core checks if the RowVersion has changed since the row was loaded. If it has, another transaction modified it — EF throws DbUpdateConcurrencyException and the caller retries. No locks held during processing means no deadlocks, better throughput.<br><br>Pessimistic locking (SELECT FOR UPDATE) locks the row immediately on read. Every concurrent transaction queues behind it. Under high load, this causes severe contention. For a wallet service that might process thousands of concurrent top-ups, optimistic concurrency is the right choice — write conflicts are rare in practice.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: How does idempotency prevent double charging? Walk through a network failure scenario. <span>▼</span></div>
+    <div class="qa-a">Client sends POST /topup { amount: 1000, key: "tx-uuid-001" }. Server processes successfully — balance goes 500→1500, idempotency record stored. But the network drops before the response reaches the client. Client doesn't know if it worked, so it retries with the same key.<br><br>Server receives the retry. First thing after validation: query IdempotencyKeys WHERE Key = "tx-uuid-001". Found — returns the cached WalletDto showing balance = 1500. Balance is NOT touched again. Client sees balance = 1500, which is correct. Without idempotency, the retry would add another 1000 and show 2500 — a double charge.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: Is there a race condition in your idempotency implementation? How would you fix it? <span>▼</span></div>
+    <div class="qa-a">Yes. Two concurrent requests with the same idempotency key both call GetAsync — both get null, both pass the check, both proceed to insert into IdempotencyKeys. The second INSERT hits the unique constraint and throws DbUpdateException, which surfaces as a 500.<br><br>Fix: Wrap the entire flow in a try-catch for DbUpdateException. In the catch block, query GetAsync again — now it will find the record (the first request committed it). Return the cached response. This is the "check-then-act with retry" pattern, using the DB constraint as the final arbiter.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q4: Why is the WalletFrozenEvent published AFTER SaveChangesAsync, not before? <span>▼</span></div>
+    <div class="qa-a">If you publish to RabbitMQ first and then the DB write fails, you've sent a notification saying "wallet frozen" but the wallet is still Active in the DB. The user gets an email saying their wallet is frozen but it isn't — inconsistent state.<br><br>Publishing after the DB commit means the event only fires when the state change is durable. If the publish fails after a successful save, the user's wallet is frozen but they don't get the email — which is far less harmful than the reverse. The Outbox Pattern would solve even this gap.</div>
+  </div>
+</div>
+
+</div><!-- end wallet pane -->
+
+<!-- ═══════════════ LEDGER PANE ═══════════════ -->
+<div id="ledger-pane" class="pane">
+
+<div class="hero ledger">
+  <h1>Ledger Service</h1>
+  <p>Immutable financial history — double-entry accounting — the system of record</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">3</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">DB Tables</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events Consumed</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">Events Published</div></div>
+    <div class="stat"><div class="val">Double</div><div class="lbl">Entry Rule</div></div>
+    <div class="stat"><div class="val">Append</div><div class="lbl">Only Ledger</div></div>
+  </div>
+</div>
+
+<!-- L-S1 -->
+<div class="section" id="ls1">
+  <h2 class="l"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="card-title l">Exact Responsibility</div>
+    <p>If the Wallet Service is the bank account display (current balance), the Ledger Service is the <strong>bank statement</strong> (complete immutable history of every transaction). Every money movement goes through Ledger. It creates the permanent financial record, enforces double-entry accounting, and fans out events to Rewards, Receipts, and Notification.</p>
+    <p>In accounting terms: the Wallet is a <em>running total</em>. The Ledger is the <em>journal</em>. You can always reconstruct the Wallet balance by summing all Ledger entries. If they ever disagree — the Ledger is the source of truth.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title l">✅ Invariants That Can Never Break</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>Every transaction has exactly 2 LedgerEntries</strong> — one Debit, one Credit</li>
+        <li><strong>SUM(Debits) == SUM(Credits)</strong> for every TransactionId</li>
+        <li><strong>LedgerEntries are never updated or deleted</strong> — append-only</li>
+        <li><strong>Same idempotency key = same transaction returned</strong></li>
+        <li><strong>Transaction status: Pending → Completed (or Failed)</strong> — not reversed by default</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title l">💥 What Breaks If Ledger Goes Down</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>No new transactions</strong> — the entire payment flow stops</li>
+        <li><strong>Rewards not updated</strong> — points not awarded until Ledger recovers</li>
+        <li><strong>Receipts not generated</strong> — transaction records lost if not retried</li>
+        <li><strong>Wallet balance still works</strong> — Wallet is independent; users can top-up</li>
+        <li><strong>Auth + UserProfile unaffected</strong> — identity layer independent</li>
+      </ul>
+    </div>
+  </div>
+  <table>
+    <tr><th>Direction</th><th>Partner</th><th>Method</th><th>What</th></tr>
+    <tr><td><span class="badge badge-blue">IN sync</span></td><td>Client via Gateway</td><td>HTTP POST</td><td>Initiate transaction request</td></tr>
+    <tr><td><span class="badge badge-green">OUT async</span></td><td>Rewards, Receipts, Notification</td><td>RabbitMQ</td><td>TransactionCompletedEvent (fan-out to 3 consumers)</td></tr>
+    <tr><td><span class="badge badge-red">OUT async</span></td><td>Notification</td><td>RabbitMQ</td><td>TransactionFailedEvent</td></tr>
+  </table>
+  <div class="callout callout-purple"><strong>Ledger is the hub of the financial fan-out.</strong> One TransactionCompletedEvent triggers Rewards (award points), Receipts (store PDF receipt), and Notification (send email) — all independently, all in parallel. This is the fan-out pattern: one event, many independent consumers.</div>
+</div>
+
+<!-- L-S2 -->
+<div class="section" id="ls2">
+  <h2 class="l"><span class="num">2</span> Clean Architecture</h2>
+  <pre><code>LedgerService.Core/
+  Entities/
+    Transaction.cs       ← Aggregate root: Status, Type, IdempotencyKey
+    LedgerEntry.cs       ← Append-only entries: Debit | Credit, Amount
+  Enums/
+    TransactionStatus.cs ← Pending | Completed | Failed | Reversed
+    TransactionType.cs   ← TopUp | Transfer | Payment | Reversal
+    EntryType.cs         ← Debit | Credit
+  Interfaces/
+    ITransactionService.cs
+    ITransactionRepository.cs
+    ILedgerEntryRepository.cs
+  Services/
+    TransactionService.cs  ← ALL core business logic: double-entry, idempotency
+
+LedgerService.Infrastructure/
+  Data/
+    LedgerDbContext.cs   ← No deletions, no update on LedgerEntry, cascade config
+  Repositories/
+    TransactionRepository.cs
+    LedgerEntryRepository.cs
+
+LedgerService.API/
+  Controllers/
+    TransactionController.cs
+  Program.cs</code></pre>
+  <div class="callout callout-purple"><strong>Why separate ITransactionRepository and ILedgerEntryRepository?</strong> Transactions are mutable — their Status changes (Pending → Completed). LedgerEntries are immutable — they are only ever inserted, never updated or deleted. Two different behavioural contracts → two different interfaces. If you put both in one repository, nothing stops a developer from accidentally calling an "Update" on a LedgerEntry.</div>
+</div>
+
+<!-- L-S3 -->
+<div class="section" id="ls3">
+  <h2 class="l"><span class="num">3</span> Deep File-by-File Review</h2>
+
+  <div class="card">
+    <div class="card-title l">📄 Transaction.cs + LedgerEntry.cs — The Two Entities</div>
+    <pre><code>public class Transaction : BaseEntity
+{
+    public Guid              Id               { get; set; }
+    public Guid              SenderWalletId   { get; set; }
+    public Guid              ReceiverWalletId { get; set; }
+    public Guid              SenderUserId     { get; set; }
+    public Guid              ReceiverUserId   { get; set; }
+    public decimal           Amount           { get; set; }   // decimal — not float
+    public string            Currency         { get; set; } = "INR";
+    public TransactionType   Type             { get; set; }   // TopUp|Transfer|Payment
+    public TransactionStatus Status           { get; set; } = TransactionStatus.Pending;
+    public string?           FailureReason    { get; set; }
+    public string            IdempotencyKey   { get; set; } = string.Empty; // UNIQUE index
+
+    // Navigation — one transaction owns many entries (always exactly 2)
+    public ICollection&lt;LedgerEntry&gt; LedgerEntries { get; set; } = new List&lt;LedgerEntry&gt;();
+}
+
+public class LedgerEntry : BaseEntity
+{
+    public Guid      Id            { get; set; }
+    public Guid      TransactionId { get; set; }   // FK to Transaction
+    public Guid      WalletId      { get; set; }   // which wallet this entry affects
+    public Guid      UserId        { get; set; }
+    public EntryType EntryType     { get; set; }   // Debit | Credit
+    public decimal   Amount        { get; set; }   // always positive in this impl
+    public string    Currency      { get; set; } = "INR";
+    public string    Description   { get; set; } = string.Empty;
+    // NO UpdatedAt — entries are never modified after creation
+    // NO IsDeleted — entries are never deleted
+}</code></pre>
+    <div class="callout callout-purple"><strong>Why no RowVersion on LedgerEntry?</strong> LedgerEntries are append-only — they are never updated after INSERT. RowVersion is only needed when concurrent updates to the same row are possible. Since we never update ledger entries, there's no concurrency concern on them. Only the Transaction row (Status change) could theoretically need it, but since that update happens within the same service call that creates the entries, there's no concurrent writer.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title l">📄 TransactionService.cs — The Core Double-Entry Logic</div>
+    <pre><code>public async Task&lt;Result&lt;TransactionDto&gt;&gt; InitiateTransactionAsync(InitiateTransactionDto dto)
+{
+    // 1. Validations
+    if (dto.Amount &lt;= 0)
+        return Result&lt;TransactionDto&gt;.Failure("Amount must be greater than zero.");
+    if (dto.SenderWalletId == dto.ReceiverWalletId)
+        return Result&lt;TransactionDto&gt;.Failure("Sender and receiver cannot be the same.");
+
+    // 2. IDEMPOTENCY CHECK — returns cached if already processed
+    var existing = await _transactions.GetByIdempotencyKeyAsync(dto.IdempotencyKey);
+    if (existing is not null)
+        return Result&lt;TransactionDto&gt;.Success(MapToDto(existing));
+
+    // 3. Parse transaction type enum from string input
+    if (!Enum.TryParse&lt;TransactionType&gt;(dto.Type, out var txType))
+        return Result&lt;TransactionDto&gt;.Failure($"Invalid transaction type: {dto.Type}");
+
+    // 4. Create Transaction (Status = Pending)
+    var transaction = new Transaction {
+        Id               = Guid.NewGuid(),
+        SenderWalletId   = dto.SenderWalletId,
+        ReceiverWalletId = dto.ReceiverWalletId,
+        SenderUserId     = dto.SenderUserId,
+        ReceiverUserId   = dto.ReceiverUserId,
+        Amount           = dto.Amount,
+        Currency         = dto.Currency ?? "INR",
+        Type             = txType,
+        Status           = TransactionStatus.Pending,
+        IdempotencyKey   = dto.IdempotencyKey
+    };
+
+    // 5. DOUBLE-ENTRY: Create exactly two LedgerEntries
+    var entries = new List&lt;LedgerEntry&gt; {
+        new LedgerEntry {
+            TransactionId = transaction.Id,
+            WalletId      = dto.SenderWalletId,
+            UserId        = dto.SenderUserId,
+            EntryType     = EntryType.Debit,    // money LEAVING sender
+            Amount        = dto.Amount,
+            Description   = $"Transfer debit to {dto.ReceiverWalletId}"
+        },
+        new LedgerEntry {
+            TransactionId = transaction.Id,
+            WalletId      = dto.ReceiverWalletId,
+            UserId        = dto.ReceiverUserId,
+            EntryType     = EntryType.Credit,   // money ENTERING receiver
+            Amount        = dto.Amount,
+            Description   = $"Transfer credit from {dto.SenderWalletId}"
+        }
+    };
+
+    // 6. Mark transaction complete — status change happens in same save
+    transaction.Status = TransactionStatus.Completed;
+    transaction.LedgerEntries = entries;
+
+    // 7. ONE atomic save — Transaction INSERT + 2 LedgerEntry INSERTs in one SQL transaction
+    await _transactions.AddAsync(transaction);
+    await _transactions.SaveChangesAsync();
+    // If anything fails here — all three inserts roll back atomically
+
+    // 8. Fan-out event — after commit only
+    await _publisher.PublishAsync("transaction.exchange", "transaction.completed",
+        new TransactionCompletedEvent {
+            TransactionId    = transaction.Id,
+            UserId           = dto.SenderUserId,
+            Amount           = dto.Amount,
+            SenderWalletId   = dto.SenderWalletId,
+            ReceiverWalletId = dto.ReceiverWalletId
+        });
+    // Consumers: Rewards (points), Receipts (PDF), Notification (email)
+
+    return Result&lt;TransactionDto&gt;.Success(MapToDto(transaction));
+}</code></pre>
+    <div class="callout callout-red"><strong>The atomicity guarantee:</strong> Transaction INSERT + both LedgerEntry INSERTs happen in ONE <span class="ic">SaveChangesAsync()</span> call. EF Core wraps all pending changes in a single SQL transaction. Either all three rows are committed together, or none are. You can never have a Transaction record with no LedgerEntries, or LedgerEntries with no parent Transaction. This is the cornerstone of financial data integrity.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title l">📄 LedgerDbContext.cs — Enforcing Immutability in Schema</div>
+    <pre><code>protected override void OnModelCreating(ModelBuilder mb)
+{
+    // Transactions — idempotency key must be unique
+    mb.Entity&lt;Transaction&gt;(e => {
+        e.HasIndex(t =&gt; t.IdempotencyKey).IsUnique();
+        e.Property(t =&gt; t.Amount).HasColumnType("decimal(18,2)");
+        e.Property(t =&gt; t.Status).HasConversion&lt;string&gt;();
+        e.Property(t =&gt; t.Type).HasConversion&lt;string&gt;();
+    });
+
+    // LedgerEntries — restrict delete to prevent orphan entries
+    mb.Entity&lt;LedgerEntry&gt;(e => {
+        e.HasOne&lt;Transaction&gt;()
+         .WithMany(t =&gt; t.LedgerEntries)
+         .HasForeignKey(le =&gt; le.TransactionId)
+         .OnDelete(DeleteBehavior.Restrict);  // ← CRITICAL
+         // Restrict = cannot delete a Transaction if LedgerEntries reference it
+         // This enforces immutability at the DB level — no accidental deletes
+        e.Property(le =&gt; le.Amount).HasColumnType("decimal(18,2)");
+        e.Property(le =&gt; le.EntryType).HasConversion&lt;string&gt;();
+    });
+}</code></pre>
+    <p><strong>Why DeleteBehavior.Restrict on LedgerEntry?</strong> If someone tried to delete a Transaction (e.g., by mistake), the database would reject it because LedgerEntries still reference it. This enforces immutability at the database level — not just application level. Even if a developer bypasses the application layer and runs a raw DELETE on Transactions, the DB constraint protects the ledger.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title l">📄 TransactionController.cs — Three Endpoints</div>
+    <pre><code>[ApiController]
+[Route("api/transactions")]
+[Authorize]
+public class TransactionController : ControllerBase
+{
+    // POST — initiate a new transaction (Ledger's main operation)
+    [HttpPost]
+    public async Task&lt;IActionResult&gt; Initiate([FromBody] InitiateTransactionDto dto)
+    {
+        var result = await _txService.InitiateTransactionAsync(dto);
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data)
+            : BadRequest(new { error = result.Error });
+    }
+
+    // GET by ID — retrieve a specific transaction (e.g., for receipts)
+    [HttpGet("{id:guid}")]
+    public async Task&lt;IActionResult&gt; GetById(Guid id)
+    {
+        var result = await _txService.GetByIdAsync(id);
+        return result.IsSuccess ? Ok(result.Data) : NotFound(new { error = result.Error });
+    }
+
+    // GET my transactions — full history for current user
+    [HttpGet("mine")]
+    public async Task&lt;IActionResult&gt; GetMine()
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _txService.GetByUserIdAsync(userId);
+        return Ok(result.Data ?? new List&lt;TransactionDto&gt;());
+    }
+}</code></pre>
+  </div>
+</div>
+
+<!-- L-S4 -->
+<div class="section" id="ls4">
+  <h2 class="l"><span class="num">4</span> Double-Entry Accounting — The Core Invariant</h2>
+
+  <div class="card">
+    <div class="card-title l">Real Example: ₹500 from User A → User B</div>
+    <table class="lt">
+      <thead><tr><th>EntryId</th><th>TransactionId</th><th>WalletId</th><th>Type</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr><td>entry-001</td><td>tx-abc</td><td>UserA_Wallet</td><td class="dr">DEBIT</td><td style="color:#b91c1c;font-weight:700">500.00</td></tr>
+        <tr><td>entry-002</td><td>tx-abc</td><td>UserB_Wallet</td><td class="cr">CREDIT</td><td style="color:#15803d;font-weight:700">500.00</td></tr>
+        <tr><td colspan="4" style="color:#6b7280;font-style:italic;padding:8px 12px">Sum check for tx-abc (Debit - Credit):</td><td style="color:#15803d;font-weight:700;padding:8px 12px">0.00 ✓</td></tr>
+      </tbody>
+    </table>
+    <pre><code>// Balance reconciliation — rebuild wallet balance from scratch using only ledger entries
+// This is the audit-grade calculation — always matches wallet balance if data is correct
+public async Task&lt;decimal&gt; GetNetBalanceAsync(Guid walletId)
+    =&gt; await _db.LedgerEntries
+        .Where(e =&gt; e.WalletId == walletId)
+        .SumAsync(e =&gt; e.EntryType == EntryType.Credit
+            ? e.Amount      // credits increase balance
+            : -e.Amount);   // debits decrease balance
+
+// Admin integrity check — finds any transaction where double-entry rule is violated
+// Any result = financial data corruption — this should NEVER return rows
+var brokenTxs = await _db.LedgerEntries
+    .GroupBy(e =&gt; e.TransactionId)
+    .Where(g =&gt; g.Sum(e =&gt; e.EntryType == EntryType.Credit
+                     ? e.Amount : -e.Amount) != 0)
+    .Select(g =&gt; g.Key)
+    .ToListAsync();
+// If brokenTxs.Count &gt; 0 → money was created or destroyed → critical bug</code></pre>
+    <div class="callout callout-purple"><strong>The interview insight:</strong> "Why separate Wallet (balance) and Ledger (entries) if both store financial data?" — The Wallet is a performance optimisation. Reading balance = one row SELECT. Without the Wallet, getting the current balance would require summing all ledger entries — expensive for users with 10,000+ transactions. The Ledger is the source of truth; the Wallet balance is a derived cache. If they disagree, the Ledger wins and the Wallet is corrected.</div>
+  </div>
+</div>
+
+<!-- L-S5 -->
+<div class="section" id="ls5">
+  <h2 class="l"><span class="num">5</span> Execution Trace — Initiate Transaction</h2>
+  <div class="card">
+    <div class="card-title l">Scenario: POST /gateway/transactions → Transfer ₹500</div>
+    <div class="flow-step"><div class="fn l">1</div><div class="ft"><strong>Gateway</strong> validates JWT, routes to Ledger (5004). <span class="ic">SenderUserId</span> compared to JWT claim — mismatched userId would be caught by business validation.</div></div>
+    <div class="flow-step"><div class="fn l">2</div><div class="ft"><strong>Validation</strong> — amount &gt; 0, sender ≠ receiver wallet.</div></div>
+    <div class="flow-step"><div class="fn l">3</div><div class="ft"><strong>Idempotency check</strong> — <span class="ic">SELECT * FROM Transactions WHERE IdempotencyKey = ?</span>. If found → return existing TransactionDto immediately.</div></div>
+    <div class="flow-step"><div class="fn l">4</div><div class="ft"><strong>Create Transaction entity</strong> — Status = Pending. Not saved yet — just in EF's memory.</div></div>
+    <div class="flow-step"><div class="fn l">5</div><div class="ft"><strong>Create 2 LedgerEntries</strong> — Debit for sender, Credit for receiver. Attached to Transaction via navigation property.</div></div>
+    <div class="flow-step"><div class="fn l">6</div><div class="ft"><strong>Set Status = Completed</strong> — before save, not after. The completed status is part of the atomic commit.</div></div>
+    <div class="flow-step"><div class="fn l">7</div><div class="ft"><strong>Single SaveChangesAsync()</strong> — EF emits 3 INSERTs in one transaction: Transaction row + 2 LedgerEntry rows. Atomically. Idempotency key unique index also prevents duplicate race.</div></div>
+    <div class="flow-step"><div class="fn l">8</div><div class="ft"><strong>Publish TransactionCompletedEvent</strong> — routed to 3 queues simultaneously: Rewards (award points), Receipts (generate PDF), Notification (send email).</div></div>
+    <div class="flow-step"><div class="fn l">9</div><div class="ft"><strong>201 Created</strong> with full TransactionDto including LedgerEntry details.</div></div>
+
+    <h3 style="margin-top:16px">Failure Table</h3>
+    <table>
+      <tr><th>Step</th><th>Failure</th><th>Outcome</th></tr>
+      <tr><td>3</td><td>Duplicate idempotency key</td><td>200 — returns existing transaction, no new entries created</td></tr>
+      <tr><td>7</td><td>DB crash mid-transaction</td><td>All 3 rows roll back — no partial ledger state possible</td></tr>
+      <tr><td>7</td><td>Unique constraint on IdempotencyKey (race)</td><td>500 → retry finds existing record</td></tr>
+      <tr><td>8</td><td>RabbitMQ down after DB commit</td><td>Transaction recorded, Rewards/Receipts/Notification never fire — Outbox pattern needed</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- L-S6 -->
+<div class="section" id="ls6">
+  <h2 class="l"><span class="num">6</span> Edge Cases + Distributed Systems</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title l">Partial Failure: DB succeeds, Event publish fails</div>
+      <p>Transaction + LedgerEntries committed to DB. Then <span class="ic">_publisher.PublishAsync()</span> throws.</p>
+      <p><strong>Result:</strong> Transaction exists in LedgerDb as Completed. Rewards never get points. Receipt never generated. User gets no email.</p>
+      <p><strong>Fix:</strong> Outbox Pattern — write event to <span class="ic">OutboxEvents</span> table in same DB transaction. Background job publishes to RabbitMQ. Delivery guaranteed even if RabbitMQ was down at commit time.</p>
+    </div>
+    <div class="card">
+      <div class="card-title l">Why Ledger Doesn't Update Wallet Balance</div>
+      <p>Ledger records the <em>history</em> of what happened. Wallet stores the <em>current state</em>. They are separate concerns owned by separate services with separate databases.</p>
+      <p>In your architecture, Wallet balance is updated by the Wallet Service when top-up/deduct is called. The Ledger is called separately to record the permanent history. They're not automatically synchronised — which means they can theoretically diverge if one fails. The Outbox pattern + reconciliation jobs solve this in production.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title l">The Wallet vs Ledger Split — Why It Matters in Interviews</div>
+    <table>
+      <tr><th></th><th>Wallet Service</th><th>Ledger Service</th></tr>
+      <tr><td>What it stores</td><td>Current balance (one row per user)</td><td>Full history (many rows per user)</td></tr>
+      <tr><td>Read pattern</td><td>Single row lookup — O(1)</td><td>Range queries by date/user</td></tr>
+      <tr><td>Mutability</td><td>Balance updates on every operation</td><td>Append-only — never updated</td></tr>
+      <tr><td>Concurrency</td><td>RowVersion on balance update</td><td>No concurrency concern (insert-only)</td></tr>
+      <tr><td>Source of truth</td><td>For "what is balance NOW"</td><td>For "what happened and why"</td></tr>
+      <tr><td>Failure impact</td><td>Current balance inaccessible</td><td>History inaccessible, new tx blocked</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- L-S7 Interview -->
+<div class="section" id="ls7">
+  <h2 class="l"><span class="num">7</span> Interview Q&A — Ledger</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Explain double-entry accounting and why it's used in fintech systems. <span>▼</span></div>
+    <div class="qa-a">Double-entry accounting means every financial transaction creates exactly two ledger entries — one Debit and one Credit — that always sum to zero. ₹500 from User A to User B creates: Debit ₹500 on UserA's wallet (money leaving) + Credit ₹500 on UserB's wallet (money arriving). Sum = 0.<br><br>Why fintech uses it: (1) Auditability — you can reconstruct any account balance by summing all its entries. (2) Error detection — if the sum of any transaction's entries is not zero, money was created or destroyed — that's always a bug. (3) Regulatory compliance — banks and payment processors are legally required to maintain immutable transaction logs. (4) Reconciliation — if your wallet balance disagrees with ledger sum, you have a data integrity problem.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: How does the Ledger ensure atomicity when creating a Transaction + 2 LedgerEntries? <span>▼</span></div>
+    <div class="qa-a">EF Core's change tracker tracks all three objects — the Transaction entity and two LedgerEntry entities. When SaveChangesAsync() is called, EF Core emits all three INSERT statements within a single SQL transaction (it wraps them in BEGIN TRAN / COMMIT automatically). If any INSERT fails, the entire transaction rolls back. You can never end up with a Transaction record and no entries, or entries with no parent Transaction. This atomicity is the cornerstone of the double-entry invariant — it can only be violated if someone manually runs SQL that bypasses EF Core.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: Why are LedgerEntries marked with DeleteBehavior.Restrict? <span>▼</span></div>
+    <div class="qa-a">Restrict means: you cannot delete a Transaction if LedgerEntries reference it. This enforces immutability at the database level, not just the application level. Even if a developer writes raw SQL to delete a Transaction, the FK constraint blocks it because the LedgerEntries still point to it. This is defense in depth — application code says "don't delete", database says "you literally can't delete even if you try." Without this, a well-intentioned "cleanup script" could silently delete financial history.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q4: Why separate Wallet and Ledger into two services instead of one? <span>▼</span></div>
+    <div class="qa-a">They have fundamentally different access patterns and responsibilities. Wallet: one row per user, read for every balance check, updated on every transaction — optimised for fast single-row lookups with concurrency control. Ledger: thousands of rows per user, append-only inserts, queried for history and audit — optimised for immutable time-series data.<br><br>Separation also means independent failure modes. If the Ledger service is slow, wallet balance reads are unaffected. If Wallet is down, historical queries still work. In a monolith, a slow historical query could starve balance reads. Microservice separation provides fault isolation.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q5: What happens if the TransactionCompletedEvent publish fails after the DB commits? <span>▼</span></div>
+    <div class="qa-a">The Transaction is durably committed to LedgerDb — the financial record exists. But Rewards never awards points, Receipts never generates the PDF, and Notification never sends the email. The system is in a state of partial completion — financially correct but operationally incomplete.<br><br>The production fix is the Outbox Pattern: instead of calling PublishAsync directly, write the event payload to an OutboxEvents table within the same SaveChangesAsync call. A separate background HostedService polls the outbox table every few seconds and publishes pending events to RabbitMQ, marking them as published. Even if RabbitMQ was down for an hour, events accumulate in the outbox and are delivered when it recovers.</div>
+  </div>
+</div>
+
+<!-- L-S8 -->
+<div class="section" id="ls8">
+  <h2 class="l"><span class="num">8</span> 30-Second + 2-Minute Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="card-title l">⚡ 30-Second Answer</div>
+    <p>Ledger Service is the permanent financial record of the platform. It enforces double-entry accounting — every transaction creates exactly two LedgerEntries (Debit + Credit) that sum to zero, and they're created atomically in a single EF Core SaveChangesAsync. Entries are append-only — never updated, never deleted, enforced by a DeleteBehavior.Restrict FK constraint. Idempotency prevents duplicate transactions. After a successful commit, a TransactionCompletedEvent fans out to Rewards, Receipts, and Notification in parallel.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--l-accent)">
+    <div class="card-title l">🎯 2-Minute Deep Dive</div>
+    <p>Ledger and Wallet serve different purposes. Wallet stores the current balance — one row per user, optimised for fast reads and concurrent writes using RowVersion optimistic concurrency. Ledger stores the complete immutable history — every Debit and Credit since account creation. You can reconstruct any wallet balance by summing all its ledger entries. If Wallet balance and Ledger sum ever disagree, the Ledger is the source of truth.</p>
+    <p>The double-entry invariant is enforced in code: for every transaction, exactly two LedgerEntry rows are created — one Debit for the sender, one Credit for the receiver. Both are added to the Transaction's navigation property and committed in a single SaveChangesAsync — one SQL transaction covering three INSERT statements. Partial state is impossible at the database level.</p>
+    <p>Idempotency uses a unique index on the IdempotencyKey column in Transactions — the same key always returns the same transaction record. The TransactionCompletedEvent then fans out to three independent consumers: Rewards awards loyalty points, Receipts generates the PDF record, and Notification sends the confirmation email.</p>
+    <p>The main production gap I'm aware of is the Outbox Pattern. Currently, if the RabbitMQ publish fails after the DB commit, the downstream services never fire. The fix is to write the event to an OutboxEvents table in the same transaction, with a background HostedService guaranteeing delivery.</p>
+  </div>
+</div>
+
+</div><!-- end ledger pane -->
+
+<script>
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.tab.'+tab).classList.add('active');
+  document.getElementById(tab+'-pane').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggle(el){
+  const a=el.nextElementSibling;
+  a.classList.toggle('open');
+  el.querySelector('span').textContent=a.classList.contains('open')?'▲':'▼';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Angular Interview Prep: Basics to Advanced | Q&A with Code Samples</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f8fafc;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #0f172a;
+            line-height: 1.5;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* header & nav */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #dd0031, #c3002f);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .header p {
+            color: #334155;
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .topic-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+        .topic-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            color: #1e293b;
+        }
+        .topic-btn.active {
+            background: #dd0031;
+            border-color: #dd0031;
+            color: white;
+            box-shadow: 0 4px 10px rgba(221, 0, 49, 0.2);
+        }
+        .topic-btn:hover:not(.active) {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        /* sections */
+        .topic-section {
+            display: none;
+            animation: fade 0.25s ease;
+        }
+        .topic-section.active-section {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .qa-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.75rem;
+        }
+        .qa-card {
+            background: white;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2ff;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .qa-card:hover {
+            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+        }
+        .question {
+            background: #fef9f9;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #ffe4e4;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .question h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #b91c1c;
+            letter-spacing: -0.2px;
+            margin: 0;
+        }
+        .badge {
+            background: #dd0031;
+            color: white;
+            border-radius: 30px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .answer {
+            padding: 1.5rem;
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+        }
+        .answer p {
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+        .code-block {
+            background: #0f172a;
+            border-radius: 14px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0 0.5rem;
+        }
+        .code-block pre {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.5;
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .code-block code {
+            font-family: inherit;
+        }
+        hr {
+            margin: 0.5rem 0 1rem;
+            border: 0;
+            height: 1px;
+            background: #e2e8f0;
+        }
+        .footnote {
+            text-align: center;
+            margin-top: 3rem;
+            font-size: 0.85rem;
+            color: #475569;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 2rem;
+        }
+        @media (max-width: 640px) {
+            .question h3 { font-size: 1rem; }
+            .answer { padding: 1rem; }
+            .code-block pre { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚡ Angular Mastery Interview Prep</h1>
+        <p>60 essential questions — Basics · Intermediate · Advanced — with real code examples</p>
+    </div>
+    <div class="topic-nav">
+        <button class="topic-btn active" data-topic="basics">📘 Basics (20 Q&A)</button>
+        <button class="topic-btn" data-topic="intermediate">🚀 Intermediate (20 Q&A)</button>
+        <button class="topic-btn" data-topic="advanced">🧠 Advanced (20 Q&A)</button>
+    </div>
+
+    <!-- BASICS SECTION (20 questions) -->
+    <div id="basics-section" class="topic-section active-section">
+        <div class="qa-grid" id="basics-grid"></div>
+    </div>
+
+    <!-- INTERMEDIATE SECTION -->
+    <div id="intermediate-section" class="topic-section">
+        <div class="qa-grid" id="intermediate-grid"></div>
+    </div>
+
+    <!-- ADVANCED SECTION -->
+    <div id="advanced-section" class="topic-section">
+        <div class="qa-grid" id="advanced-grid"></div>
+    </div>
+    <div class="footnote">
+        💡 Each answer includes practical TypeScript / Angular snippets — ready to adapt in real projects.
+    </div>
+</div>
+
+<script>
+    // ---------- BASICS (20 questions) ----------
+    const basicsData = [
+        { q: "1. What is Angular? How is it different from AngularJS?", a: "Angular is a TypeScript-based, component-driven front-end framework developed by Google. Unlike AngularJS (v1.x) which used JavaScript and controllers/scope, Angular uses components, a hierarchical DI system, and offers better performance, CLI tooling, and reactive patterns." },
+        { q: "2. Explain Angular architecture core building blocks.", a: "Core blocks: Modules (NgModule) — containers for components, directives, pipes; Components — views + logic; Templates — HTML with bindings; Directives — extend HTML; Services — reusable business logic; Dependency Injection — provides services; and Router — navigation." },
+        { q: "3. What are Angular components? Show a basic component.", a: "Components control a patch of screen. Example:", code: `import { Component } from '@angular/core';\n\n@Component({\n  selector: 'app-greet',\n  template: '<h2>Hello, {{name}}!</h2>',\n  styles: ['h2 { color: #dd0031; }']\n})\nexport class GreetComponent {\n  name = 'Angular Developer';\n}` },
+        { q: "4. Explain data binding types with examples.", a: "Interpolation: {{ value }}, Property binding: [property]='expr', Event binding: (event)='handler', Two-way binding: [(ngModel)]='property'.", code: `<input [(ngModel)]="username" placeholder="Enter name">\n<p>Hello {{username}}!</p>\n<button (click)="reset()">Reset</button>\n<img [src]="imageUrl">` },
+        { q: "5. What is *ngFor and *ngIf? Provide snippet.", a: "*ngFor loops over collections; *ngIf conditionally renders elements.", code: `<ul>\n  <li *ngFor="let user of users; let i = index">{{i+1}}. {{user.name}}</li>\n</ul>\n<div *ngIf="isAdmin; else userBlock">Admin Panel</div>\n<ng-template #userBlock>User Area</ng-template>` },
+        { q: "6. What are directives? Name types.", a: "Directives modify DOM structure/behavior. Types: Components (directive with template), Structural (*ngIf, *ngFor), Attribute (ngClass, ngStyle). Example custom attribute directive:" , code: `import { Directive, ElementRef } from '@angular/core';\n\n@Directive({\n  selector: '[appHighlight]'\n})\nexport class HighlightDirective {\n  constructor(el: ElementRef) { el.nativeElement.style.backgroundColor = 'yellow'; }\n}` },
+        { q: "7. What is Dependency Injection (DI) in Angular?", a: "DI is a design pattern where Angular provides dependencies (services) to components/classes instead of creating them manually. It promotes reusability and testability. Services are registered via `providedIn: 'root'`." },
+        { q: "8. How to create and use a service? Give example.", a: "Generate service via CLI: `ng g service data`. Provide in root and inject via constructor.", code: `// data.service.ts\nimport { Injectable } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class DataService {\n  getMessage() { return 'Data from service'; }\n}\n\n// component\nconstructor(private dataService: DataService) {\n  console.log(this.dataService.getMessage());\n}` },
+        { q: "9. What are Angular pipes? Demonstrate async and custom pipe.", a: "Pipes transform data in templates. Built-in: date, currency, async. Example async pipe with Observable, and custom pipe to reverse string.", code: `<p>Today: {{ today | date:'fullDate' }}</p>\n<p>Observable value: {{ stream$ | async }}</p>\n\n// custom pipe\n@Pipe({ name: 'reverse' })\nexport class ReversePipe implements PipeTransform {\n  transform(value: string): string { return value.split('').reverse().join(''); }\n}` },
+        { q: "10. What is lifecycle hooks? Name important ones.", a: "Lifecycle hooks are methods that Angular calls at specific moments: ngOnInit, ngOnChanges, ngDoCheck, ngAfterViewInit, ngOnDestroy. Example:", code: `export class LifecycleDemo implements OnInit, OnDestroy {\n  ngOnInit() { console.log('init'); }\n  ngOnDestroy() { console.log('cleanup'); }\n}` },
+        { q: "11. Difference between constructor and ngOnInit.", a: "Constructor is TypeScript feature, runs first for DI injection. ngOnInit is Angular lifecycle hook, runs after first ngOnChanges, used for initialization logic (fetch data, setup subscriptions)." },
+        { q: "12. What is a module (NgModule) ? Show basic.", a: "NgModule groups components, directives, pipes and providers. Every Angular app has at least root module (AppModule).", code: `@NgModule({\n  declarations: [AppComponent, HeaderComponent],\n  imports: [BrowserModule, FormsModule],\n  providers: [LoggerService],\n  bootstrap: [AppComponent]\n})\nexport class AppModule { }` },
+        { q: "13. Explain event binding and $event object.", a: "Event binding listens to DOM events and calls component method. $event holds event payload.", code: `<input (input)="onInputChange($event)">\n<p>Value: {{inputValue}}</p>\n\n// component\nonInputChange(event: Event) {\n  this.inputValue = (event.target as HTMLInputElement).value;\n}` },
+        { q: "14. What is property binding and interpolation difference?", a: "Interpolation {{}} converts result to string; property binding [src] passes any type (boolean, object, array). Use property binding for non-string attributes or when you need to pass dynamic values." },
+        { q: "15. How to pass data from parent to child component?", a: "Use @Input decorator. Parent binds property to child's input.", code: `// child.component.ts\n@Input() childName: string;\n// parent template\n<app-child [childName]="parentData"></app-child>` },
+        { q: "16. How to emit data from child to parent?", a: "Use @Output() and EventEmitter. Child emits event, parent listens.", code: `// child\n@Output() notify = new EventEmitter<string>();\nsendData() { this.notify.emit('Message from child'); }\n// parent template\n<app-child (notify)="onNotify($event)"></app-child>` },
+        { q: "17. What is Angular CLI? Common commands.", a: "CLI tool for scaffolding, building, testing, serving. Common: ng new, ng serve, ng generate component, ng build, ng test, ng lint." },
+        { q: "18. What are template reference variables? Example.", a: "Use #var to reference DOM element or directive in template.", code: `<input #userInput placeholder="type">\n<button (click)="logValue(userInput.value)">Log</button>` },
+        { q: "19. What is ng-container vs ng-template?", a: "ng-container is a logical container without rendering extra DOM. ng-template defines a template that renders conditionally (used with *ngIf then/else).", code: `<ng-container *ngIf="loggedIn; else loginTemplate">\n  <p>Welcome</p>\n</ng-container>\n<ng-template #loginTemplate>Please login</ng-template>` },
+        { q: "20. Explain Angular bootstrapping process.", a: "Angular looks for main.ts which bootstraps AppModule. Angular compiler creates component tree and renders into index.html's <app-root>. PlatformBrowserDynamic provides JIT compilation." }
+    ];
+
+    // ---------- INTERMEDIATE (20 questions) ----------
+    const intermediateData = [
+        { q: "21. What is Angular Router? Setup lazy loading example.", a: "Router enables navigation between views. Lazy loading loads feature modules on demand.", code: `const routes: Routes = [\n  { path: 'dashboard', component: DashboardComponent },\n  { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }\n];` },
+        { q: "22. Explain Route Guards with CanActivate.", a: "Guards control route access. CanActivate decides if route can be activated.", code: `@Injectable({providedIn: 'root'})\nexport class AuthGuard implements CanActivate {\n  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {\n    return this.authService.isLoggedIn();\n  }\n}` },
+        { q: "23. What is Reactive Forms? Build basic form.", a: "Reactive forms are model-driven, using FormGroup, FormControl. Provide synchronous validation.", code: `this.profileForm = new FormGroup({\n  name: new FormControl('', Validators.required),\n  email: new FormControl('', [Validators.email])\n});\n// template: <form [formGroup]="profileForm">...</form>` },
+        { q: "24. Template-driven vs Reactive forms differences.", a: "Template-driven uses ngModel, simpler for basic forms, logic in template. Reactive: more scalable, immutable, predictable, easier testing, custom validators." },
+        { q: "25. What are Observables? How Angular uses HttpClient?", a: "Observables from RxJS handle async events. HttpClient returns Observables for HTTP requests. Use .subscribe() or async pipe.", code: `this.http.get<User[]>('/api/users').subscribe(users => this.users = users);` },
+        { q: "26. Explain async pipe usage for Observables.", a: "Async pipe subscribes automatically and unsubscribes, preventing memory leaks.", code: `<div *ngFor="let item of items$ | async">{{item.title}}</div>` },
+        { q: "27. What is a custom Form Validator? Example.", a: "Create validator function or class to validate custom logic.", code: `function forbiddenNameValidator(nameRe: RegExp): ValidatorFn {\n  return (control: AbstractControl): ValidationErrors | null => {\n    return nameRe.test(control.value) ? { forbiddenName: { value: control.value } } : null;\n  };\n}` },
+        { q: "28. Explain ViewChild and ViewChildren.", a: "ViewChild queries a single DOM element or component; ViewChildren gets QueryList.", code: `@ViewChild('myInput') inputRef: ElementRef;\n@ViewChildren(ChildComponent) children: QueryList<ChildComponent>;` },
+        { q: "29. What is ContentChild and ContentChildren?", a: "Access projected content (ng-content) from parent component. ContentChild queries element inside ng-content." },
+        { q: "30. What are Angular Elements? (Custom Elements)", a: "Angular Elements lets you package components as native custom elements (web components) that can be used in any framework.", code: `const ngElement = createCustomElement(MyPopupComponent, { injector }); customElements.define('my-popup', ngElement);` },
+        { q: "31. Explain ngDoCheck lifecycle and Change Detection.", a: "ngDoCheck runs after every change detection cycle. Allows custom change detection logic. Use with care for performance." },
+        { q: "32. What are Pure vs Impure Pipes?", a: "Pure pipes execute only when input changes (default). Impure pipes execute on every change detection cycle (expensive, rarely used). Set pure: false." },
+        { q: "33. How to share data between unrelated components?", a: "Using a shared service with Subject/BehaviorSubject from RxJS.", code: `private dataSubject = new BehaviorSubject<string>('initial');\ndata$ = this.dataSubject.asObservable();\nupdateData(value: string) { this.dataSubject.next(value); }` },
+        { q: "34. Explain Angular Resolver.", a: "Resolver pre-fetches data before navigating to a route. It ensures data is available when component loads.", code: `@Injectable()\nexport class UserResolver implements Resolve<User> {\n  resolve(route: ActivatedRouteSnapshot): Observable<User> {\n    return this.userService.getUser(route.params['id']);\n  }\n}` },
+        { q: "35. What is AOT compilation vs JIT?", a: "AOT (Ahead-of-Time) compiles at build time: smaller bundle, faster rendering, fewer errors. JIT (Just-in-Time) compiles at runtime in browser." },
+        { q: "36. How to optimize Angular apps? (OnPush strategy)", a: "ChangeDetectionStrategy.OnPush reduces change detection cycles when inputs are immutable. Use trackBy in *ngFor, lazy modules, pure pipes." },
+        { q: "37. What is Angular Universal (SSR)?", a: "Angular Universal renders Angular apps on server side (SSR) for better SEO and initial load performance." },
+        { q: "38. What are HostListener and HostBinding?", a: "HostListener listens to events on host element; HostBinding binds property to host element.", code: `@HostBinding('class.active') isActive = false;\n@HostListener('click') onClick() { this.isActive = !this.isActive; }` },
+        { q: "39. How to manage environment variables?", a: "Angular CLI provides environment files (environment.ts, environment.prod.ts). Use process.env style via Angular file replacement." },
+        { q: "40. Explain Angular Ivy renderer.", a: "Ivy is Angular's next-gen rendering engine (default since v9). It generates smaller bundles, faster AOT, incremental builds, and improved debugging." }
+    ];
+
+    // ---------- ADVANCED (20 questions) ----------
+    const advancedData = [
+        { q: "41. What are RxJS Operators? Example (map, switchMap).", a: "Operators transform, filter, combine observables. Common: map, tap, switchMap, mergeMap, catchError.", code: `this.http.get('/posts').pipe(\n  map(posts => posts.filter(p => p.active)),\n  switchMap(activePosts => this.http.get('/comments', { params: { ids: activePosts.map(p => p.id) } }))\n).subscribe();` },
+        { q: "42. Higher-Order Mapping Operators: switchMap vs mergeMap.", a: "switchMap cancels previous inner observable when new emission arrives; mergeMap keeps all concurrently. Use switchMap for search, mergeMap for parallel tasks." },
+        { q: "43. Custom structural directive example.", a: "Directive that manipulates template container (like *ngIf).", code: `@Directive({ selector: '[appUnless]' })\nexport class UnlessDirective {\n  constructor(private templateRef: TemplateRef<any>, private vcRef: ViewContainerRef) {}\n  @Input() set appUnless(condition: boolean) {\n    if (!condition) this.vcRef.createEmbeddedView(this.templateRef);\n    else this.vcRef.clear();\n  }\n}` },
+        { q: "44. Explain NgRx / State management pattern.", a: "NgRx is Redux pattern for Angular: Store, Actions, Reducers, Effects, Selectors. Manages complex state predictably.", code: `// Action\nexport const loadUsers = createAction('[User] Load Users');\n// Reducer\nconst userReducer = createReducer(initialState, on(loadUsers, state => ({ ...state, loading: true })));` },
+        { q: "45. What are Angular Schematics? How to create one?", a: "Schematics are code generation templates. CLI uses them for `ng generate`. You can build custom schematics to enforce patterns." },
+        { q: "46. Explain dynamic component loading.", a: "Use ComponentFactoryResolver or ViewContainerRef to create components dynamically at runtime.", code: `const factory = this.resolver.resolveComponentFactory(AlertComponent);\nconst componentRef = this.containerRef.createComponent(factory);` },
+        { q: "47. Advanced Change Detection: markForCheck vs detectChanges.", a: "markForCheck marks path as dirty (OnPush), detectChanges triggers immediate check on component and children. Use with care." },
+        { q: "48. Custom RxJS operator example.", a: "Create custom operator using pipeable operator pattern.", code: `function filterEven() {\n  return (source: Observable<number>) => source.pipe(filter(num => num % 2 === 0));\n}` },
+        { q: "49. Microfrontends with Angular (Module Federation).", a: "Webpack Module Federation lets you load remote Angular modules at runtime. Build independent deployable micro-frontends." },
+        { q: "50. How to implement internationalization (i18n)?", a: "Angular i18n extracts templates with `i18n` attributes. Use Angular CLI to generate multiple locales and deploy different builds." },
+        { q: "51. Explain Angular Security: XSS, DOM sanitization.", a: "Angular treats values as untrusted and sanitizes by default. Use DomSanitizer to bypass security cautiously.", code: `this.trustedUrl = this.sanitizer.bypassSecurityTrustUrl(userProvidedUrl);` },
+        { q: "52. What are Angular Injectors and resolution modifiers?", a: "Injectors are hierarchical. Resolution modifiers: @Self, @SkipSelf, @Optional, @Host to control where Angular looks for dependencies." },
+        { q: "53. Custom Provider with useClass, useFactory, useExisting.", a: "Configure DI tokens differently.", code: `{ provide: Logger, useClass: FileLogger },\n{ provide: API_URL, useValue: 'https://api.domain.com' },\n{ provide: Config, useFactory: (env: EnvService) => env.isProd ? prodConfig : devConfig, deps: [EnvService] }` },
+        { q: "54. Change Detection strategies deep: OnPush + immutability.", a: "OnPush triggers change detection only when @Input references change or events happen. Use immutability (new object/array) to ensure updates." },
+        { q: "55. How to handle error handling in HTTP requests globally?", a: "Use HttpInterceptor to catch errors, retry logic, or global error handling.", code: `intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {\n  return next.handle(req).pipe(catchError(err => {\n    // global handling\n    return throwError(() => err);\n  }));\n}` },
+        { q: "56. What is Angular TestBed and unit testing?", a: "TestBed creates Angular testing module. Mock dependencies, test components, services.", code: `TestBed.configureTestingModule({ declarations: [MyComponent], providers: [mockService] }).compileComponents();` },
+        { q: "57. Explain Tree-shakable providers.", a: "Since Angular 6, `providedIn: 'root'` makes service tree-shakable: if never injected, it's removed from bundle." },
+        { q: "58. What are Angular 17+ signals? basics.", a: "Signals provide fine-grained reactive primitive. signal() creates state, computed() for derived, effect() for side effects.", code: `count = signal(0);\ndouble = computed(() => count() * 2);\nincrement() { this.count.update(c => c + 1); }` },
+        { q: "59. What is deferrable views (@defer) in Angular?", a: "@defer allows lazy-loading parts of template, improving initial bundle size. Placeholder, loading, error blocks support." },
+        { q: "60. Performance profiling and debugging Angular.", a: "Use Angular DevTools, profiler, `ng.profiler.timeChangeDetection()` in dev console. Optimize change detection, avoid memory leaks." }
+    ];
+
+    // helper: render Q&A cards with code blocks if code field present
+    function renderSection(containerId, dataArray) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        dataArray.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'qa-card';
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            const qTitle = document.createElement('h3');
+            qTitle.innerText = item.q;
+            const badgeSpan = document.createElement('span');
+            badgeSpan.className = 'badge';
+            badgeSpan.innerText = 'Q';
+            questionDiv.appendChild(qTitle);
+            questionDiv.appendChild(badgeSpan);
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'answer';
+            const ansText = document.createElement('p');
+            ansText.innerText = item.a;
+            answerDiv.appendChild(ansText);
+            if (item.code) {
+                const codeBlock = document.createElement('div');
+                codeBlock.className = 'code-block';
+                const pre = document.createElement('pre');
+                const codeElem = document.createElement('code');
+                codeElem.innerText = item.code.trim();
+                pre.appendChild(codeElem);
+                codeBlock.appendChild(pre);
+                answerDiv.appendChild(codeBlock);
+            }
+            // optional extra <hr> for readability between distinct answers, but fine
+            card.appendChild(questionDiv);
+            card.appendChild(answerDiv);
+            container.appendChild(card);
+        });
+    }
+
+    // Render all sections
+    renderSection('basics-grid', basicsData);
+    renderSection('intermediate-grid', intermediateData);
+    renderSection('advanced-grid', advancedData);
+
+    // TABS logic
+    const btns = document.querySelectorAll('.topic-btn');
+    const sections = {
+        basics: document.getElementById('basics-section'),
+        intermediate: document.getElementById('intermediate-section'),
+        advanced: document.getElementById('advanced-section')
+    };
+    function activateTopic(topicId) {
+        Object.keys(sections).forEach(key => {
+            sections[key].classList.remove('active-section');
+        });
+        sections[topicId].classList.add('active-section');
+        btns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-topic') === topicId) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    btns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const topic = btn.getAttribute('data-topic');
+            if (topic === 'basics') activateTopic('basics');
+            else if (topic === 'intermediate') activateTopic('intermediate');
+            else if (topic === 'advanced') activateTopic('advanced');
+        });
+    });
+</script>
+</body>
+</html>

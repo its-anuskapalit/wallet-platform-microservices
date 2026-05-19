@@ -1,0 +1,3456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WalletPlatform — Aurelian | Technical Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --navy: #070d1a;
+  --navy-2: #0d1628;
+  --navy-3: #111d33;
+  --navy-4: #19284a;
+  --gold: #e8a020;
+  --gold-light: #f5c060;
+  --gold-dim: rgba(232,160,32,0.15);
+  --teal: #1de9b6;
+  --teal-dim: rgba(29,233,182,0.12);
+  --red: #ff4757;
+  --green: #2ed573;
+  --blue: #5dade2;
+  --sidebar-w: 280px;
+  --header-h: 62px;
+  --text: #e2e8f2;
+  --text-muted: #8896b0;
+  --text-dim: #5a6a84;
+  --border: rgba(255,255,255,0.07);
+  --border-gold: rgba(232,160,32,0.3);
+  --card: rgba(255,255,255,0.03);
+  --card-hover: rgba(255,255,255,0.06);
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 20px); }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--navy);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 15px;
+  overflow-x: hidden;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--navy-2); }
+::-webkit-scrollbar-thumb { background: var(--navy-4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ── HEADER ── */
+#top-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h);
+  background: rgba(7,13,26,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px 0 calc(var(--sidebar-w) + 24px);
+  gap: 16px;
+}
+
+.header-brand {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  position: absolute; left: 24px;
+}
+.header-brand .logo-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold) 0%, #c47a0a 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; color: var(--navy); letter-spacing: -0.5px;
+}
+
+.search-bar {
+  flex: 1; max-width: 520px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 14px;
+  transition: border-color 0.2s;
+}
+.search-bar:focus-within { border-color: var(--gold); }
+.search-bar i { color: var(--text-dim); font-size: 13px; }
+.search-bar input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text); font-family: 'Sora', sans-serif; font-size: 13.5px;
+  padding: 10px 0;
+}
+.search-bar input::placeholder { color: var(--text-dim); }
+
+.header-meta { display: flex; align-items: center; gap: 12px; }
+.badge-version {
+  background: var(--gold-dim); color: var(--gold);
+  border: 1px solid var(--border-gold);
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-stack {
+  background: var(--teal-dim); color: var(--teal);
+  border: 1px solid rgba(29,233,182,0.25);
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  position: fixed; top: var(--header-h); left: 0; bottom: 0; z-index: 90;
+  width: var(--sidebar-w);
+  background: var(--navy-2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 20px 0 40px;
+}
+
+.sidebar-section { margin-bottom: 6px; }
+.sidebar-section-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-dim);
+  padding: 10px 20px 6px;
+}
+.sidebar-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px; font-size: 13px; font-weight: 400;
+  color: var(--text-muted); text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.15s; cursor: pointer;
+}
+.sidebar-link i { font-size: 12px; width: 16px; text-align: center; opacity: 0.7; }
+.sidebar-link:hover { color: var(--text); background: var(--card); }
+.sidebar-link.active {
+  color: var(--gold); border-left-color: var(--gold);
+  background: var(--gold-dim); font-weight: 500;
+}
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 20px; }
+
+/* ── MAIN ── */
+#main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+  padding: 48px 60px 80px;
+  max-width: calc(100% - var(--sidebar-w));
+}
+
+/* ── HERO ── */
+.doc-hero {
+  padding: 60px 0 48px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 56px;
+  position: relative;
+  overflow: hidden;
+}
+.doc-hero::before {
+  content: '';
+  position: absolute; top: -60px; right: -80px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(232,160,32,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--gold);
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+}
+.hero-eyebrow::before {
+  content: ''; width: 24px; height: 2px; background: var(--gold);
+}
+.doc-hero h1 {
+  font-family: 'Lora', serif;
+  font-size: 48px; font-weight: 600; line-height: 1.15;
+  color: #fff; margin-bottom: 16px;
+}
+.doc-hero h1 span { color: var(--gold); }
+.doc-hero p {
+  font-size: 16px; color: var(--text-muted); max-width: 680px;
+  line-height: 1.8;
+}
+.hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.hero-tag {
+  background: var(--navy-3); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 5px 14px;
+  border-radius: 20px; font-size: 12px; font-weight: 500;
+}
+
+/* ── SECTIONS ── */
+.doc-section {
+  margin-bottom: 72px;
+  scroll-margin-top: calc(var(--header-h) + 20px);
+}
+.section-header {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 28px;
+}
+.section-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--gold-dim); border: 1px solid var(--border-gold);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); font-size: 18px; flex-shrink: 0; margin-top: 2px;
+}
+.section-header-text h2 {
+  font-size: 26px; font-weight: 700; color: #fff; line-height: 1.2;
+}
+.section-header-text p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+
+h3 { font-size: 18px; font-weight: 600; color: #e0e8f5; margin: 36px 0 14px; }
+h4 { font-size: 15px; font-weight: 600; color: var(--text); margin: 24px 0 10px; }
+p { color: var(--text-muted); margin-bottom: 14px; }
+ul, ol { padding-left: 20px; color: var(--text-muted); margin-bottom: 14px; }
+li { margin-bottom: 5px; }
+strong { color: var(--text); }
+a { color: var(--gold); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── CARDS ── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; margin: 20px 0; }
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px;
+  transition: all 0.2s;
+}
+.card:hover { background: var(--card-hover); border-color: var(--border-gold); transform: translateY(-1px); }
+.card-icon { font-size: 20px; color: var(--gold); margin-bottom: 10px; }
+.card h4 { margin: 0 0 6px; font-size: 14px; color: #fff; }
+.card p { font-size: 13px; margin: 0; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; margin: 20px 0; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th {
+  background: var(--navy-3); color: var(--text-muted);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+  padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+}
+td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--card); }
+td code, th code { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+/* ── CODE ── */
+pre[class*="language-"] {
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border) !important;
+  background: #0d1117 !important;
+  margin: 16px 0 !important;
+  font-size: 13px !important;
+}
+code:not([class]) {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--navy-3); border: 1px solid var(--border);
+  padding: 2px 7px; border-radius: 5px; font-size: 12.5px; color: var(--gold-light);
+}
+
+/* ── MERMAID ── */
+.diagram-wrap {
+  background: var(--navy-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px; margin: 20px 0;
+  overflow-x: auto;
+}
+.diagram-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-dim);
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.diagram-label i { color: var(--gold); }
+
+/* ── METHOD BADGES ── */
+.method {
+  display: inline-block; padding: 2px 9px; border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.method.get { background: rgba(93,173,226,0.15); color: #5dade2; border: 1px solid rgba(93,173,226,0.3); }
+.method.post { background: rgba(46,213,115,0.12); color: #2ed573; border: 1px solid rgba(46,213,115,0.3); }
+.method.put { background: rgba(232,160,32,0.12); color: var(--gold); border: 1px solid var(--border-gold); }
+.method.delete { background: rgba(255,71,87,0.12); color: var(--red); border: 1px solid rgba(255,71,87,0.3); }
+.method.patch { background: rgba(160,120,220,0.12); color: #c39bd3; border: 1px solid rgba(160,120,220,0.3); }
+
+/* ── ENDPOINT BLOCK ── */
+.endpoint-block {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  margin: 20px 0; overflow: hidden;
+}
+.endpoint-header {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--navy-3); padding: 14px 18px;
+  cursor: pointer; user-select: none;
+  transition: background 0.2s;
+}
+.endpoint-header:hover { background: var(--navy-4); }
+.endpoint-path {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text);
+  flex: 1;
+}
+.endpoint-summary { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+.endpoint-body {
+  padding: 20px 18px; border-top: 1px solid var(--border);
+  display: none;
+}
+.endpoint-body.open { display: block; }
+
+/* ── CALLOUTS ── */
+.callout {
+  border-radius: var(--radius); padding: 14px 18px; margin: 16px 0;
+  display: flex; gap: 12px; align-items: flex-start;
+  font-size: 13.5px;
+}
+.callout i { font-size: 15px; margin-top: 1px; flex-shrink: 0; }
+.callout.info { background: rgba(93,173,226,0.08); border: 1px solid rgba(93,173,226,0.2); color: #8bc4e8; }
+.callout.info i { color: #5dade2; }
+.callout.warn { background: rgba(232,160,32,0.08); border: 1px solid rgba(232,160,32,0.2); color: #d4ab6a; }
+.callout.warn i { color: var(--gold); }
+.callout.success { background: rgba(46,213,115,0.08); border: 1px solid rgba(46,213,115,0.2); color: #7edda9; }
+.callout.success i { color: var(--green); }
+.callout.danger { background: rgba(255,71,87,0.08); border: 1px solid rgba(255,71,87,0.2); color: #e89099; }
+.callout.danger i { color: var(--red); }
+
+/* ── STATUS BADGES ── */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.status-200 { background: rgba(46,213,115,0.12); color: var(--green); }
+.status-201 { background: rgba(29,233,182,0.12); color: var(--teal); }
+.status-204 { background: rgba(93,173,226,0.12); color: var(--blue); }
+.status-400 { background: rgba(232,160,32,0.12); color: var(--gold); }
+.status-401 { background: rgba(255,71,87,0.12); color: var(--red); }
+.status-403 { background: rgba(255,71,87,0.12); color: var(--red); }
+.status-404 { background: rgba(255,71,87,0.12); color: var(--red); }
+.status-500 { background: rgba(255,71,87,0.12); color: var(--red); }
+
+/* ── TIMELINE ── */
+.timeline { padding-left: 24px; border-left: 2px solid var(--border); margin: 20px 0; }
+.timeline-item { position: relative; padding: 0 0 24px 20px; }
+.timeline-item::before {
+  content: '';
+  position: absolute; left: -28px; top: 6px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gold); border: 2px solid var(--navy);
+}
+.timeline-item h4 { margin: 0 0 6px; font-size: 14px; }
+.timeline-item p { margin: 0; font-size: 13px; }
+
+/* ── SERVICE CHIP ── */
+.service-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--navy-3); border: 1px solid var(--border);
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  margin: 3px;
+}
+.service-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* ── PARAM TABLE ── */
+.param-row td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--gold-light); }
+.param-row td:nth-child(2) { color: var(--blue); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+.required { color: var(--red); font-size: 10px; font-weight: 700; vertical-align: super; margin-left: 2px; }
+
+/* ── TOC ── */
+.toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin: 24px 0; }
+.toc-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  text-decoration: none; color: var(--text-muted);
+  display: flex; align-items: flex-start; gap: 12px;
+  transition: all 0.2s; font-size: 13.5px;
+}
+.toc-item:hover { background: var(--card-hover); border-color: var(--border-gold); color: var(--text); text-decoration: none; }
+.toc-item i { color: var(--gold); font-size: 16px; margin-top: 1px; flex-shrink: 0; }
+.toc-item .num { font-size: 10px; color: var(--text-dim); font-weight: 600; display: block; margin-bottom: 2px; }
+
+/* ── GLOSSARY ── */
+.glossary-entry { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.glossary-entry:last-child { border-bottom: none; }
+.glossary-entry dt { font-weight: 600; color: var(--gold-light); font-size: 14px; margin-bottom: 4px; }
+.glossary-entry dd { color: var(--text-muted); font-size: 13.5px; margin-left: 0; }
+
+/* ── FOOTER ── */
+#doc-footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 0 0; margin-top: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 12px; color: var(--text-dim);
+}
+
+/* ── BACK TO TOP ── */
+#back-top {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--gold); color: var(--navy);
+  border: none; cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(232,160,32,0.4);
+  opacity: 0; transition: opacity 0.3s;
+}
+#back-top.visible { opacity: 1; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  :root { --sidebar-w: 240px; }
+  #main { padding: 40px 36px 60px; }
+}
+@media (max-width: 768px) {
+  #sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; padding: 20px 20px 60px; max-width: 100%; }
+  #top-header { padding-left: 60px; }
+  .doc-hero h1 { font-size: 32px; }
+}
+
+/* mermaid overrides */
+.mermaid svg { max-width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="top-header">
+  <div class="header-brand">
+    <div class="logo-mark">AW</div>
+    <span>WalletPlatform</span>
+  </div>
+  <div class="search-bar">
+    <i class="fas fa-search"></i>
+    <input type="text" id="search-input" placeholder="Search documentation…" />
+  </div>
+  <div class="header-meta">
+    <span class="badge-version">v1.0.0</span>
+    <span class="badge-stack">.NET 10 · Angular 17</span>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Getting Started</div>
+    <a class="sidebar-link" href="#overview"><i class="fas fa-home"></i>Overview</a>
+    <a class="sidebar-link" href="#toc"><i class="fas fa-list"></i>Table of Contents</a>
+    <a class="sidebar-link" href="#exec-summary"><i class="fas fa-file-alt"></i>Executive Summary</a>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Architecture</div>
+    <a class="sidebar-link" href="#hld"><i class="fas fa-layer-group"></i>High-Level Design</a>
+    <a class="sidebar-link" href="#lld"><i class="fas fa-cogs"></i>Low-Level Design</a>
+    <a class="sidebar-link" href="#arch-style"><i class="fas fa-drafting-compass"></i>Architectural Style</a>
+    <a class="sidebar-link" href="#event-arch"><i class="fas fa-project-diagram"></i>Event-Driven</a>
+    <a class="sidebar-link" href="#db-schema"><i class="fas fa-table"></i>Database Schema</a>
+    <a class="sidebar-link" href="#database"><i class="fas fa-database"></i>Database Design</a>
+    <a class="sidebar-link" href="#class-diagrams"><i class="fas fa-object-group"></i>Class Diagrams</a>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Reference</div>
+    <a class="sidebar-link" href="#api-auth"><i class="fas fa-key"></i>Auth Service</a>
+    <a class="sidebar-link" href="#api-profile"><i class="fas fa-user"></i>User Profile</a>
+    <a class="sidebar-link" href="#api-wallet"><i class="fas fa-wallet"></i>Wallet Service</a>
+    <a class="sidebar-link" href="#api-ledger"><i class="fas fa-receipt"></i>Ledger Service</a>
+    <a class="sidebar-link" href="#api-rewards"><i class="fas fa-star"></i>Rewards Service</a>
+    <a class="sidebar-link" href="#api-catalog"><i class="fas fa-store"></i>Catalog Service</a>
+    <a class="sidebar-link" href="#api-receipts"><i class="fas fa-file-pdf"></i>Receipts Service</a>
+    <a class="sidebar-link" href="#api-admin"><i class="fas fa-shield-alt"></i>Admin Service</a>
+    <a class="sidebar-link" href="#api-chatbot"><i class="fas fa-robot"></i>Chatbot Service</a>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Lifecycle</div>
+    <a class="sidebar-link" href="#use-cases"><i class="fas fa-users"></i>Use Cases</a>
+    <a class="sidebar-link" href="#security"><i class="fas fa-lock"></i>Security</a>
+    <a class="sidebar-link" href="#devops"><i class="fas fa-rocket"></i>DevOps</a>
+    <a class="sidebar-link" href="#sdlc"><i class="fas fa-code-branch"></i>SDLC</a>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Appendix</div>
+    <a class="sidebar-link" href="#error-formats"><i class="fas fa-exclamation-triangle"></i>Error Formats</a>
+    <a class="sidebar-link" href="#glossary"><i class="fas fa-book"></i>Glossary</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- HERO -->
+  <div class="doc-hero" id="overview">
+    <div class="hero-eyebrow">Technical Documentation</div>
+    <h1>WalletPlatform —<br/><span>Aurelian</span></h1>
+    <p>A production-grade digital wallet and loyalty platform built with .NET 10 microservices, Angular 17, RabbitMQ event bus, SQL Server, Docker, and a Python FastAPI AI chatbot powered by Google Gemini.</p>
+    <div class="hero-tags">
+      <span class="hero-tag"><i class="fab fa-microsoft"></i> .NET 10</span>
+      <span class="hero-tag">Angular 17</span>
+      <span class="hero-tag">RabbitMQ</span>
+      <span class="hero-tag">SQL Server</span>
+      <span class="hero-tag">Ocelot Gateway</span>
+      <span class="hero-tag">Docker</span>
+      <span class="hero-tag">Google Gemini</span>
+      <span class="hero-tag">JWT + OTP</span>
+      <span class="hero-tag">10 Microservices</span>
+    </div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <section class="doc-section" id="toc">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-list"></i></div>
+      <div class="section-header-text">
+        <h2>Table of Contents</h2>
+        <p>Navigate all sections of this documentation portal</p>
+      </div>
+    </div>
+    <div class="toc-grid">
+      <a href="#exec-summary" class="toc-item"><i class="fas fa-file-alt"></i><div><span class="num">01</span>Executive Summary</div></a>
+      <a href="#hld" class="toc-item"><i class="fas fa-layer-group"></i><div><span class="num">02</span>High-Level Design</div></a>
+      <a href="#lld" class="toc-item"><i class="fas fa-cogs"></i><div><span class="num">03</span>Low-Level Design</div></a>
+      <a href="#database" class="toc-item"><i class="fas fa-database"></i><div><span class="num">04</span>Database Design</div></a>
+      <a href="#event-arch" class="toc-item"><i class="fas fa-project-diagram"></i><div><span class="num">05</span>Event-Driven Architecture</div></a>
+      <a href="#use-cases" class="toc-item"><i class="fas fa-users"></i><div><span class="num">06</span>Use Case Documentation</div></a>
+      <a href="#arch-style" class="toc-item"><i class="fas fa-drafting-compass"></i><div><span class="num">07</span>Architectural Style</div></a>
+      <a href="#db-schema" class="toc-item"><i class="fas fa-table"></i><div><span class="num">08</span>Database Schema</div></a>
+      <a href="#class-diagrams" class="toc-item"><i class="fas fa-object-group"></i><div><span class="num">09</span>Class Diagrams</div></a>
+      <a href="#api-auth" class="toc-item"><i class="fas fa-plug"></i><div><span class="num">10</span>API Reference</div></a>
+      <a href="#security" class="toc-item"><i class="fas fa-lock"></i><div><span class="num">11</span>Security Architecture</div></a>
+      <a href="#devops" class="toc-item"><i class="fas fa-rocket"></i><div><span class="num">12</span>DevOps &amp; Deployment</div></a>
+      <a href="#sdlc" class="toc-item"><i class="fas fa-code-branch"></i><div><span class="num">13</span>SDLC</div></a>
+      <a href="#error-formats" class="toc-item"><i class="fas fa-exclamation-triangle"></i><div><span class="num">14</span>Error Formats</div></a>
+      <a href="#glossary" class="toc-item"><i class="fas fa-book"></i><div><span class="num">15</span>Glossary &amp; Appendix</div></a>
+    </div>
+  </section>
+
+  <!-- EXECUTIVE SUMMARY -->
+  <section class="doc-section" id="exec-summary">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-file-alt"></i></div>
+      <div class="section-header-text">
+        <h2>Executive Summary</h2>
+        <p>Strategic overview and platform objectives</p>
+      </div>
+    </div>
+    <p>WalletPlatform — Aurelian is a full-stack, production-grade fintech platform inspired by Paytm and PhonePe. It implements the complete lifecycle of a digital wallet application: from secure onboarding and KYC compliance to multi-party fund transfers, loyalty reward accrual, voucher redemption, AI-assisted customer support, and administrative fraud controls.</p>
+    <p>The architecture is built on a <strong>domain-driven microservices model</strong> where each business capability is owned by a dedicated service with its own database, enforcing strict bounded contexts. Services communicate synchronously over HTTP through an <strong>Ocelot API Gateway</strong> and asynchronously via <strong>RabbitMQ</strong> for event-driven side-effects.</p>
+
+    <div class="card-grid" style="margin-top:24px;">
+      <div class="card"><div class="card-icon"><i class="fas fa-shield-alt"></i></div><h4>Security-First</h4><p>JWT auth, OTP verification, RBAC, refresh token rotation, and idempotency for all financial operations.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-cubes"></i></div><h4>10 Microservices</h4><p>Auth, UserProfile, Wallet, Ledger, Rewards, Catalog, Notification, Receipts, Admin, Chatbot.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-bolt"></i></div><h4>Event-Driven</h4><p>RabbitMQ message bus for async workflows: notifications, receipts, points accrual, wallet creation.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-robot"></i></div><h4>AI-Powered</h4><p>FastAPI chatbot with Google Gemini 2.5 Flash for real-time user support and FAQs.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-book-open"></i></div><h4>Double-Entry Ledger</h4><p>Every transaction creates immutable debit/credit ledger entries for complete financial auditability.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-docker"></i></div><h4>Containerised</h4><p>Docker Compose for local dependencies, GitHub Actions CI for automated build and test pipelines.</p></div>
+    </div>
+
+    <h3>Platform Services at a Glance</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Service</th><th>Port</th><th>Technology</th><th>Primary Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><strong>API Gateway</strong></td><td><code>5000</code></td><td>Ocelot / ASP.NET Core</td><td>Routing, CORS, request logging</td></tr>
+          <tr><td><strong>Auth Service</strong></td><td><code>5001</code></td><td>.NET 10 Web API</td><td>JWT, refresh tokens, OTP, registration/login</td></tr>
+          <tr><td><strong>UserProfile Service</strong></td><td><code>5002</code></td><td>.NET 10 Web API</td><td>Profile CRUD, KYC workflow</td></tr>
+          <tr><td><strong>Wallet Service</strong></td><td><code>5003</code></td><td>.NET 10 Web API</td><td>Wallet ops, top-up, deduct, bill split, freeze</td></tr>
+          <tr><td><strong>Ledger Service</strong></td><td><code>5004</code></td><td>.NET 10 Web API</td><td>Transaction initiation, history, double-entry ledger</td></tr>
+          <tr><td><strong>Rewards Service</strong></td><td><code>5005</code></td><td>.NET 10 Web API</td><td>Points accrual, tier progression, redemption support</td></tr>
+          <tr><td><strong>Catalog Service</strong></td><td><code>5006</code></td><td>.NET 10 Web API</td><td>Reward catalog items, redemption flow, voucher issuance</td></tr>
+          <tr><td><strong>Notification Service</strong></td><td><code>5007</code></td><td>.NET 10 Web API</td><td>Event-driven email notifications via SMTP</td></tr>
+          <tr><td><strong>Receipts Service</strong></td><td><code>5008</code></td><td>.NET 10 Web API</td><td>PDF receipt generation, CSV export</td></tr>
+          <tr><td><strong>Admin Service</strong></td><td><code>5009</code></td><td>.NET 10 Web API</td><td>Fraud flags, dashboard stats (admin-only)</td></tr>
+          <tr><td><strong>Chatbot Service</strong></td><td><code>8000</code></td><td>Python FastAPI + Gemini</td><td>AI-powered user support and FAQ assistant</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- HLD -->
+  <section class="doc-section" id="hld">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-layer-group"></i></div>
+      <div class="section-header-text">
+        <h2>High-Level Design (HLD)</h2>
+        <p>System architecture, technology stack, and component interactions</p>
+      </div>
+    </div>
+
+    <h3>Business Objectives</h3>
+    <ul>
+      <li><strong>Scalability</strong>: Independently deployable services enabling horizontal scale per domain.</li>
+      <li><strong>Security &amp; Compliance</strong>: JWT-based auth, OTP verification, RBAC, auditable double-entry ledger.</li>
+      <li><strong>Reliability</strong>: Idempotency for all financial operations; eventual consistency via events; fault isolation per service.</li>
+      <li><strong>Customer Experience</strong>: Angular 17 SPA frontend with AI chatbot for 24/7 support.</li>
+      <li><strong>Operational Excellence</strong>: Structured logging (Serilog), Docker tooling, CI pipeline via GitHub Actions.</li>
+    </ul>
+
+    <h3>Technology Stack</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Technology</th><th>Version / Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend</td><td>Angular SPA</td><td>Angular 17, TypeScript</td></tr>
+          <tr><td>API Gateway</td><td>Ocelot</td><td>ASP.NET Core, request logging</td></tr>
+          <tr><td>Backend Services</td><td>.NET Web API</td><td>.NET 10, Clean Architecture</td></tr>
+          <tr><td>AI Chatbot</td><td>Python FastAPI</td><td>Google Gemini 2.5 Flash</td></tr>
+          <tr><td>Database</td><td>SQL Server</td><td>Database-per-service, EF Core</td></tr>
+          <tr><td>Message Broker</td><td>RabbitMQ</td><td>Direct/fanout exchanges</td></tr>
+          <tr><td>Auth</td><td>JWT Bearer + Refresh Tokens</td><td>OTP for phone/email</td></tr>
+          <tr><td>Logging</td><td>Serilog</td><td>Structured logging, structured sinks</td></tr>
+          <tr><td>API Docs</td><td>Swagger (Swashbuckle)</td><td>Per-service, not via gateway</td></tr>
+          <tr><td>DevOps</td><td>Docker + GitHub Actions</td><td>docker-compose for local infra</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>System Architecture Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-sitemap"></i> C4 Context Diagram (Level 1)</div>
+      <div class="mermaid">
+flowchart LR
+  U[👤 End User] -->|HTTPS REST| FE[Angular 17 SPA\nfrontend:4200]
+  A[👨‍💼 Admin] -->|HTTPS REST| FE
+  FE -->|REST /gateway/*| GW[🔀 Ocelot API Gateway\nlocalhost:5000]
+  FE -->|REST /api/chat| BOT[🤖 Chatbot Service\nlocalhost:8000]
+
+  GW --> AUTH[Auth Service\n:5001]
+  GW --> PROF[UserProfile Service\n:5002]
+  GW --> WAL[Wallet Service\n:5003]
+  GW --> LED[Ledger Service\n:5004]
+  GW --> REW[Rewards Service\n:5005]
+  GW --> CAT[Catalog Service\n:5006]
+  GW --> REC[Receipts Service\n:5008]
+  GW --> ADM[Admin Service\n:5009]
+
+  AUTH --> DB1[(Auth DB)]
+  PROF --> DB2[(Profile DB)]
+  WAL --> DB3[(Wallet DB)]
+  LED --> DB4[(Ledger DB)]
+  REW --> DB5[(Rewards DB)]
+  CAT --> DB6[(Catalog DB)]
+  REC --> DB7[(Receipts DB)]
+  ADM --> DB8[(Admin DB)]
+
+  AUTH --> MQ[(RabbitMQ\n:5672)]
+  WAL --> MQ
+  LED --> MQ
+  CAT --> MQ
+  NOTIF[Notification\nService :5007] --> MQ
+  REC --> MQ
+  MQ --> NOTIF
+  MQ --> REC
+  MQ --> REW
+
+  style GW fill:#e8a020,color:#000,stroke:#c47a0a
+  style MQ fill:#ff6b35,color:#fff,stroke:#cc5429
+  style BOT fill:#1de9b6,color:#000,stroke:#16bfa0
+      </div>
+    </div>
+
+    <h3>API Gateway Routing</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-route"></i> Gateway Route Map</div>
+      <div class="mermaid">
+flowchart LR
+  GW["🔀 Gateway\nlocalhost:5000"]
+  GW -->|"/gateway/auth/*"| S1["Auth\n:5001"]
+  GW -->|"/gateway/profile/*\n/gateway/kyc/*"| S2["UserProfile\n:5002"]
+  GW -->|"/gateway/wallet/*"| S3["Wallet\n:5003"]
+  GW -->|"/gateway/transactions/*"| S4["Ledger\n:5004"]
+  GW -->|"/gateway/rewards/*"| S5["Rewards\n:5005"]
+  GW -->|"/gateway/catalog/*\n/gateway/redemptions/*"| S6["Catalog\n:5006"]
+  GW -->|"/gateway/receipts/*"| S7["Receipts\n:5008"]
+  GW -->|"/gateway/admin/*"| S8["Admin\n:5009"]
+
+  style GW fill:#e8a020,color:#000
+      </div>
+    </div>
+
+    <h3>Architecture Principles</h3>
+    <ul>
+      <li><strong>Clean Architecture</strong>: Every .NET service is layered as API → Core → Infrastructure.</li>
+      <li><strong>Database-per-Service</strong>: Hard ownership boundaries; no cross-service SQL joins.</li>
+      <li><strong>Idempotency</strong>: Financial endpoints auto-generate or accept idempotency keys to prevent duplicate processing.</li>
+      <li><strong>Event Sourcing Lite</strong>: Ledger entries are immutable append-only records; domain events propagate side effects asynchronously.</li>
+      <li><strong>Self-Healing</strong>: Profile and Wallet services use get-or-create patterns as a fallback to RabbitMQ delivery.</li>
+    </ul>
+
+    <h3>Non-Functional Requirements</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>NFR</th><th>Approach</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Scalability</strong></td><td>Stateless APIs, scale-out per service independently</td></tr>
+          <tr><td><strong>Performance</strong></td><td>Event-driven for non-critical path; async message consumption</td></tr>
+          <tr><td><strong>Availability</strong></td><td>Fault isolation per service; retry/backoff for event consumers</td></tr>
+          <tr><td><strong>Reliability</strong></td><td>Idempotency keys prevent duplicate financial operations</td></tr>
+          <tr><td><strong>Observability</strong></td><td>Serilog structured logging; request logging at gateway level</td></tr>
+          <tr><td><strong>Security</strong></td><td>Token-based auth; least privilege via RBAC; CORS at gateway</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- LLD -->
+  <section class="doc-section" id="lld">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-cogs"></i></div>
+      <div class="section-header-text">
+        <h2>Low-Level Design (LLD)</h2>
+        <p>Module-level design, service internals, workflows, and patterns</p>
+      </div>
+    </div>
+
+    <h3>Design Patterns Used</h3>
+    <div class="card-grid">
+      <div class="card"><div class="card-icon"><i class="fas fa-layer-group"></i></div><h4>Clean Architecture</h4><p>API / Core / Infrastructure separation per service.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-database"></i></div><h4>Repository Pattern</h4><p>Data access isolation behind IRepository abstractions.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-exchange-alt"></i></div><h4>DTO Pattern</h4><p>No domain entities exposed over the wire; dedicated request/response DTOs.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-check-circle"></i></div><h4>Result Pattern</h4><p>Result&lt;T&gt; typed returns for all business operation outcomes.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-fingerprint"></i></div><h4>Idempotency Pattern</h4><p>Idempotency keys stored and checked before processing financial writes.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-broadcast-tower"></i></div><h4>Event-Driven Integration</h4><p>Async side effects via RabbitMQ; eventual consistency for non-financial paths.</p></div>
+    </div>
+
+    <h3>User Registration Sequence</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-user-plus"></i> Registration Happy Path</div>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Frontend
+  participant GW as API Gateway
+  participant AUTH as Auth Service
+  participant MQ as RabbitMQ
+  participant WAL as Wallet Service
+  participant PROF as UserProfile Service
+  participant REW as Rewards Service
+  participant NOTIF as Notification Service
+
+  FE->>GW: POST /gateway/auth/register
+  GW->>AUTH: POST /api/auth/register
+  AUTH-->>AUTH: Hash password, create user, issue tokens
+  AUTH-->>GW: 201 { accessToken, refreshToken }
+  AUTH->>MQ: publish UserRegisteredEvent
+  par Async Side Effects
+    MQ-->>WAL: consume → create wallet
+    MQ-->>PROF: consume → seed profile
+    MQ-->>REW: consume → welcome bonus + account seed
+    MQ-->>NOTIF: consume → send welcome email
+  end
+  GW-->>FE: 201 { accessToken, refreshToken }
+      </div>
+    </div>
+
+    <h3>Money Transfer Sequence</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-exchange-alt"></i> Transaction Flow (Transfer)</div>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Frontend
+  participant GW as API Gateway
+  participant LED as Ledger Service
+  participant MQ as RabbitMQ
+  participant WAL as Wallet Service
+  participant REW as Rewards Service
+  participant REC as Receipts Service
+  participant NOTIF as Notification Service
+
+  FE->>GW: POST /gateway/transactions { amount, toUserId, memo }
+  GW->>LED: POST /api/transactions
+  LED-->>LED: Validate, check idempotency key
+  LED-->>LED: Write debit + credit ledger entries
+  LED-->>GW: 200 { transactionId, status }
+  LED->>MQ: publish TransactionCompletedEvent
+  par Async Side Effects
+    MQ-->>WAL: consume → adjust balances
+    MQ-->>REW: consume → award loyalty points
+    MQ-->>REC: consume → generate receipt
+    MQ-->>NOTIF: consume → email both parties
+  end
+  GW-->>FE: 200 { transactionId, status }
+      </div>
+    </div>
+
+    <h3>Catalog Redemption Sequence</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-gift"></i> Reward Redemption Flow</div>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Frontend
+  participant GW as API Gateway
+  participant CAT as Catalog Service
+  participant REW as Rewards Service
+  participant MQ as RabbitMQ
+
+  FE->>GW: POST /gateway/redemptions { catalogItemId }
+  GW->>CAT: POST /api/redemptions
+  CAT-->>CAT: Validate stock, check user eligibility
+  CAT->>REW: POST /api/rewards/deduct (internal sync)
+  REW-->>CAT: 204 NoContent (points deducted)
+  CAT-->>CAT: Issue voucher code, persist redemption
+  CAT-->>GW: 200 { redemptionId, voucherCode }
+  CAT->>MQ: publish PointsRedeemedEvent
+  GW-->>FE: 200 { redemptionId, voucherCode }
+      </div>
+    </div>
+
+    <h3>KYC Workflow Sequence</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-id-card"></i> KYC Submit &amp; Review</div>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant FE as Frontend
+  participant GW as Gateway
+  participant PROF as UserProfile Service
+  participant MQ as RabbitMQ
+  participant NOTIF as Notification Service
+
+  FE->>GW: POST /gateway/kyc/submit { documents }
+  GW->>PROF: POST /api/kyc/submit
+  PROF-->>PROF: Store KYC document payload, mark pending
+  PROF-->>GW: 200 { kycId, status: Pending }
+  GW-->>FE: 200
+
+  Note over PROF: Admin reviews in back-office
+  FE->>GW: POST /gateway/kyc/review/{profileId} (Admin)
+  GW->>PROF: POST /api/kyc/review/{profileId}
+  PROF-->>PROF: Update KYC status (Approved/Rejected)
+  PROF->>MQ: publish KYCStatusUpdatedEvent
+  MQ-->>NOTIF: consume → email user with decision
+  PROF-->>GW: 200 { status }
+  GW-->>FE: 200
+      </div>
+    </div>
+
+    <h3>Bill Split State Machine</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-divide"></i> Bill Split State Transitions</div>
+      <div class="mermaid">
+stateDiagram-v2
+  [*] --> Created : POST /wallet/billsplit
+  Created --> PartiallyPaid : One participant pays
+  PartiallyPaid --> PartiallyPaid : Another participant pays
+  PartiallyPaid --> Settled : All shares paid
+  Created --> Settled : Single-participant split
+  Settled --> [*]
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENT-DRIVEN ARCHITECTURE -->
+  <section class="doc-section" id="event-arch">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-project-diagram"></i></div>
+      <div class="section-header-text">
+        <h2>Event-Driven Architecture</h2>
+        <p>RabbitMQ exchanges, queues, and async event contracts</p>
+      </div>
+    </div>
+
+    <p>Services communicate asynchronously via RabbitMQ. The shared contracts library (<code>Shared.Contracts</code>) defines all events and queue names, ensuring type safety across service boundaries.</p>
+
+    <h3>Event Contracts</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Event</th><th>Publisher</th><th>Consumers</th><th>Exchange</th></tr></thead>
+        <tbody>
+          <tr><td><code>UserRegisteredEvent</code></td><td>Auth</td><td>Wallet, UserProfile, Rewards, Notification</td><td><code>user.exchange</code></td></tr>
+          <tr><td><code>KYCStatusUpdatedEvent</code></td><td>UserProfile</td><td>Notification</td><td><code>user.exchange</code></td></tr>
+          <tr><td><code>TransactionCompletedEvent</code></td><td>Ledger</td><td>Wallet, Rewards, Receipts, Notification</td><td><code>transaction.exchange</code></td></tr>
+          <tr><td><code>TransactionFailedEvent</code></td><td>Ledger</td><td>Notification</td><td><code>transaction.exchange</code></td></tr>
+          <tr><td><code>WalletFrozenEvent</code></td><td>Wallet</td><td>Notification</td><td><code>wallet.exchange</code></td></tr>
+          <tr><td><code>PointsRedeemedEvent</code></td><td>Catalog</td><td>(analytics / future)</td><td><code>catalog.exchange</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Event Flow Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-stream"></i> RabbitMQ Event Bus Topology</div>
+      <div class="mermaid">
+flowchart TD
+  subgraph Publishers
+    AUTH[Auth Service]
+    LED[Ledger Service]
+    WAL[Wallet Service]
+    PROF[UserProfile Service]
+    CAT[Catalog Service]
+  end
+
+  subgraph Exchanges
+    UE[user.exchange]
+    TE[transaction.exchange]
+    WE[wallet.exchange]
+    CE[catalog.exchange]
+    DL[dead.letter.exchange]
+  end
+
+  subgraph Queues
+    Q1[wallet.creation.queue]
+    Q2[rewards.user.registered.queue]
+    Q3[user.registered.notification.queue]
+    Q4[transaction.completed.wallet.queue]
+    Q5[transaction.completed.rewards.queue]
+    Q6[transaction.completed.receipts.queue]
+    Q7[transaction.completed.notification.queue]
+    Q8[wallet.frozen.notification.queue]
+    Q9[kyc.updated.notification.queue]
+    DQ[dead.letter.queue]
+  end
+
+  subgraph Consumers
+    WALS[Wallet Service]
+    REWS[Rewards Service]
+    RECS[Receipts Service]
+    NOTIF[Notification Service]
+  end
+
+  AUTH --> UE --> Q1 & Q2 & Q3
+  LED --> TE --> Q4 & Q5 & Q6 & Q7
+  WAL --> WE --> Q8
+  PROF --> UE --> Q9
+  CAT --> CE
+
+  Q1 --> WALS
+  Q2 --> REWS
+  Q3 & Q7 & Q8 & Q9 --> NOTIF
+  Q5 --> REWS
+  Q6 --> RECS
+  Q4 --> WALS
+
+  DL --> DQ
+  style DL fill:#ff4757,color:#fff
+  style DQ fill:#ff4757,color:#fff
+      </div>
+    </div>
+
+    <h3>Queue Reference</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Queue Name</th><th>Trigger Event</th><th>Consumer</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><code>wallet.creation.queue</code></td><td>UserRegistered</td><td>Wallet Service</td><td>Create wallet for new user</td></tr>
+          <tr><td><code>rewards.user.registered.queue</code></td><td>UserRegistered</td><td>Rewards Service</td><td>Seed rewards account + welcome bonus</td></tr>
+          <tr><td><code>user.registered.notification.queue</code></td><td>UserRegistered</td><td>Notification Service</td><td>Send welcome email</td></tr>
+          <tr><td><code>transaction.completed.wallet.queue</code></td><td>TransactionCompleted</td><td>Wallet Service</td><td>Adjust wallet balances</td></tr>
+          <tr><td><code>transaction.completed.rewards.queue</code></td><td>TransactionCompleted</td><td>Rewards Service</td><td>Award loyalty points</td></tr>
+          <tr><td><code>transaction.completed.receipts.queue</code></td><td>TransactionCompleted</td><td>Receipts Service</td><td>Generate transaction receipt</td></tr>
+          <tr><td><code>transaction.completed.notification.queue</code></td><td>TransactionCompleted</td><td>Notification Service</td><td>Email notification to parties</td></tr>
+          <tr><td><code>transaction.failed.notification.queue</code></td><td>TransactionFailed</td><td>Notification Service</td><td>Failure alert email</td></tr>
+          <tr><td><code>wallet.frozen.notification.queue</code></td><td>WalletFrozen</td><td>Notification Service</td><td>Freeze alert to user</td></tr>
+          <tr><td><code>kyc.updated.notification.queue</code></td><td>KYCStatusUpdated</td><td>Notification Service</td><td>KYC decision email</td></tr>
+          <tr><td><code>points.redeemed.queue</code></td><td>PointsRedeemed</td><td>Future consumers</td><td>Analytics / reporting</td></tr>
+          <tr><td><code>dead.letter.queue</code></td><td>Any failed msg</td><td>Operations</td><td>Dead-letter inspection</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- DATABASE DESIGN -->
+  <section class="doc-section" id="database">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-database"></i></div>
+      <div class="section-header-text">
+        <h2>Database Design</h2>
+        <p>Database-per-service architecture, entity models, and relationships</p>
+      </div>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i><div><strong>Database-per-Service</strong>: Each microservice owns its own SQL Server database. Cross-service data access is only permitted via synchronous HTTP calls or event payloads — never via shared database joins.</div></div>
+
+    <h3>Auth Service — Data Model</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-key"></i> Auth Database ERD</div>
+      <div class="mermaid">
+erDiagram
+  Users {
+    guid Id PK
+    string Email UK
+    string PasswordHash
+    string PhoneNumber
+    bool IsVerified
+    string Role
+    datetime CreatedAt
+  }
+  RefreshTokens {
+    guid Id PK
+    guid UserId FK
+    string Token UK
+    datetime ExpiresAt
+    bool IsRevoked
+    datetime CreatedAt
+  }
+  OtpEntries {
+    guid Id PK
+    guid UserId FK
+    string Code
+    string Purpose
+    datetime ExpiresAt
+    bool IsUsed
+  }
+  Users ||--o{ RefreshTokens : "has"
+  Users ||--o{ OtpEntries : "receives"
+      </div>
+    </div>
+
+    <h3>Wallet Service — Data Model</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-wallet"></i> Wallet Database ERD</div>
+      <div class="mermaid">
+erDiagram
+  Wallets {
+    guid Id PK
+    guid UserId UK
+    decimal Balance
+    string Currency
+    bool IsFrozen
+    string FreezeReason
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+  BillSplits {
+    guid Id PK
+    guid CreatedByUserId FK
+    decimal TotalAmount
+    string Description
+    string Status
+    datetime CreatedAt
+  }
+  BillSplitParticipants {
+    guid Id PK
+    guid BillSplitId FK
+    guid UserId FK
+    decimal ShareAmount
+    bool HasPaid
+    datetime PaidAt
+  }
+  IdempotencyKeys {
+    guid Id PK
+    guid WalletId FK
+    string Key UK
+    datetime CreatedAt
+  }
+  Wallets ||--o{ BillSplits : "creates"
+  BillSplits ||--o{ BillSplitParticipants : "has"
+  Wallets ||--o{ IdempotencyKeys : "tracks"
+      </div>
+    </div>
+
+    <h3>Ledger Service — Data Model</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-receipt"></i> Ledger Database ERD (Double-Entry)</div>
+      <div class="mermaid">
+erDiagram
+  Transactions {
+    guid Id PK
+    guid FromUserId
+    guid ToUserId
+    decimal Amount
+    string Type
+    string Status
+    string Memo
+    string IdempotencyKey UK
+    datetime CreatedAt
+  }
+  LedgerEntries {
+    guid Id PK
+    guid TransactionId FK
+    guid UserId
+    string EntryType
+    decimal Amount
+    string Currency
+    datetime CreatedAt
+  }
+  Transactions ||--o{ LedgerEntries : "generates"
+      </div>
+    </div>
+
+    <h3>Rewards Service — Data Model</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-star"></i> Rewards Database ERD</div>
+      <div class="mermaid">
+erDiagram
+  RewardsAccounts {
+    guid Id PK
+    guid UserId UK
+    int TotalPoints
+    string Tier
+    datetime CreatedAt
+    datetime UpdatedAt
+  }
+  PointsTransactions {
+    guid Id PK
+    guid RewardsAccountId FK
+    int Points
+    string Type
+    string Description
+    datetime CreatedAt
+  }
+  RewardsAccounts ||--o{ PointsTransactions : "logs"
+      </div>
+    </div>
+
+    <h3>Core Table Schemas</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Entity</th><th>Key Columns</th><th>Service DB</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Users</td><td>Id, Email, PasswordHash, Role</td><td>Auth</td><td>Hashed passwords, RBAC role</td></tr>
+          <tr><td>RefreshTokens</td><td>Token, UserId, ExpiresAt, IsRevoked</td><td>Auth</td><td>Rotate on each use</td></tr>
+          <tr><td>UserProfiles</td><td>UserId, FirstName, LastName, PhoneNumber</td><td>UserProfile</td><td>Self-healing via get-or-create</td></tr>
+          <tr><td>KycDocuments</td><td>ProfileId, DocumentType, Payload, Status</td><td>UserProfile</td><td>Pending → Approved/Rejected</td></tr>
+          <tr><td>Wallets</td><td>UserId, Balance, IsFrozen, FreezeReason</td><td>Wallet</td><td>Currency default INR</td></tr>
+          <tr><td>Transactions</td><td>Id, FromUserId, ToUserId, Amount, Type, IdempotencyKey</td><td>Ledger</td><td>Transfer/TopUp/Payment types</td></tr>
+          <tr><td>LedgerEntries</td><td>TransactionId, UserId, EntryType, Amount</td><td>Ledger</td><td>Immutable; debit+credit pair</td></tr>
+          <tr><td>RewardsAccounts</td><td>UserId, TotalPoints, Tier</td><td>Rewards</td><td>Tier: Bronze/Silver/Gold</td></tr>
+          <tr><td>CatalogItems</td><td>Name, Description, PointsCost, Stock, IsActive</td><td>Catalog</td><td>Admin-managed</td></tr>
+          <tr><td>Redemptions</td><td>UserId, CatalogItemId, VoucherCode, RedeemedAt</td><td>Catalog</td><td>Immutable on issue</td></tr>
+          <tr><td>Receipts</td><td>TransactionId, UserId, Amount, PdfPath</td><td>Receipts</td><td>Event-driven creation</td></tr>
+          <tr><td>FraudFlags</td><td>TransactionId, FlaggedBy, Reason, Status</td><td>Admin</td><td>Admin review only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section class="doc-section" id="use-cases">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-users"></i></div>
+      <div class="section-header-text">
+        <h2>Use Case Documentation</h2>
+        <p>Actor-driven use cases, preconditions, flows, and alternate paths</p>
+      </div>
+    </div>
+
+    <h3>Actors</h3>
+    <div class="card-grid">
+      <div class="card"><div class="card-icon"><i class="fas fa-user"></i></div><h4>User</h4><p>Registered end user. Performs wallet operations, transfers, redemptions, KYC.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-user-shield"></i></div><h4>Admin</h4><p>Platform operator. Reviews KYC, freezes wallets, flags fraud, views dashboard.</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-server"></i></div><h4>System</h4><p>Internal services communicating over events (Notification, Receipts, Rewards).</p></div>
+      <div class="card"><div class="card-icon"><i class="fas fa-robot"></i></div><h4>AI Chatbot</h4><p>Google Gemini-powered assistant responding to user queries.</p></div>
+    </div>
+
+    <h3>UC-01: User Registration with OTP</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Actors</strong></td><td>User, Auth Service, Notification Service</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>User has valid email and password; email not already registered</td></tr>
+          <tr><td><strong>Basic Flow</strong></td><td>User submits register form → Auth creates user + issues tokens → UserRegisteredEvent published → Wallet, Profile, Rewards seeded asynchronously → Welcome email sent</td></tr>
+          <tr><td><strong>Alternate Flow</strong></td><td>User may also call <code>send-otp</code> and <code>verify-otp</code> for email/phone verification post-registration</td></tr>
+          <tr><td><strong>Exception Flow</strong></td><td>Duplicate email → <code>400 Bad Request</code>; weak password → <code>400</code> validation error</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>User record, wallet, profile, and rewards account exist; user holds valid JWT pair</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>UC-02: Wallet Top-Up</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Actors</strong></td><td>User, Wallet Service, Ledger Service</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>User authenticated; wallet exists and not frozen</td></tr>
+          <tr><td><strong>Basic Flow</strong></td><td>POST /gateway/wallet/topup → Wallet Service credits balance → Ledger records TopUp transaction → TransactionCompletedEvent fires → Receipt generated, points awarded</td></tr>
+          <tr><td><strong>Exception Flow</strong></td><td>Wallet frozen → <code>400</code>; amount ≤ 0 → validation error</td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>Wallet balance increased; receipt available; loyalty points credited</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>UC-03: Money Transfer</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Actors</strong></td><td>User (sender), User (receiver), Ledger Service, Wallet Service</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>Both users have wallets; sender has sufficient balance; not a self-transfer</td></tr>
+          <tr><td><strong>Basic Flow</strong></td><td>POST /gateway/transactions → Ledger validates → Writes debit+credit LedgerEntries → TransactionCompleted → Wallet balances adjusted → Both parties emailed → Receipt generated</td></tr>
+          <tr><td><strong>Alternate Flow</strong></td><td>Recipient identified by <code>email</code> via UserProfile lookup, then wallet looked up by userId</td></tr>
+          <tr><td><strong>Exception Flow</strong></td><td>Insufficient funds → <code>400</code>; recipient not found → <code>404</code>; self-transfer → <code>400</code></td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>Double-entry ledger updated; both wallets reconciled; email sent to both parties</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>UC-04: KYC Submission &amp; Admin Review</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Actors</strong></td><td>User, Admin, UserProfile Service, Notification Service</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>User authenticated; KYC not yet approved</td></tr>
+          <tr><td><strong>Basic Flow</strong></td><td>User POSTs KYC payload → Status set to Pending → Admin reviews at POST /gateway/kyc/review/{id} → Status updated → KYCStatusUpdatedEvent → User emailed decision</td></tr>
+          <tr><td><strong>Exception Flow</strong></td><td>Invalid document format → <code>400</code>; non-admin review attempt → <code>403 Forbidden</code></td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>KYC record updated; user notified; profile KYC status reflects decision</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>UC-05: Reward Redemption</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Actors</strong></td><td>User, Catalog Service, Rewards Service</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>User authenticated; sufficient points; item in stock and active</td></tr>
+          <tr><td><strong>Basic Flow</strong></td><td>POST /gateway/redemptions → Catalog validates stock + points → Synchronous call to Rewards to deduct points → Voucher issued → PointsRedeemedEvent published</td></tr>
+          <tr><td><strong>Exception Flow</strong></td><td>Insufficient points → <code>400</code>; out of stock → <code>400</code>; item inactive → <code>404</code></td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>Points deducted; voucher code issued; redemption record persisted</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>UC-06: Admin Wallet Freeze</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Actors</strong></td><td>Admin, Wallet Service, Notification Service</td></tr>
+          <tr><td><strong>Preconditions</strong></td><td>Caller has Admin role; target user exists</td></tr>
+          <tr><td><strong>Basic Flow</strong></td><td>POST /gateway/wallet/admin/freeze/{userId} + reason body → Wallet frozen → WalletFrozenEvent published → User emailed</td></tr>
+          <tr><td><strong>Exception Flow</strong></td><td>Non-admin caller → <code>403</code>; wallet already frozen → <code>400</code></td></tr>
+          <tr><td><strong>Postconditions</strong></td><td>Wallet IsFrozen=true; user cannot top-up or send; user emailed alert</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- API REFERENCE — AUTH -->
+  <section class="doc-section" id="api-auth">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-key"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Auth Service</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/auth</code> · Direct: <code>http://localhost:5001/api/auth</code></p>
+      </div>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i>Swagger available directly at <code>http://localhost:5001/swagger</code>. Gateway does not proxy Swagger UI.</div>
+
+    <!-- Register -->
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/auth/register</span>
+        <span class="endpoint-summary">Register new user</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;transition:transform 0.2s;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Creates a new user account and returns a JWT access token + refresh token pair. Publishes <code>UserRegisteredEvent</code> to seed wallet, profile, and rewards asynchronously.</p>
+        <h4>Request Body</h4>
+        <pre><code class="language-json">{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "phoneNumber": "+919876543210"
+}</code></pre>
+        <h4>Success Response <span class="status-badge status-201">201 Created</span></h4>
+        <pre><code class="language-json">{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...",
+  "expiresIn": 3600
+}</code></pre>
+        <h4>Error Responses</h4>
+        <div class="table-wrap"><table><thead><tr><th>Status</th><th>Condition</th></tr></thead><tbody>
+          <tr><td><span class="status-badge status-400">400</span></td><td>Duplicate email, weak password, invalid payload</td></tr>
+          <tr><td><span class="status-badge status-500">500</span></td><td>Server error</td></tr>
+        </tbody></table></div>
+        <h4>cURL</h4>
+        <pre><code class="language-bash">curl -X POST http://localhost:5000/gateway/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"SecurePass123!","phoneNumber":"+919876543210"}'</code></pre>
+      </div>
+    </div>
+
+    <!-- Login -->
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/auth/login</span>
+        <span class="endpoint-summary">Authenticate user</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Validates credentials and returns a fresh token pair.</p>
+        <h4>Request Body</h4>
+        <pre><code class="language-json">{ "email": "user@example.com", "password": "SecurePass123!" }</code></pre>
+        <h4>Success Response <span class="status-badge status-200">200 OK</span></h4>
+        <pre><code class="language-json">{ "accessToken": "eyJ...", "refreshToken": "dGh...", "expiresIn": 3600 }</code></pre>
+        <div class="table-wrap"><table><thead><tr><th>Status</th><th>Condition</th></tr></thead><tbody>
+          <tr><td><span class="status-badge status-401">401</span></td><td>Invalid credentials</td></tr>
+          <tr><td><span class="status-badge status-400">400</span></td><td>Invalid payload</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Refresh -->
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/auth/refresh</span>
+        <span class="endpoint-summary">Rotate refresh token</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Accepts an existing refresh token and returns a new access + refresh token pair. Old refresh token is invalidated.</p>
+        <h4>Request Body</h4>
+        <pre><code class="language-json">{ "refreshToken": "dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4..." }</code></pre>
+        <h4>Success Response <span class="status-badge status-200">200 OK</span></h4>
+        <pre><code class="language-json">{ "accessToken": "eyJ...", "refreshToken": "new_token...", "expiresIn": 3600 }</code></pre>
+      </div>
+    </div>
+
+    <!-- me -->
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/auth/me</span>
+        <span class="endpoint-summary">Get caller identity · JWT required</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Returns identity claims extracted from the JWT (userId, email, role).</p>
+        <h4>Headers</h4>
+        <pre><code class="language-bash">Authorization: Bearer &lt;accessToken&gt;</code></pre>
+        <h4>Success Response <span class="status-badge status-200">200 OK</span></h4>
+        <pre><code class="language-json">{ "userId": "uuid", "email": "user@example.com", "role": "User" }</code></pre>
+      </div>
+    </div>
+
+    <!-- OTP -->
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/auth/send-otp &nbsp;·&nbsp; /gateway/auth/verify-otp</span>
+        <span class="endpoint-summary">OTP verification</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p><strong>send-otp</strong>: Generates and sends OTP to user email/phone. In Development mode, OTP may be returned in response for testing.</p>
+        <pre><code class="language-json">// send-otp request
+{ "email": "user@example.com", "purpose": "EmailVerification" }
+
+// verify-otp request
+{ "email": "user@example.com", "code": "123456", "purpose": "EmailVerification" }</code></pre>
+        <div class="callout warn"><i class="fas fa-exclamation-triangle"></i>In Production, OTP is delivered only via SMTP. Never logged or returned in response.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — PROFILE -->
+  <section class="doc-section" id="api-profile">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-user"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — User Profile &amp; KYC</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/profile</code> &amp; <code>/gateway/kyc</code></p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/profile</span>
+        <span class="endpoint-summary">Get or create current user profile · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Returns the authenticated user's profile. Uses <strong>get-or-create</strong> self-healing pattern — creates the profile if it doesn't exist (fallback to event-driven seeding).</p>
+        <pre><code class="language-json">{
+  "userId": "uuid",
+  "firstName": "Aaryan",
+  "lastName": "Sharma",
+  "email": "aaryan@example.com",
+  "phoneNumber": "+919876543210",
+  "kycStatus": "Pending",
+  "createdAt": "2026-01-01T10:00:00Z"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method put">PUT</span>
+        <span class="endpoint-path">/gateway/profile</span>
+        <span class="endpoint-summary">Update mutable profile fields · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">// Request
+{ "firstName": "Aaryan", "lastName": "Sharma", "phoneNumber": "+919876543210" }</code></pre>
+        <p>Returns updated profile on <span class="status-badge status-200">200</span>.</p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/profile/lookup?email={email}</span>
+        <span class="endpoint-summary">Lookup profile by email · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Used by Wallet Service to resolve <code>userId</code> from an email address for "send by email" transfers.</p>
+        <pre><code class="language-bash">GET /gateway/profile/lookup?email=recipient@example.com</code></pre>
+        <pre><code class="language-json">{ "userId": "uuid", "displayName": "Jane Doe", "email": "recipient@example.com" }</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/kyc/submit</span>
+        <span class="endpoint-summary">Submit KYC documents · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "documentType": "Aadhaar",
+  "documentNumber": "XXXX-XXXX-XXXX",
+  "documentImageBase64": "data:image/jpeg;base64,..."
+}</code></pre>
+        <p>Returns <span class="status-badge status-200">200</span> <code>{ kycId, status: "Pending" }</code>. Async email notification sent when Admin reviews.</p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/kyc/review/{userProfileId}</span>
+        <span class="endpoint-summary">Admin: Approve / Reject KYC</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <div class="callout warn"><i class="fas fa-lock"></i>Requires <code>Admin</code> role in JWT claims.</div>
+        <pre><code class="language-json">{ "decision": "Approved", "notes": "Documents valid and clear" }</code></pre>
+        <p>Publishes <code>KYCStatusUpdatedEvent</code>; user receives email notification.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — WALLET -->
+  <section class="doc-section" id="api-wallet">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-wallet"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Wallet Service</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/wallet</code></p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/wallet</span>
+        <span class="endpoint-summary">Get current user wallet · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "walletId": "uuid",
+  "userId": "uuid",
+  "balance": 2500.00,
+  "currency": "INR",
+  "isFrozen": false,
+  "createdAt": "2026-01-01T00:00:00Z"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/wallet/topup</span>
+        <span class="endpoint-summary">Top up wallet · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">// Request
+{ "amount": 500.00, "description": "Add funds via UPI" }
+
+// Response 200
+{ "walletId": "uuid", "newBalance": 3000.00, "transactionId": "uuid" }</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/wallet/billsplit</span>
+        <span class="endpoint-summary">Create bill split · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">// Request
+{
+  "totalAmount": 1200.00,
+  "description": "Dinner at The Taj",
+  "participants": [
+    { "userId": "uuid-1" },
+    { "userId": "uuid-2" }
+  ]
+}
+
+// Response 200
+{ "billSplitId": "uuid", "sharePerPerson": 400.00, "status": "Created" }</code></pre>
+        <p>Participants retrieve their bill splits via <code>GET /gateway/wallet/billsplit/owed</code> and pay via <code>POST /gateway/wallet/billsplit/{id}/pay</code>.</p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/wallet/admin/freeze/{userId}</span>
+        <span class="endpoint-summary">Admin: Freeze wallet</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <div class="callout warn"><i class="fas fa-lock"></i>Requires <code>Admin</code> role.</div>
+        <pre><code class="language-json">{ "reason": "Suspected fraudulent activity" }</code></pre>
+        <p>Returns <span class="status-badge status-200">200</span>. Publishes <code>WalletFrozenEvent</code> → user emailed.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — LEDGER -->
+  <section class="doc-section" id="api-ledger">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-receipt"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Ledger Service</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/transactions</code></p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/transactions</span>
+        <span class="endpoint-summary">Initiate a transaction · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Initiates a Transfer, TopUp, or Payment. Auto-generates idempotency key if not provided. Creates immutable debit+credit ledger entry pair.</p>
+        <h4>Request Body</h4>
+        <pre><code class="language-json">{
+  "toUserId": "uuid",
+  "amount": 750.00,
+  "type": "Transfer",
+  "memo": "Rent for March",
+  "idempotencyKey": "optional-client-uuid"
+}</code></pre>
+        <h4>Response <span class="status-badge status-200">200 OK</span></h4>
+        <pre><code class="language-json">{
+  "transactionId": "uuid",
+  "status": "Completed",
+  "amount": 750.00,
+  "type": "Transfer",
+  "createdAt": "2026-04-15T10:00:00Z"
+}</code></pre>
+        <h4>Validation Rules</h4>
+        <ul>
+          <li>Amount must be greater than 0</li>
+          <li>Self-transfers not allowed (fromUserId ≠ toUserId)</li>
+          <li>Memo max 256 characters</li>
+          <li>Type must be: <code>Transfer</code> | <code>TopUp</code> | <code>Payment</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/transactions/my?page=1&amp;pageSize=20</span>
+        <span class="endpoint-summary">Get my transaction history · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "page": 1, "pageSize": 20, "total": 45,
+  "transactions": [
+    { "transactionId": "uuid", "amount": 750.00, "type": "Transfer",
+      "status": "Completed", "memo": "Rent for March", "createdAt": "2026-04-15T10:00:00Z" }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/transactions/summary</span>
+        <span class="endpoint-summary">Get aggregate stats · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "totalTransactions": 45,
+  "totalSent": 12500.00,
+  "totalReceived": 18000.00,
+  "totalTopUps": 5000.00,
+  "currency": "INR"
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — REWARDS -->
+  <section class="doc-section" id="api-rewards">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-star"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Rewards Service</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/rewards</code></p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/rewards</span>
+        <span class="endpoint-summary">Get rewards account summary · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "accountId": "uuid",
+  "userId": "uuid",
+  "totalPoints": 1250,
+  "tier": "Silver",
+  "nextTierPoints": 2000,
+  "nextTier": "Gold"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/rewards/history</span>
+        <span class="endpoint-summary">Get points history · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "history": [
+    { "points": 75, "type": "Earned", "description": "Transfer ₹750", "createdAt": "2026-04-15T10:00:00Z" },
+    { "points": -200, "type": "Redeemed", "description": "Amazon ₹200 Voucher", "createdAt": "2026-04-10T09:00:00Z" },
+    { "points": 100, "type": "WelcomeBonus", "description": "Registration bonus", "createdAt": "2026-04-01T00:00:00Z" }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i><strong>Internal Endpoints</strong>: <code>GET /api/rewards/account/{userId}</code> and <code>POST /api/rewards/deduct</code> are AllowAnonymous for internal service-to-service use only (Catalog Service calls deduct). These should be network-restricted in production.</div>
+  </section>
+
+  <!-- API — CATALOG -->
+  <section class="doc-section" id="api-catalog">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-store"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Catalog &amp; Redemptions</h2>
+        <p>Base URL: <code>/gateway/catalog</code> · <code>/gateway/redemptions</code></p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/catalog</span>
+        <span class="endpoint-summary">List active catalog items · Public</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "items": [
+    { "id": "uuid", "name": "Amazon ₹200 Voucher", "description": "Redeemable on Amazon.in",
+      "pointsCost": 200, "stock": 150, "category": "Shopping", "isActive": true }
+  ]
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/redemptions</span>
+        <span class="endpoint-summary">Redeem catalog item · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">// Request
+{ "catalogItemId": "uuid" }
+
+// Response 200
+{ "redemptionId": "uuid", "voucherCode": "AMZN-XXXX-YYYY-ZZZZ", "redeemedAt": "2026-04-15T12:00:00Z" }</code></pre>
+        <div class="table-wrap"><table><thead><tr><th>Error</th><th>Condition</th></tr></thead><tbody>
+          <tr><td><span class="status-badge status-400">400</span></td><td>Insufficient points, out of stock</td></tr>
+          <tr><td><span class="status-badge status-404">404</span></td><td>Catalog item not found or inactive</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/catalog</span>
+        <span class="endpoint-summary">Admin: Create catalog item</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <div class="callout warn"><i class="fas fa-lock"></i>Requires <code>Admin</code> role.</div>
+        <pre><code class="language-json">{
+  "name": "Flipkart ₹500 Voucher",
+  "description": "Valid on all Flipkart categories",
+  "pointsCost": 500,
+  "stock": 100,
+  "category": "Shopping"
+}</code></pre>
+        <p>Returns <span class="status-badge status-201">201 Created</span> with the new catalog item.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — RECEIPTS -->
+  <section class="doc-section" id="api-receipts">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-file-pdf"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Receipts Service</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/receipts</code></p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/receipts/transaction/{transactionId}</span>
+        <span class="endpoint-summary">Get receipt JSON · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "receiptId": "uuid",
+  "transactionId": "uuid",
+  "userId": "uuid",
+  "amount": 750.00,
+  "type": "Transfer",
+  "memo": "Rent for March",
+  "status": "Completed",
+  "generatedAt": "2026-04-15T10:01:00Z"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/receipts/transaction/{transactionId}/pdf</span>
+        <span class="endpoint-summary">Download PDF receipt · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Returns <code>Content-Type: application/pdf</code> binary stream. Status <span class="status-badge status-200">200</span> on success, <span class="status-badge status-404">404</span> if not yet generated.</p>
+        <pre><code class="language-bash">curl -H "Authorization: Bearer TOKEN" \
+  http://localhost:5000/gateway/receipts/transaction/{id}/pdf \
+  --output receipt.pdf</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/receipts/export/csv</span>
+        <span class="endpoint-summary">Export all receipts as CSV · JWT</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <p>Returns <code>Content-Type: text/csv</code> with all receipts for the authenticated user. Useful for expense reporting.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — ADMIN -->
+  <section class="doc-section" id="api-admin">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-shield-alt"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Admin Service</h2>
+        <p>Base URL: <code>http://localhost:5000/gateway/admin</code> · All endpoints require <code>Admin</code> role</p>
+      </div>
+    </div>
+
+    <div class="callout danger"><i class="fas fa-lock"></i>All Admin Service endpoints require a JWT with role claim <code>Admin</code>. Unauthorized callers receive <span class="status-badge status-403">403 Forbidden</span>.</div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/admin/dashboard</span>
+        <span class="endpoint-summary">Dashboard statistics · Admin</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "totalUsers": 1450,
+  "activeWallets": 1380,
+  "totalTransactionsToday": 328,
+  "totalVolumeToday": 245000.00,
+  "pendingKycReviews": 12,
+  "openFraudFlags": 3,
+  "currency": "INR"
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/gateway/admin/transactions/{transactionId}/flag</span>
+        <span class="endpoint-summary">Flag transaction as fraudulent · Admin</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">// Request
+{ "reason": "Unusually large transfer to new recipient", "severity": "High" }
+
+// Response 200
+{ "flagId": "uuid", "transactionId": "uuid", "status": "Flagged" }</code></pre>
+        <p>Status <span class="status-badge status-400">400</span> if transaction already flagged.</p>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/gateway/admin/transactions/fraud-flags</span>
+        <span class="endpoint-summary">List all fraud flags · Admin</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{
+  "flags": [
+    { "flagId": "uuid", "transactionId": "uuid", "reason": "...", "severity": "High", "flaggedAt": "2026-04-15T09:00:00Z", "status": "Open" }
+  ]
+}</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- API — CHATBOT -->
+  <section class="doc-section" id="api-chatbot">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-robot"></i></div>
+      <div class="section-header-text">
+        <h2>API Reference — Chatbot Service</h2>
+        <p>Base URL: <code>http://localhost:8000</code> · Direct (not via Ocelot gateway)</p>
+      </div>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i>The chatbot service is a standalone <strong>Python FastAPI</strong> app powered by <strong>Google Gemini 2.5 Flash</strong>. It is accessed directly by the Angular frontend, not via the Ocelot gateway.</div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method post">POST</span>
+        <span class="endpoint-path">/api/chat</span>
+        <span class="endpoint-summary">Send message to AI assistant</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <h4>Request Body</h4>
+        <pre><code class="language-json">{
+  "message": "How do I redeem my loyalty points?",
+  "history": [
+    { "role": "user", "content": "Hi" },
+    { "role": "assistant", "content": "Hello! How can I help you today?" }
+  ]
+}</code></pre>
+        <h4>Response <span class="status-badge status-200">200 OK</span></h4>
+        <pre><code class="language-json">{
+  "reply": "You can redeem your points by visiting the Rewards section, browsing the Catalog, and clicking Redeem on any item you have enough points for. Your voucher code will be shown immediately."
+}</code></pre>
+        <div class="table-wrap"><table><thead><tr><th>Status</th><th>Condition</th></tr></thead><tbody>
+          <tr><td><span class="status-badge status-200">200</span></td><td>Successful AI response</td></tr>
+          <tr><td><span class="status-badge status-500">503</span></td><td>Gemini API key not configured (<code>ai_configured: false</code>)</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+
+    <div class="endpoint-block">
+      <div class="endpoint-header" onclick="toggleEndpoint(this)">
+        <span class="method get">GET</span>
+        <span class="endpoint-path">/health</span>
+        <span class="endpoint-summary">Health check</span>
+        <i class="fas fa-chevron-down" style="color:var(--text-dim);margin-left:8px;"></i>
+      </div>
+      <div class="endpoint-body">
+        <pre><code class="language-json">{ "status": "ok", "ai_configured": true }</code></pre>
+        <p>Use <code>ai_configured: false</code> to detect missing <code>GEMINI_API_KEY</code> in <code>chatbot_service/.env</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="doc-section" id="security">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-lock"></i></div>
+      <div class="section-header-text">
+        <h2>Security Architecture</h2>
+        <p>JWT lifecycle, RBAC, OTP flows, and data protection</p>
+      </div>
+    </div>
+
+    <h3>JWT Authentication Flow</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-key"></i> Token Lifecycle</div>
+      <div class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant GW as Gateway
+  participant AUTH as Auth Service
+  participant SVC as Protected Service
+
+  C->>AUTH: POST /register or /login
+  AUTH-->>C: { accessToken (1h), refreshToken (7d) }
+  
+  C->>GW: Request + Authorization: Bearer accessToken
+  GW->>SVC: Forward with token
+  SVC-->>SVC: Validate JWT signature + expiry
+  SVC-->>C: 200 Response
+
+  Note over C: Access token expires
+  C->>AUTH: POST /refresh { refreshToken }
+  AUTH-->>AUTH: Validate refresh token, rotate it
+  AUTH-->>C: { new accessToken, new refreshToken }
+
+  Note over C: User logs out
+  C->>AUTH: POST /revoke { refreshToken }
+  AUTH-->>AUTH: Mark token IsRevoked=true
+  AUTH-->>C: 204 No Content
+      </div>
+    </div>
+
+    <h3>Role-Based Access Control (RBAC)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Endpoint Pattern</th><th>Required Role</th><th>Enforcement Point</th></tr></thead>
+        <tbody>
+          <tr><td><code>/gateway/admin/*</code></td><td>Admin</td><td>Admin Service controller [Authorize(Roles="Admin")]</td></tr>
+          <tr><td><code>/gateway/wallet/admin/*</code></td><td>Admin</td><td>Wallet Service controller</td></tr>
+          <tr><td><code>/gateway/kyc/review/*</code></td><td>Admin</td><td>UserProfile Service controller</td></tr>
+          <tr><td><code>/gateway/catalog</code> (POST)</td><td>Admin</td><td>Catalog Service controller</td></tr>
+          <tr><td><code>/gateway/profile/admin/all</code></td><td>Admin</td><td>UserProfile Service controller</td></tr>
+          <tr><td>All other protected endpoints</td><td>User (any authenticated)</td><td>[Authorize] attribute</td></tr>
+          <tr><td><code>/gateway/catalog</code> (GET)</td><td>None (public)</td><td>[AllowAnonymous]</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>OTP Verification Flow</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-mobile-alt"></i> OTP Send &amp; Verify</div>
+      <div class="mermaid">
+flowchart LR
+  A[Client] -->|POST /send-otp| B[Auth Service]
+  B -->|Generate 6-digit OTP| C[Store in OtpEntries\nwith expiry + IsUsed=false]
+  B -->|SMTP| D[Email/SMS Delivery]
+  A -->|POST /verify-otp\n{ code, purpose }| B
+  B -->|Check: not used + not expired + match| E{Valid?}
+  E -->|Yes| F[Mark IsUsed=true → 200 OK]
+  E -->|No| G[400 Invalid or Expired OTP]
+      </div>
+    </div>
+
+    <h3>Security Best Practices Applied</h3>
+    <ul>
+      <li><strong>Password Hashing</strong>: BCrypt with configurable work factor.</li>
+      <li><strong>Refresh Token Rotation</strong>: Each use issues a new token; old one immediately invalidated.</li>
+      <li><strong>CORS Policy</strong>: Gateway configured to allow only Angular dev origin (<code>http://localhost:4200</code>) in development.</li>
+      <li><strong>Idempotency</strong>: Financial endpoints check stored idempotency keys to prevent duplicate processing on retries.</li>
+      <li><strong>Internal Endpoint Protection</strong>: Rewards Service internal endpoints (<code>/api/rewards/deduct</code>) use <code>AllowAnonymous</code> but should be network-isolated in production (not exposed via gateway).</li>
+      <li><strong>Structured Logging</strong>: No sensitive data (passwords, tokens) in Serilog structured logs.</li>
+    </ul>
+  </section>
+
+  <!-- DEVOPS -->
+  <section class="doc-section" id="devops">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-rocket"></i></div>
+      <div class="section-header-text">
+        <h2>DevOps &amp; Deployment</h2>
+        <p>Docker architecture, CI/CD pipeline, environment management</p>
+      </div>
+    </div>
+
+    <h3>Local Development Architecture</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fab fa-docker"></i> Docker Compose Infrastructure</div>
+      <div class="mermaid">
+flowchart TD
+  subgraph Docker["Docker Compose (docker/docker-compose.yml)"]
+    SQL["SQL Server\n:1433"]
+    MQ["RabbitMQ\n:5672 (AMQP)\n:15672 (Mgmt UI)"]
+  end
+
+  subgraph Local["Local Process (dotnet run)"]
+    GW["API Gateway :5000"]
+    S1["Auth :5001"]
+    S2["UserProfile :5002"]
+    S3["Wallet :5003"]
+    S4["Ledger :5004"]
+    S5["Rewards :5005"]
+    S6["Catalog :5006"]
+    S7["Notification :5007"]
+    S8["Receipts :5008"]
+    S9["Admin :5009"]
+    FE["Angular Dev Server :4200"]
+    BOT["FastAPI Chatbot :8000"]
+  end
+
+  S1 & S2 & S3 & S4 & S5 & S6 & S7 & S8 & S9 --> SQL
+  S1 & S3 & S4 & S5 & S6 & S7 & S8 & S9 --> MQ
+  FE --> GW
+  FE --> BOT
+
+  style Docker fill:#0d6efd22,stroke:#0d6efd
+      </div>
+    </div>
+
+    <h3>CI/CD Pipeline</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fab fa-github"></i> GitHub Actions Workflow</div>
+      <div class="mermaid">
+flowchart LR
+  Push[git push] --> CI[GitHub Actions Trigger]
+  CI --> Build[dotnet build\n.NET 10 services]
+  Build --> Test[dotnet test\nxUnit unit tests]
+  Test --> Angular[ng build --prod\nAngular 17]
+  Angular --> Docker[Docker image build\n per-service]
+  Docker --> Done[✅ Artifacts Ready]
+
+  style Done fill:#2ed57322,stroke:#2ed573
+      </div>
+    </div>
+
+    <h3>Environment Configuration</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Service</th><th>Config File</th><th>Key Settings</th></tr></thead>
+        <tbody>
+          <tr><td>.NET Services</td><td><code>appsettings.json</code> + <code>appsettings.Development.json</code></td><td>ConnectionStrings, JwtSettings, RabbitMQ host</td></tr>
+          <tr><td>API Gateway</td><td><code>ocelot.json</code></td><td>Route definitions, downstream hosts/ports</td></tr>
+          <tr><td>Chatbot Service</td><td><code>chatbot_service/.env</code></td><td><code>GEMINI_API_KEY</code></td></tr>
+          <tr><td>Angular Frontend</td><td><code>environment.ts</code></td><td>Gateway base URL, chatbot URL</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn"><i class="fas fa-exclamation-triangle"></i><strong>Docker-to-Docker Note</strong>: The current <code>ocelot.json</code> targets <code>localhost</code> downstream hosts. For full Docker-to-Docker deployment, a separate Ocelot config pointing to container DNS names (service names) is required.</div>
+
+    <h3>Starting the Platform</h3>
+    <pre><code class="language-bash"># 1. Start infrastructure (SQL Server + RabbitMQ)
+cd docker && docker-compose up -d
+
+# 2. Start .NET services (in separate terminals or via script)
+cd src/Gateway/ApiGateway && dotnet run
+cd src/Services/AuthService/AuthService.API && dotnet run
+cd src/Services/UserProfileService/UserProfileService.API && dotnet run
+# ... repeat for each service
+
+# 3. Start chatbot
+cd chatbot_service && pip install -r requirements.txt && uvicorn main:app --reload
+
+# 4. Start Angular frontend
+cd frontend/wallet-platform && npm install && ng serve
+
+# 5. Access
+# App:     http://localhost:4200
+# Gateway: http://localhost:5000/gateway
+# Swagger: http://localhost:5001/swagger (per service)
+# RabbitMQ Management: http://localhost:15672</code></pre>
+  </section>
+
+  <!-- SDLC -->
+  <section class="doc-section" id="sdlc">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-code-branch"></i></div>
+      <div class="section-header-text">
+        <h2>System Development Lifecycle (SDLC)</h2>
+        <p>Development phases, methodology, and delivery approach</p>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>Phase 1 — Requirements &amp; Design</h4>
+        <p>Defined bounded contexts per microservice. Authored HLD, LLD, API contracts, and event topology. Established Clean Architecture template for all .NET services.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Phase 2 — Core Infrastructure</h4>
+        <p>Built Auth Service (JWT + OTP), API Gateway routing, shared RabbitMQ EventBus contracts, and base project scaffolding for all 10 services.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Phase 3 — Financial Core</h4>
+        <p>Implemented Wallet Service (balance, freeze, bill split), Ledger Service (double-entry transactions, idempotency), and Rewards Service (points, tiers, accrual).</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Phase 4 — Supporting Services</h4>
+        <p>Built Catalog + Redemptions, Receipts (PDF/CSV), Notification (email SMTP), and Admin Service (fraud flags, dashboard). Wired all RabbitMQ event consumers.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Phase 5 — Frontend &amp; AI</h4>
+        <p>Developed Angular 17 SPA (auth flows, dashboard, admin panel, chatbot widget). Integrated Python FastAPI chatbot with Google Gemini 2.5 Flash.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Phase 6 — Testing &amp; CI</h4>
+        <p>xUnit unit tests per service. GitHub Actions pipeline for build + test + Angular production build. Docker Compose for local infrastructure.</p>
+      </div>
+      <div class="timeline-item">
+        <h4>Phase 7 — Documentation</h4>
+        <p>Authored HLD.md, LLD.md, API_REFERENCE.md, README.md. Generated this documentation portal.</p>
+      </div>
+    </div>
+
+    <h3>Testing Strategy</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Level</th><th>Tool</th><th>Scope</th></tr></thead>
+        <tbody>
+          <tr><td>Unit Tests</td><td>xUnit (.NET)</td><td>Service layer logic, validators, result patterns per <code>*Service.Tests</code></td></tr>
+          <tr><td>Integration Tests</td><td>Testcontainers / docker-compose</td><td>API-level end-to-end per service (recommended)</td></tr>
+          <tr><td>Manual API Testing</td><td>Postman / Swagger</td><td>Gateway routes via Postman; per-service endpoints via Swagger UI</td></tr>
+          <tr><td>Frontend Testing</td><td>Angular testing utilities</td><td>Component and service unit tests</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i><strong>Swagger Access Note</strong>: Swagger UI is exposed per-service at <code>http://localhost:{port}/swagger</code>. It does <em>not</em> work through the Ocelot gateway. For gateway-level testing, use Postman against <code>http://localhost:5000/gateway/*</code>.</div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       ARCHITECTURAL STYLE
+  ═══════════════════════════════════════════════ -->
+  <section class="doc-section" id="arch-style">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-drafting-compass"></i></div>
+      <div class="section-header-text">
+        <h2>Architectural Style</h2>
+        <p>C4 model, Clean Architecture layers, communication patterns, and service decomposition</p>
+      </div>
+    </div>
+
+    <!-- C4 L1 Context -->
+    <h3>C4 Model — Level 1: System Context</h3>
+    <p>Shows Aurelian as a black box, the external actors, and adjacent systems it integrates with.</p>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-expand-arrows-alt"></i> C4 Level 1 — System Context</div>
+      <div class="mermaid">
+C4Context
+  title System Context — WalletPlatform Aurelian
+
+  Person(user, "End User", "Performs wallet ops, transfers, redemptions via mobile/web")
+  Person(admin, "Platform Admin", "Reviews KYC, manages fraud, views dashboard")
+
+  System(aurelian, "WalletPlatform Aurelian", "Digital wallet, loyalty rewards, ledger, AI chatbot")
+
+  System_Ext(smtp, "Gmail SMTP", "Transactional email delivery")
+  System_Ext(gemini, "Google Gemini API", "AI language model for chatbot")
+  System_Ext(rabbitmq, "RabbitMQ", "Async message broker for event-driven flows")
+
+  Rel(user, aurelian, "Uses", "HTTPS / REST")
+  Rel(admin, aurelian, "Manages", "HTTPS / REST")
+  Rel(aurelian, smtp, "Sends emails via", "SMTP TLS")
+  Rel(aurelian, gemini, "Queries for AI responses", "HTTPS")
+  Rel(aurelian, rabbitmq, "Publishes & consumes events", "AMQP")
+
+  UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+      </div>
+    </div>
+
+    <!-- C4 L2 Container -->
+    <h3>C4 Model — Level 2: Container Diagram</h3>
+    <p>Zooms in to show every container (deployable unit) inside Aurelian and how they communicate.</p>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-cube"></i> C4 Level 2 — Containers</div>
+      <div class="mermaid">
+flowchart TB
+  subgraph Client["🖥️ Client Tier"]
+    FE["Angular 17 SPA\n:4200\nTypeScript · RxJS"]
+  end
+
+  subgraph Gateway["🔀 Gateway Tier"]
+    GW["Ocelot API Gateway\n:5000\nASP.NET Core · ocelot.json"]
+  end
+
+  subgraph Services["⚙️ Service Tier (.NET 10 Web APIs)"]
+    direction LR
+    A["Auth\n:5001"]
+    B["UserProfile\n:5002"]
+    C["Wallet\n:5003"]
+    D["Ledger\n:5004"]
+    E["Rewards\n:5005"]
+    F["Catalog\n:5006"]
+    G["Notification\n:5007"]
+    H["Receipts\n:5008"]
+    I["Admin\n:5009"]
+  end
+
+  subgraph AI["🤖 AI Tier"]
+    BOT["FastAPI Chatbot\n:8000\nPython · Gemini 2.5 Flash"]
+  end
+
+  subgraph Data["🗄️ Data Tier"]
+    direction LR
+    MQ["RabbitMQ\n:5672 / :15672"]
+    SQL["SQL Server\n:1433\n9× isolated DBs"]
+  end
+
+  FE -->|"REST /gateway/*"| GW
+  FE -->|"REST /api/chat"| BOT
+  GW --> A & B & C & D & E & F & H & I
+  A & B & C & D & E & F & G & H & I --> SQL
+  A & C & D & F --> MQ
+  MQ --> G & H & E & C
+
+  BOT -->|"Gemini API"| GEMINI["Google Gemini"]
+
+  style GW fill:#e8a02020,stroke:#e8a020
+  style MQ fill:#ff6b3520,stroke:#ff6b35
+  style SQL fill:#5dade220,stroke:#5dade2
+  style BOT fill:#1de9b620,stroke:#1de9b6
+      </div>
+    </div>
+
+    <!-- Clean Architecture per service -->
+    <h3>Clean Architecture — Per-Service Layer Model</h3>
+    <p>Every .NET service enforces this three-layer onion architecture. Dependencies point inward only — Infrastructure depends on Core, API depends on Core, Core depends on nothing external.</p>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-layer-group"></i> Clean Architecture Rings</div>
+      <div class="mermaid">
+flowchart LR
+  subgraph Service["e.g. WalletService"]
+    subgraph API["API Layer\n(Controllers · DTOs · Validators · Swagger)"]
+      subgraph CORE["Core Layer\n(Interfaces · Domain Entities · Business Logic · Result&lt;T&gt;)"]
+        subgraph INFRA["Infrastructure Layer\n(EF Core DbContext · Repositories · RabbitMQ Publisher · SMTP)"]
+          DB["SQL Server DB"]
+          MQN["RabbitMQ"]
+        end
+      end
+    end
+  end
+
+  Client["HTTP Client"] -->|"Request DTO"| API
+  API -->|"Calls IService"| CORE
+  CORE -->|"Calls IRepository"| INFRA
+  INFRA --> DB & MQN
+  CORE -->|"Returns Result&lt;T&gt;"| API
+  API -->|"Response DTO"| Client
+
+  style API fill:#e8a02012,stroke:#e8a020
+  style CORE fill:#5dade212,stroke:#5dade2
+  style INFRA fill:#1de9b612,stroke:#1de9b6
+      </div>
+    </div>
+
+    <!-- Sync vs Async communication -->
+    <h3>Communication Patterns — Synchronous vs Asynchronous</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-arrows-alt-h"></i> Communication Decision Map</div>
+      <div class="mermaid">
+flowchart TD
+  REQUEST["Incoming Request"] --> Q{"Needs immediate\nresponse?"}
+
+  Q -->|"Yes — user is waiting"| SYNC["🔵 Synchronous REST\nvia Ocelot Gateway"]
+  Q -->|"No — side effect"| ASYNC["🟠 Asynchronous Event\nvia RabbitMQ"]
+
+  SYNC --> S1["Auth: login / register"]
+  SYNC --> S2["Ledger: initiate transaction"]
+  SYNC --> S3["Wallet: topup / deduct"]
+  SYNC --> S4["Catalog → Rewards: deduct points\n(internal sync call)"]
+
+  ASYNC --> A1["Notification: send email"]
+  ASYNC --> A2["Receipts: generate PDF"]
+  ASYNC --> A3["Rewards: award points"]
+  ASYNC --> A4["Wallet: adjust balance\npost-transaction"]
+  ASYNC --> A5["Profile: seed on registration"]
+
+  style SYNC fill:#5dade220,stroke:#5dade2
+  style ASYNC fill:#ff6b3520,stroke:#ff6b35
+      </div>
+    </div>
+
+    <!-- Microservice Decomposition Principles -->
+    <h3>Microservice Decomposition — Bounded Contexts</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-border-all"></i> Domain Bounded Contexts</div>
+      <div class="mermaid">
+flowchart LR
+  subgraph Identity["🔐 Identity Context"]
+    AUTH["Auth Service\nUsers · Tokens · OTP"]
+    PROF["UserProfile Service\nProfile · KYC"]
+  end
+
+  subgraph Finance["💰 Finance Context"]
+    WAL["Wallet Service\nBalance · BillSplit · Freeze"]
+    LED["Ledger Service\nTransactions · LedgerEntries"]
+  end
+
+  subgraph Loyalty["⭐ Loyalty Context"]
+    REW["Rewards Service\nPoints · Tiers · History"]
+    CAT["Catalog Service\nItems · Redemptions · Vouchers"]
+  end
+
+  subgraph Operations["🔧 Operations Context"]
+    REC["Receipts Service\nPDF · CSV Export"]
+    ADM["Admin Service\nFraud Flags · Dashboard"]
+    NOTIF["Notification Service\nEmail SMTP"]
+  end
+
+  subgraph AI["🤖 AI Context"]
+    BOT["Chatbot Service\nFastAPI · Gemini"]
+  end
+
+  Identity -.->|"UserRegisteredEvent"| Finance
+  Identity -.->|"UserRegisteredEvent"| Loyalty
+  Identity -.->|"KYCStatusUpdatedEvent"| Operations
+  Finance -.->|"TransactionCompletedEvent"| Loyalty
+  Finance -.->|"TransactionCompletedEvent\nWalletFrozenEvent"| Operations
+  Loyalty -.->|"PointsRedeemedEvent"| Operations
+
+  style Identity fill:#5dade215,stroke:#5dade2
+  style Finance fill:#e8a02015,stroke:#e8a020
+  style Loyalty fill:#1de9b615,stroke:#1de9b6
+  style Operations fill:#c39bd315,stroke:#c39bd3
+  style AI fill:#ff475715,stroke:#ff4757
+      </div>
+    </div>
+
+    <!-- Deployment topology -->
+    <h3>Deployment Topology — Local vs Production</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-server"></i> Runtime Topology</div>
+      <div class="mermaid">
+flowchart TB
+  subgraph Local["Local Development"]
+    direction LR
+    subgraph DockerC["Docker Compose"]
+      SQLC["SQL Server :1433"]
+      MQC["RabbitMQ :5672"]
+    end
+    subgraph Processes["dotnet run + uvicorn"]
+      GWL[":5000"] --- S1L[":5001"] --- S2L[":5002"] --- S3L[":5003"] --- S4L[":5004"]
+      S5L[":5005"] --- S6L[":5006"] --- S7L[":5007"] --- S8L[":5008"] --- S9L[":5009"]
+      BOTL[":8000"]
+    end
+    ANGULARL["ng serve :4200"]
+  end
+
+  subgraph Future["☁️ Production (Planned)"]
+    direction LR
+    LB["Load Balancer\nHTTPS :443"]
+    K8S["Kubernetes Cluster\nHelmcharts per service"]
+    RDBS["Azure SQL\nManaged Instances"]
+    MQP["Azure Service Bus\nor CloudAMQP"]
+    CDN["CDN\nAngular Static"]
+  end
+
+  Local -.->|"Containerise → Push"| Future
+
+  style Local fill:#19284a20,stroke:#5a6a84
+  style Future fill:#e8a02008,stroke:#e8a020
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       DATABASE SCHEMA
+  ═══════════════════════════════════════════════ -->
+  <section class="doc-section" id="db-schema">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-table"></i></div>
+      <div class="section-header-text">
+        <h2>Full Database Schema</h2>
+        <p>Detailed ERDs for all 9 SQL Server databases — columns, types, PKs, FKs, and constraints</p>
+      </div>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i>Each database is isolated per service. Cross-service references use application-level IDs (GUIDs), never foreign key constraints across databases.</div>
+
+    <!-- Auth DB -->
+    <h3>Auth Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-key"></i> Auth DB — Full Schema</div>
+      <div class="mermaid">
+erDiagram
+  Users {
+    uniqueidentifier Id PK "NEWID() default"
+    nvarchar_256 Email UK "NOT NULL"
+    nvarchar_max PasswordHash "NOT NULL bcrypt"
+    nvarchar_20 PhoneNumber "NULL"
+    bit IsEmailVerified "DEFAULT 0"
+    bit IsPhoneVerified "DEFAULT 0"
+    nvarchar_50 Role "DEFAULT User"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 UpdatedAt "NULL"
+  }
+
+  RefreshTokens {
+    uniqueidentifier Id PK
+    uniqueidentifier UserId FK
+    nvarchar_500 Token UK "NOT NULL"
+    datetime2 ExpiresAt "NOT NULL"
+    bit IsRevoked "DEFAULT 0"
+    datetime2 RevokedAt "NULL"
+    nvarchar_45 CreatedByIp "NULL"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+  }
+
+  OtpEntries {
+    uniqueidentifier Id PK
+    uniqueidentifier UserId FK
+    nvarchar_6 CodeHash "NOT NULL"
+    nvarchar_50 Purpose "EmailVerification PhoneVerification"
+    datetime2 ExpiresAt "NOT NULL"
+    bit IsUsed "DEFAULT 0"
+    datetime2 UsedAt "NULL"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+  }
+
+  Users ||--o{ RefreshTokens : "owns"
+  Users ||--o{ OtpEntries : "receives"
+      </div>
+    </div>
+
+    <!-- UserProfile DB -->
+    <h3>UserProfile Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-id-card"></i> UserProfile DB — Full Schema</div>
+      <div class="mermaid">
+erDiagram
+  UserProfiles {
+    uniqueidentifier Id PK
+    uniqueidentifier UserId UK "NOT NULL from Auth"
+    nvarchar_100 FirstName "NULL"
+    nvarchar_100 LastName "NULL"
+    nvarchar_256 Email "NOT NULL"
+    nvarchar_20 PhoneNumber "NULL"
+    date DateOfBirth "NULL"
+    nvarchar_200 Address "NULL"
+    nvarchar_50 KycStatus "NotSubmitted Pending Approved Rejected"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 UpdatedAt "NULL"
+  }
+
+  KycDocuments {
+    uniqueidentifier Id PK
+    uniqueidentifier UserProfileId FK
+    nvarchar_50 DocumentType "Aadhaar PAN Passport"
+    nvarchar_50 DocumentNumber "NOT NULL"
+    nvarchar_max DocumentPayload "NULL base64 or path"
+    nvarchar_50 Status "Pending Approved Rejected"
+    datetime2 SubmittedAt "DEFAULT GETUTCDATE()"
+  }
+
+  KycReviews {
+    uniqueidentifier Id PK
+    uniqueidentifier KycDocumentId FK
+    uniqueidentifier ReviewedByAdminId "NOT NULL"
+    nvarchar_20 Decision "Approved Rejected"
+    nvarchar_500 Notes "NULL"
+    datetime2 ReviewedAt "DEFAULT GETUTCDATE()"
+  }
+
+  UserProfiles ||--o{ KycDocuments : "submits"
+  KycDocuments ||--o| KycReviews : "has review"
+      </div>
+    </div>
+
+    <!-- Wallet DB -->
+    <h3>Wallet Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-wallet"></i> Wallet DB — Full Schema</div>
+      <div class="mermaid">
+erDiagram
+  Wallets {
+    uniqueidentifier Id PK
+    uniqueidentifier UserId UK "NOT NULL"
+    decimal_18_2 Balance "NOT NULL DEFAULT 0"
+    nvarchar_3 Currency "DEFAULT INR"
+    bit IsFrozen "DEFAULT 0"
+    nvarchar_500 FreezeReason "NULL"
+    datetime2 FrozenAt "NULL"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 UpdatedAt "NULL"
+  }
+
+  BillSplits {
+    uniqueidentifier Id PK
+    uniqueidentifier CreatedByUserId "NOT NULL"
+    decimal_18_2 TotalAmount "NOT NULL"
+    nvarchar_256 Description "NULL"
+    nvarchar_20 Status "Created PartiallyPaid Settled"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 SettledAt "NULL"
+  }
+
+  BillSplitParticipants {
+    uniqueidentifier Id PK
+    uniqueidentifier BillSplitId FK
+    uniqueidentifier UserId "NOT NULL"
+    decimal_18_2 ShareAmount "NOT NULL"
+    bit HasPaid "DEFAULT 0"
+    datetime2 PaidAt "NULL"
+  }
+
+  WalletIdempotencyKeys {
+    uniqueidentifier Id PK
+    uniqueidentifier WalletId FK
+    nvarchar_100 Key UK "NOT NULL"
+    nvarchar_50 OperationType "TopUp Deduct BillSplitPay"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+  }
+
+  Wallets ||--o{ WalletIdempotencyKeys : "tracks"
+  BillSplits ||--o{ BillSplitParticipants : "splits among"
+      </div>
+    </div>
+
+    <!-- Ledger DB -->
+    <h3>Ledger Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-receipt"></i> Ledger DB — Double-Entry Schema</div>
+      <div class="mermaid">
+erDiagram
+  Transactions {
+    uniqueidentifier Id PK
+    uniqueidentifier FromUserId "NOT NULL"
+    uniqueidentifier ToUserId "NOT NULL"
+    decimal_18_2 Amount "NOT NULL CHECK GT 0"
+    nvarchar_3 Currency "DEFAULT INR"
+    nvarchar_20 Type "Transfer TopUp Payment"
+    nvarchar_20 Status "Pending Completed Failed"
+    nvarchar_256 Memo "NULL maxlen 256"
+    nvarchar_100 IdempotencyKey UK "NOT NULL"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 CompletedAt "NULL"
+  }
+
+  LedgerEntries {
+    uniqueidentifier Id PK
+    uniqueidentifier TransactionId FK
+    uniqueidentifier UserId "NOT NULL"
+    nvarchar_10 EntryType "Debit Credit"
+    decimal_18_2 Amount "NOT NULL"
+    nvarchar_3 Currency "DEFAULT INR"
+    nvarchar_100 Description "NULL"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+  }
+
+  Transactions ||--o{ LedgerEntries : "generates 2"
+      </div>
+    </div>
+
+    <!-- Rewards DB -->
+    <h3>Rewards Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-star"></i> Rewards DB — Full Schema</div>
+      <div class="mermaid">
+erDiagram
+  RewardsAccounts {
+    uniqueidentifier Id PK
+    uniqueidentifier UserId UK "NOT NULL"
+    int TotalPoints "NOT NULL DEFAULT 0"
+    int LifetimePoints "NOT NULL DEFAULT 0"
+    nvarchar_20 Tier "Bronze Silver Gold"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 UpdatedAt "NULL"
+  }
+
+  PointsTransactions {
+    uniqueidentifier Id PK
+    uniqueidentifier RewardsAccountId FK
+    int Points "NOT NULL positive=earned negative=spent"
+    nvarchar_20 Type "Earned Redeemed WelcomeBonus Expired"
+    nvarchar_256 Description "NOT NULL"
+    uniqueidentifier ReferenceId "NULL txnId or redemptionId"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+  }
+
+  TierThresholds {
+    uniqueidentifier Id PK
+    nvarchar_20 TierName "Bronze Silver Gold"
+    int MinPoints "NOT NULL"
+    int MaxPoints "NULL null means unlimited"
+    int EarnMultiplier "DEFAULT 1"
+  }
+
+  RewardsAccounts ||--o{ PointsTransactions : "logs"
+  RewardsAccounts }o--|| TierThresholds : "maps to"
+      </div>
+    </div>
+
+    <!-- Catalog DB -->
+    <h3>Catalog Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-store"></i> Catalog DB — Full Schema</div>
+      <div class="mermaid">
+erDiagram
+  CatalogItems {
+    uniqueidentifier Id PK
+    nvarchar_200 Name "NOT NULL"
+    nvarchar_500 Description "NULL"
+    int PointsCost "NOT NULL CHECK GT 0"
+    int Stock "NOT NULL DEFAULT 0"
+    nvarchar_100 Category "NULL"
+    bit IsActive "DEFAULT 1"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+    datetime2 UpdatedAt "NULL"
+  }
+
+  Redemptions {
+    uniqueidentifier Id PK
+    uniqueidentifier CatalogItemId FK
+    uniqueidentifier UserId "NOT NULL"
+    nvarchar_50 VoucherCode UK "NOT NULL auto-generated"
+    int PointsSpent "NOT NULL"
+    nvarchar_20 Status "Issued Used Expired"
+    datetime2 RedeemedAt "DEFAULT GETUTCDATE()"
+    datetime2 ExpiresAt "NULL"
+  }
+
+  CatalogItems ||--o{ Redemptions : "issued as"
+      </div>
+    </div>
+
+    <!-- Admin + Receipts DB -->
+    <h3>Admin &amp; Receipts Service Databases</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-shield-alt"></i> Admin DB + Receipts DB</div>
+      <div class="mermaid">
+erDiagram
+  FraudFlags {
+    uniqueidentifier Id PK
+    uniqueidentifier TransactionId UK "NOT NULL ref Ledger"
+    uniqueidentifier FlaggedByAdminId "NOT NULL"
+    nvarchar_500 Reason "NOT NULL"
+    nvarchar_20 Severity "Low Medium High Critical"
+    nvarchar_20 Status "Open UnderReview Resolved Dismissed"
+    datetime2 FlaggedAt "DEFAULT GETUTCDATE()"
+    datetime2 ResolvedAt "NULL"
+  }
+
+  AuditLogs {
+    uniqueidentifier Id PK
+    uniqueidentifier PerformedByUserId "NOT NULL"
+    nvarchar_100 Action "FreezeWallet FlagTransaction ReviewKYC"
+    nvarchar_500 Details "NULL"
+    datetime2 CreatedAt "DEFAULT GETUTCDATE()"
+  }
+
+  Receipts {
+    uniqueidentifier Id PK
+    uniqueidentifier TransactionId UK "NOT NULL ref Ledger"
+    uniqueidentifier UserId "NOT NULL"
+    decimal_18_2 Amount "NOT NULL"
+    nvarchar_20 Type "Transfer TopUp Payment"
+    nvarchar_256 Memo "NULL"
+    nvarchar_500 PdfPath "NULL"
+    bit IsPdfGenerated "DEFAULT 0"
+    datetime2 GeneratedAt "DEFAULT GETUTCDATE()"
+  }
+      </div>
+    </div>
+
+    <!-- Notification DB -->
+    <h3>Notification Service Database</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-bell"></i> Notification DB — Schema</div>
+      <div class="mermaid">
+erDiagram
+  NotificationMessages {
+    uniqueidentifier Id PK
+    uniqueidentifier UserId "NOT NULL"
+    nvarchar_256 RecipientEmail "NOT NULL"
+    nvarchar_200 Subject "NOT NULL"
+    nvarchar_max Body "NOT NULL HTML template"
+    nvarchar_50 TemplateType "WelcomeEmail KYCApproved TransactionAlert WalletFrozen"
+    nvarchar_20 Status "Queued Sent Failed"
+    datetime2 QueuedAt "DEFAULT GETUTCDATE()"
+    datetime2 SentAt "NULL"
+  }
+
+  DeliveryAttempts {
+    uniqueidentifier Id PK
+    uniqueidentifier NotificationId FK
+    int AttemptNumber "NOT NULL"
+    bit IsSuccess "NOT NULL"
+    nvarchar_500 ErrorMessage "NULL"
+    datetime2 AttemptedAt "DEFAULT GETUTCDATE()"
+  }
+
+  NotificationMessages ||--o{ DeliveryAttempts : "logged in"
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       CLASS DIAGRAMS
+  ═══════════════════════════════════════════════ -->
+  <section class="doc-section" id="class-diagrams">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-object-group"></i></div>
+      <div class="section-header-text">
+        <h2>Class Diagrams</h2>
+        <p>Core domain entities, interfaces, and service contracts per microservice</p>
+      </div>
+    </div>
+
+    <div class="callout info"><i class="fas fa-info-circle"></i>Classes follow <strong>Clean Architecture</strong>: Domain Entities and Interfaces live in Core, concrete Repositories and Services live in Infrastructure/API. DTOs are separate and never expose entities directly.</div>
+
+    <!-- Auth Service -->
+    <h3>Auth Service — Class Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-key"></i> Auth Service Core + Infrastructure</div>
+      <div class="mermaid">
+classDiagram
+  class User {
+    +Guid Id
+    +string Email
+    +string PasswordHash
+    +string PhoneNumber
+    +bool IsEmailVerified
+    +string Role
+    +DateTime CreatedAt
+  }
+
+  class RefreshToken {
+    +Guid Id
+    +Guid UserId
+    +string Token
+    +DateTime ExpiresAt
+    +bool IsRevoked
+    +bool IsActive() bool
+  }
+
+  class OtpEntry {
+    +Guid Id
+    +Guid UserId
+    +string CodeHash
+    +string Purpose
+    +DateTime ExpiresAt
+    +bool IsUsed
+    +bool IsExpired() bool
+  }
+
+  class IAuthService {
+    <<interface>>
+    +RegisterAsync(RegisterDto) Task~AuthResult~
+    +LoginAsync(LoginDto) Task~AuthResult~
+    +RefreshAsync(string) Task~AuthResult~
+    +RevokeAsync(string) Task~Result~
+    +GetMeAsync(Guid) Task~UserClaimsDto~
+    +ChangePasswordAsync(Guid, ChangePasswordDto) Task~Result~
+  }
+
+  class IOtpService {
+    <<interface>>
+    +SendOtpAsync(string email, string purpose) Task~Result~
+    +VerifyOtpAsync(string email, string code, string purpose) Task~bool~
+  }
+
+  class AuthService {
+    -IUserRepository _userRepo
+    -IRefreshTokenRepository _tokenRepo
+    -IJwtService _jwtService
+    +RegisterAsync(RegisterDto) Task~AuthResult~
+    +LoginAsync(LoginDto) Task~AuthResult~
+  }
+
+  class JwtService {
+    -JwtSettings _settings
+    +GenerateAccessToken(User) string
+    +GenerateRefreshToken() string
+    +ValidateToken(string) ClaimsPrincipal
+  }
+
+  class AuthResult {
+    +string AccessToken
+    +string RefreshToken
+    +int ExpiresIn
+    +bool IsSuccess
+    +string Error
+  }
+
+  IAuthService <|.. AuthService : implements
+  AuthService --> User : reads/writes
+  AuthService --> RefreshToken : manages
+  AuthService --> JwtService : uses
+  User "1" --> "0..*" RefreshToken : has
+  User "1" --> "0..*" OtpEntry : receives
+      </div>
+    </div>
+
+    <!-- Wallet Service -->
+    <h3>Wallet Service — Class Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-wallet"></i> Wallet Service Core</div>
+      <div class="mermaid">
+classDiagram
+  class Wallet {
+    +Guid Id
+    +Guid UserId
+    +decimal Balance
+    +string Currency
+    +bool IsFrozen
+    +string FreezeReason
+    +DateTime CreatedAt
+    +bool CanTransact() bool
+  }
+
+  class BillSplit {
+    +Guid Id
+    +Guid CreatedByUserId
+    +decimal TotalAmount
+    +string Description
+    +string Status
+    +List~BillSplitParticipant~ Participants
+    +bool IsFullyPaid() bool
+    +void MarkSettled()
+  }
+
+  class BillSplitParticipant {
+    +Guid Id
+    +Guid BillSplitId
+    +Guid UserId
+    +decimal ShareAmount
+    +bool HasPaid
+    +DateTime? PaidAt
+  }
+
+  class IWalletService {
+    <<interface>>
+    +GetWalletAsync(Guid userId) Task~WalletDto~
+    +LookupWalletAsync(Guid userId) Task~WalletDto~
+    +TopUpAsync(Guid userId, TopUpDto) Task~Result~
+    +DeductAsync(Guid userId, DeductDto) Task~Result~
+    +FreezeAsync(Guid userId, FreezeDto) Task~Result~
+    +UnfreezeAsync(Guid userId) Task~Result~
+  }
+
+  class IBillSplitService {
+    <<interface>>
+    +CreateAsync(Guid creatorId, CreateBillSplitDto) Task~Result~
+    +GetCreatedByMeAsync(Guid userId) Task~List~BillSplitDto~~
+    +GetOwedByMeAsync(Guid userId) Task~List~BillSplitDto~~
+    +PayShareAsync(Guid userId, Guid splitId) Task~Result~
+  }
+
+  class WalletService {
+    -IWalletRepository _repo
+    -IIdempotencyService _idempotency
+    -IEventBus _eventBus
+    +TopUpAsync(Guid userId, TopUpDto) Task~Result~
+    +FreezeAsync(Guid userId, FreezeDto) Task~Result~
+  }
+
+  IWalletService <|.. WalletService : implements
+  WalletService --> Wallet : manages
+  Wallet "1" --> "0..*" BillSplit : creates
+  BillSplit "1" --> "2..*" BillSplitParticipant : has
+      </div>
+    </div>
+
+    <!-- Ledger Service -->
+    <h3>Ledger Service — Class Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-receipt"></i> Ledger Service — Double-Entry Model</div>
+      <div class="mermaid">
+classDiagram
+  class Transaction {
+    +Guid Id
+    +Guid FromUserId
+    +Guid ToUserId
+    +decimal Amount
+    +string Currency
+    +TransactionType Type
+    +TransactionStatus Status
+    +string Memo
+    +string IdempotencyKey
+    +DateTime CreatedAt
+    +List~LedgerEntry~ Entries
+  }
+
+  class LedgerEntry {
+    +Guid Id
+    +Guid TransactionId
+    +Guid UserId
+    +EntryType EntryType
+    +decimal Amount
+    +string Currency
+    +DateTime CreatedAt
+  }
+
+  class TransactionType {
+    <<enumeration>>
+    Transfer
+    TopUp
+    Payment
+  }
+
+  class TransactionStatus {
+    <<enumeration>>
+    Pending
+    Completed
+    Failed
+  }
+
+  class EntryType {
+    <<enumeration>>
+    Debit
+    Credit
+  }
+
+  class ILedgerService {
+    <<interface>>
+    +InitiateAsync(Guid userId, InitiateTransactionDto) Task~Result~
+    +GetByIdAsync(Guid txnId) Task~TransactionDto~
+    +GetMyTransactionsAsync(Guid userId, int page, int size) Task~PagedResult~
+    +GetSummaryAsync(Guid userId) Task~SummaryDto~
+  }
+
+  class LedgerService {
+    -ITransactionRepository _repo
+    -IIdempotencyService _idempotency
+    -IEventBus _eventBus
+    +InitiateAsync(Guid, InitiateTransactionDto) Task~Result~
+    -CreateLedgerEntryPair(Transaction) List~LedgerEntry~
+    -PublishCompletedEvent(Transaction)
+  }
+
+  ILedgerService <|.. LedgerService : implements
+  Transaction "1" --> "2" LedgerEntry : generates
+  Transaction --> TransactionType
+  Transaction --> TransactionStatus
+  LedgerEntry --> EntryType
+      </div>
+    </div>
+
+    <!-- Rewards Service -->
+    <h3>Rewards Service — Class Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-star"></i> Rewards Service Core</div>
+      <div class="mermaid">
+classDiagram
+  class RewardsAccount {
+    +Guid Id
+    +Guid UserId
+    +int TotalPoints
+    +int LifetimePoints
+    +string Tier
+    +DateTime CreatedAt
+    +void AddPoints(int points, string description)
+    +Result DeductPoints(int points, string description)
+    +void RecalculateTier()
+  }
+
+  class PointsTransaction {
+    +Guid Id
+    +Guid RewardsAccountId
+    +int Points
+    +string Type
+    +string Description
+    +Guid? ReferenceId
+    +DateTime CreatedAt
+  }
+
+  class TierCalculator {
+    <<static>>
+    +string CalculateTier(int lifetimePoints) string
+    +int PointsToNextTier(int lifetimePoints) int
+    +string GetNextTier(string currentTier) string
+  }
+
+  class IRewardsService {
+    <<interface>>
+    +GetSummaryAsync(Guid userId) Task~RewardsSummaryDto~
+    +GetHistoryAsync(Guid userId) Task~List~PointsHistoryDto~~
+    +GetAccountByUserIdAsync(Guid userId) Task~RewardsAccountDto~
+    +DeductPointsAsync(DeductPointsDto) Task~Result~
+  }
+
+  class RewardsService {
+    -IRewardsRepository _repo
+    -TierCalculator _tierCalc
+    +DeductPointsAsync(DeductPointsDto) Task~Result~
+    +AwardPointsForTransaction(Guid txnId, decimal amount, Guid userId)
+  }
+
+  IRewardsService <|.. RewardsService : implements
+  RewardsService --> RewardsAccount : manages
+  RewardsAccount "1" --> "0..*" PointsTransaction : records
+  RewardsService --> TierCalculator : uses
+      </div>
+    </div>
+
+    <!-- Catalog Service -->
+    <h3>Catalog Service — Class Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-store"></i> Catalog Service Core</div>
+      <div class="mermaid">
+classDiagram
+  class CatalogItem {
+    +Guid Id
+    +string Name
+    +string Description
+    +int PointsCost
+    +int Stock
+    +string Category
+    +bool IsActive
+    +DateTime CreatedAt
+    +bool HasStock() bool
+    +void DecrementStock()
+  }
+
+  class Redemption {
+    +Guid Id
+    +Guid CatalogItemId
+    +Guid UserId
+    +string VoucherCode
+    +int PointsSpent
+    +string Status
+    +DateTime RedeemedAt
+  }
+
+  class VoucherGenerator {
+    <<static>>
+    +string Generate(string prefix) string
+  }
+
+  class ICatalogService {
+    <<interface>>
+    +GetActiveItemsAsync() Task~List~CatalogItemDto~~
+    +CreateItemAsync(CreateCatalogItemDto) Task~Result~
+    +RedeemAsync(Guid userId, Guid itemId) Task~RedemptionResultDto~
+    +GetMyRedemptionsAsync(Guid userId) Task~List~RedemptionDto~~
+  }
+
+  class CatalogService {
+    -ICatalogRepository _repo
+    -IRedemptionRepository _redemptionRepo
+    -IRewardsHttpClient _rewardsClient
+    -IEventBus _eventBus
+    +RedeemAsync(Guid userId, Guid itemId) Task~RedemptionResultDto~
+    -DeductPointsSync(Guid userId, int points) Task~bool~
+  }
+
+  ICatalogService <|.. CatalogService : implements
+  CatalogService --> CatalogItem : manages
+  CatalogService --> Redemption : creates
+  CatalogItem "1" --> "0..*" Redemption : tracks
+  CatalogService --> VoucherGenerator : uses
+      </div>
+    </div>
+
+    <!-- Shared Abstractions -->
+    <h3>Shared Abstractions — Cross-Cutting Concerns</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-puzzle-piece"></i> Shared Infrastructure Contracts</div>
+      <div class="mermaid">
+classDiagram
+  class Result~T~ {
+    +bool IsSuccess
+    +T Value
+    +string Error
+    +string ErrorCode
+    +static Result~T~ Ok(T value)
+    +static Result~T~ Fail(string error)
+    +static Result~T~ Fail(string error, string code)
+  }
+
+  class PagedResult~T~ {
+    +List~T~ Items
+    +int Page
+    +int PageSize
+    +int Total
+    +int TotalPages
+    +bool HasNext
+    +bool HasPrevious
+  }
+
+  class IEventBus {
+    <<interface>>
+    +PublishAsync~T~(T event) Task
+  }
+
+  class IIdempotencyService {
+    <<interface>>
+    +ExistsAsync(string key) Task~bool~
+    +StoreAsync(string key) Task
+  }
+
+  class RabbitMqEventBus {
+    -IConnection _connection
+    -IModel _channel
+    +PublishAsync~T~(T event) Task
+    -string GetExchangeName(Type t) string
+  }
+
+  class JwtMiddleware {
+    +InvokeAsync(HttpContext ctx, IJwtService jwt)
+    -string ExtractToken(HttpContext ctx) string
+  }
+
+  class BaseEntity {
+    +Guid Id
+    +DateTime CreatedAt
+    +DateTime? UpdatedAt
+  }
+
+  IEventBus <|.. RabbitMqEventBus : implements
+  Result~T~ ..> PagedResult~T~ : extends concept
+      </div>
+    </div>
+
+    <!-- Admin + Receipts Class -->
+    <h3>Admin &amp; Receipts Services — Class Diagram</h3>
+    <div class="diagram-wrap">
+      <div class="diagram-label"><i class="fas fa-shield-alt"></i> Admin + Receipts Core</div>
+      <div class="mermaid">
+classDiagram
+  class FraudFlag {
+    +Guid Id
+    +Guid TransactionId
+    +Guid FlaggedByAdminId
+    +string Reason
+    +FlagSeverity Severity
+    +FlagStatus Status
+    +DateTime FlaggedAt
+    +DateTime? ResolvedAt
+  }
+
+  class FlagSeverity {
+    <<enumeration>>
+    Low
+    Medium
+    High
+    Critical
+  }
+
+  class FlagStatus {
+    <<enumeration>>
+    Open
+    UnderReview
+    Resolved
+    Dismissed
+  }
+
+  class IAdminService {
+    <<interface>>
+    +GetDashboardAsync() Task~DashboardStatsDto~
+    +FlagTransactionAsync(Guid txnId, FlagDto) Task~Result~
+    +GetFraudFlagsAsync() Task~List~FraudFlagDto~~
+  }
+
+  class Receipt {
+    +Guid Id
+    +Guid TransactionId
+    +Guid UserId
+    +decimal Amount
+    +string Type
+    +string Memo
+    +string PdfPath
+    +bool IsPdfGenerated
+    +DateTime GeneratedAt
+  }
+
+  class IReceiptsService {
+    <<interface>>
+    +GetByTransactionAsync(Guid txnId) Task~ReceiptDto~
+    +GetPdfAsync(Guid txnId) Task~byte[]~
+    +GetMyReceiptsAsync(Guid userId) Task~List~ReceiptDto~~
+    +ExportCsvAsync(Guid userId) Task~byte[]~
+  }
+
+  class PdfGenerator {
+    <<service>>
+    +byte[] GeneratePdf(Receipt receipt)
+    -string RenderHtmlTemplate(Receipt receipt) string
+  }
+
+  IAdminService ..> FraudFlag : manages
+  FraudFlag --> FlagSeverity
+  FraudFlag --> FlagStatus
+  IReceiptsService ..> Receipt : manages
+  IReceiptsService --> PdfGenerator : uses
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ERROR FORMATS -->
+  <section class="doc-section" id="error-formats">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="section-header-text">
+        <h2>Standard Response Formats</h2>
+        <p>HTTP status codes and canonical JSON error shapes</p>
+      </div>
+    </div>
+
+    <h3>Status Code Reference</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Code</th><th>Meaning</th><th>Common Causes</th></tr></thead>
+        <tbody>
+          <tr><td><span class="status-badge status-200">200 OK</span></td><td>Success</td><td>Standard successful response with JSON body</td></tr>
+          <tr><td><span class="status-badge status-201">201 Created</span></td><td>Resource Created</td><td>Registration, catalog item creation</td></tr>
+          <tr><td><span class="status-badge status-204">204 No Content</span></td><td>Success, no body</td><td>Revoke token, password change</td></tr>
+          <tr><td><span class="status-badge status-400">400 Bad Request</span></td><td>Validation / business rule failure</td><td>Invalid payload, insufficient funds, duplicate email</td></tr>
+          <tr><td><span class="status-badge status-401">401 Unauthorized</span></td><td>No valid token</td><td>Missing or expired JWT</td></tr>
+          <tr><td><span class="status-badge status-403">403 Forbidden</span></td><td>Insufficient role</td><td>Non-admin accessing admin endpoints</td></tr>
+          <tr><td><span class="status-badge status-404">404 Not Found</span></td><td>Resource not found</td><td>Wallet not found, transaction not found</td></tr>
+          <tr><td><span class="status-badge status-500">500 Internal Server Error</span></td><td>Unexpected server error</td><td>Unhandled exception</td></tr>
+          <tr><td><span class="status-badge status-500">502/503</span></td><td>Gateway / upstream error</td><td>Downstream service unavailable, AI not configured</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Standard Error Response Shapes</h3>
+    <pre><code class="language-json">// Validation Error (400)
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    { "field": "email", "message": "Invalid email address" },
+    { "field": "password", "message": "Must be at least 8 characters" }
+  ],
+  "statusCode": 400,
+  "timestamp": "2026-04-15T12:00:00Z"
+}
+
+// Business Rule Error (400)
+{ "error": "Insufficient wallet balance to complete this transaction" }
+
+// Unauthorized (401)
+{ "success": false, "message": "Unauthorized access", "statusCode": 401 }
+
+// Forbidden (403)
+{ "success": false, "message": "Forbidden. Admin role required.", "statusCode": 403 }
+
+// Not Found (404)
+{ "success": false, "message": "Wallet not found for this user", "statusCode": 404 }
+
+// Server Error (500)
+{ "success": false, "message": "An unexpected error occurred", "statusCode": 500 }</code></pre>
+  </section>
+
+  <!-- GLOSSARY -->
+  <section class="doc-section" id="glossary">
+    <div class="section-header">
+      <div class="section-icon"><i class="fas fa-book"></i></div>
+      <div class="section-header-text">
+        <h2>Glossary &amp; Appendix</h2>
+        <p>Terms, acronyms, assumptions, and version history</p>
+      </div>
+    </div>
+
+    <h3>Glossary of Terms</h3>
+    <dl>
+      <div class="glossary-entry"><dt>Ocelot</dt><dd>Open-source .NET API Gateway providing routing, load balancing, rate limiting, and authentication middleware.</dd></div>
+      <div class="glossary-entry"><dt>JWT (JSON Web Token)</dt><dd>Compact, URL-safe token for claims transmission. Used for access token authentication across all services.</dd></div>
+      <div class="glossary-entry"><dt>Refresh Token</dt><dd>Long-lived token (7 days) used to obtain new access tokens without re-authentication. Rotated on each use.</dd></div>
+      <div class="glossary-entry"><dt>Idempotency Key</dt><dd>Client-supplied or auto-generated UUID that ensures a financial operation is processed exactly once, even on retries.</dd></div>
+      <div class="glossary-entry"><dt>Double-Entry Ledger</dt><dd>Accounting method where every transaction creates both a debit entry (sender) and credit entry (receiver), ensuring balance integrity.</dd></div>
+      <div class="glossary-entry"><dt>KYC (Know Your Customer)</dt><dd>Identity verification process for regulatory compliance. Users submit identity documents reviewed by admins.</dd></div>
+      <div class="glossary-entry"><dt>RBAC (Role-Based Access Control)</dt><dd>Authorization model where permissions are assigned to roles (User, Admin) rather than individual users.</dd></div>
+      <div class="glossary-entry"><dt>RabbitMQ</dt><dd>Open-source message broker implementing AMQP. Used for async event-driven communication between microservices.</dd></div>
+      <div class="glossary-entry"><dt>OTP (One-Time Password)</dt><dd>6-digit time-limited code for email/phone verification. Stored hashed with expiry in OtpEntries table.</dd></div>
+      <div class="glossary-entry"><dt>Clean Architecture</dt><dd>Layered architecture separating API (controllers/DTOs), Core (domain/interfaces), and Infrastructure (data/external services).</dd></div>
+      <div class="glossary-entry"><dt>Dead Letter Queue (DLQ)</dt><dd>RabbitMQ queue receiving messages that failed processing after maximum retries. Used for operational inspection.</dd></div>
+      <div class="glossary-entry"><dt>Bill Split</dt><dd>Feature allowing a user to divide a shared expense among multiple participants, who each pay their share independently.</dd></div>
+      <div class="glossary-entry"><dt>Serilog</dt><dd>.NET structured logging library used across all services for consistent, queryable log output.</dd></div>
+      <div class="glossary-entry"><dt>Google Gemini</dt><dd>Google's multimodal large language model. Version <code>gemini-2.5-flash</code> used for the AI chatbot assistant.</dd></div>
+    </dl>
+
+    <h3>Acronyms</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Acronym</th><th>Expansion</th></tr></thead>
+        <tbody>
+          <tr><td>API</td><td>Application Programming Interface</td></tr>
+          <tr><td>AMQP</td><td>Advanced Message Queuing Protocol</td></tr>
+          <tr><td>CORS</td><td>Cross-Origin Resource Sharing</td></tr>
+          <tr><td>DTO</td><td>Data Transfer Object</td></tr>
+          <tr><td>EF Core</td><td>Entity Framework Core (.NET ORM)</td></tr>
+          <tr><td>HLD</td><td>High-Level Design</td></tr>
+          <tr><td>INR</td><td>Indian Rupee (default currency)</td></tr>
+          <tr><td>JWT</td><td>JSON Web Token</td></tr>
+          <tr><td>KYC</td><td>Know Your Customer</td></tr>
+          <tr><td>LLD</td><td>Low-Level Design</td></tr>
+          <tr><td>NFR</td><td>Non-Functional Requirement</td></tr>
+          <tr><td>ORM</td><td>Object-Relational Mapper</td></tr>
+          <tr><td>OTP</td><td>One-Time Password</td></tr>
+          <tr><td>RBAC</td><td>Role-Based Access Control</td></tr>
+          <tr><td>SDLC</td><td>System Development Lifecycle</td></tr>
+          <tr><td>SMTP</td><td>Simple Mail Transfer Protocol</td></tr>
+          <tr><td>SPA</td><td>Single-Page Application</td></tr>
+          <tr><td>UC</td><td>Use Case</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Assumptions &amp; Constraints</h3>
+    <ul>
+      <li>Database-per-service is strictly enforced; no shared database schemas.</li>
+      <li>Default currency is INR (Indian Rupee); multi-currency support is a future phase.</li>
+      <li>Local development targets <code>localhost</code> downstream hosts in Ocelot config. Docker-to-Docker requires a separate config file.</li>
+      <li>Gmail SMTP is the configured email provider; credentials are in <code>appsettings.Development.json</code> (not committed).</li>
+      <li>Cloud deployment (Azure / AWS / GCP) is a planned future phase. Current baseline is local development.</li>
+      <li>Swagger UI works per-service only, not through the Ocelot gateway. Use Postman for gateway-level testing.</li>
+      <li>Internal service endpoints (<code>/api/rewards/deduct</code>) are not gateway-exposed but should be network-restricted in production.</li>
+    </ul>
+
+    <h3>Version History</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Version</th><th>Date</th><th>Changes</th></tr></thead>
+        <tbody>
+          <tr><td>1.0.0</td><td>April 2026</td><td>Initial release: all 10 services, Angular frontend, AI chatbot, full event-driven architecture</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>References</h3>
+    <ul>
+      <li><a href="https://ocelot.readthedocs.io" target="_blank">Ocelot Documentation</a></li>
+      <li><a href="https://learn.microsoft.com/en-us/dotnet/" target="_blank">Microsoft .NET 10 Documentation</a></li>
+      <li><a href="https://www.rabbitmq.com/documentation.html" target="_blank">RabbitMQ Documentation</a></li>
+      <li><a href="https://angular.io/docs" target="_blank">Angular 17 Documentation</a></li>
+      <li><a href="https://ai.google.dev/gemini-api" target="_blank">Google Gemini API Reference</a></li>
+      <li><a href="https://fastapi.tiangolo.com" target="_blank">FastAPI Documentation</a></li>
+      <li><a href="https://serilog.net" target="_blank">Serilog Documentation</a></li>
+    </ul>
+  </section>
+
+  <footer id="doc-footer">
+    <div>WalletPlatform — Aurelian · Technical Documentation v1.0.0</div>
+    <div>Built with .NET 10 · Angular 17 · RabbitMQ · Google Gemini</div>
+  </footer>
+
+</main>
+
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<script>
+// ── MERMAID INIT ──
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    background: '#0d1628',
+    primaryColor: '#19284a',
+    primaryTextColor: '#e2e8f2',
+    primaryBorderColor: '#e8a020',
+    lineColor: '#5a6a84',
+    secondaryColor: '#111d33',
+    tertiaryColor: '#0a0f1e',
+    edgeLabelBackground: '#111d33',
+    clusterBkg: '#0d1628',
+    titleColor: '#e8a020',
+    nodeBorder: '#e8a020',
+    mainBkg: '#19284a',
+    nodeTextColor: '#e2e8f2',
+    actorBkg: '#19284a',
+    actorBorder: '#e8a020',
+    actorTextColor: '#e2e8f2',
+    actorLineColor: '#5a6a84',
+    signalColor: '#e2e8f2',
+    signalTextColor: '#e2e8f2',
+    labelBoxBkgColor: '#111d33',
+    labelBoxBorderColor: '#e8a020',
+    labelTextColor: '#e2e8f2',
+    loopTextColor: '#e2e8f2',
+    noteBorderColor: '#e8a020',
+    noteBkgColor: '#19284a',
+    noteTextColor: '#e2e8f2',
+    activationBorderColor: '#e8a020',
+    activationBkgColor: '#111d33',
+    sequenceNumberColor: '#e8a020'
+  },
+  flowchart: { htmlLabels: true, curve: 'basis' },
+  sequence: { showSequenceNumbers: true, actorMargin: 60, width: 160 }
+});
+
+// ── ENDPOINT TOGGLE ──
+function toggleEndpoint(header) {
+  const body = header.nextElementSibling;
+  const icon = header.querySelector('.fa-chevron-down');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (icon) icon.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+// ── BACK TO TOP ──
+window.addEventListener('scroll', () => {
+  document.getElementById('back-top').classList.toggle('visible', window.scrollY > 300);
+});
+
+// ── ACTIVE SIDEBAR ──
+const sections = document.querySelectorAll('.doc-section, .doc-hero');
+const links = document.querySelectorAll('.sidebar-link');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const id = e.target.id;
+      const active = document.querySelector(`.sidebar-link[href="#${id}"]`);
+      if (active) {
+        active.classList.add('active');
+        active.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  });
+}, { rootMargin: '-60px 0px -60% 0px', threshold: 0 });
+sections.forEach(s => obs.observe(s));
+
+// ── SEARCH ──
+document.getElementById('search-input').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  if (!q) { document.querySelectorAll('.doc-section').forEach(s => s.style.display = ''); return; }
+  document.querySelectorAll('.doc-section').forEach(s => {
+    s.style.display = s.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+
+// Open first few endpoints by default
+document.addEventListener('DOMContentLoaded', () => {
+  const first = document.querySelector('.endpoint-header');
+  if (first) toggleEndpoint(first);
+});
+</script>
+</body>
+</html>

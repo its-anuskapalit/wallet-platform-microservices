@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angular Interview Q&A with Code | Freshers Guide 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #f9fafc 0%, #eef2f8 100%);
+            color: #0f172a;
+            padding: 2rem 1.5rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .hero {
+            background: linear-gradient(125deg, #b71c1c 0%, #d32f2f 40%, #f44336 100%);
+            padding: 2rem 2.5rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.92;
+            max-width: 85%;
+        }
+
+        .angular-badge {
+            background: rgba(255,255,240,0.2);
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 0.8rem;
+        }
+
+        .content {
+            padding: 2rem 2.2rem;
+        }
+
+        .feature-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: #fef7e0;
+            border-radius: 1.2rem;
+            padding: 1rem 1.5rem;
+            border-left: 5px solid #f97316;
+        }
+
+        .feature-grid span {
+            background: white;
+            border-radius: 2rem;
+            padding: 0.3rem 1rem;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #b91c1c;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem 0;
+            padding-left: 0.75rem;
+            border-left: 6px solid #e53935;
+            color: #1e293b;
+        }
+
+        .qa-card {
+            margin: 1.3rem 0;
+            background: #ffffff;
+            border-radius: 1.2rem;
+            border: 1px solid #e9ecef;
+            overflow: hidden;
+            transition: all 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .question {
+            background: #fefaf5;
+            padding: 1rem 1.5rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: #b71c1c;
+            border-bottom: 2px solid #ffcdd2;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .answer {
+            padding: 1.2rem 1.8rem;
+            background: #ffffff;
+        }
+
+        .code-block {
+            background: #0d1b2a;
+            color: #e0f2fe;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin: 1rem 0 0.7rem 0;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .note {
+            background: #e8f0fe;
+            padding: 0.7rem 1rem;
+            border-radius: 0.8rem;
+            margin: 0.8rem 0;
+            border-left: 4px solid #e53935;
+            font-size: 0.9rem;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: 0;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .pill {
+            background: #ffefef;
+            color: #c62828;
+            border-radius: 20px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 0.8rem;
+        }
+
+        footer {
+            background: #f8fafc;
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: #475569;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        @media (max-width: 700px) {
+            .hero p { max-width: 100%; }
+            .content { padding: 1.2rem; }
+            .question { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="hero">
+        <h1>
+            <span>🅰️</span> Angular Interview Questions & Answers
+        </h1>
+        <p>Complete fresher guide: components, modules, data binding, services, RxJS, directives, and real code snippets.  
+        <span class="angular-badge">⚡ Angular 2+ (v14 to v18 concepts)</span></p>
+    </div>
+    <div class="content">
+        <div class="feature-grid">
+            <span>✅ Single Page Application</span>
+            <span>✅ TypeScript based</span>
+            <span>✅ Dependency Injection</span>
+            <span>✅ Two-way binding</span>
+            <span>✅ RxJS & Observables</span>
+            <span>✅ Directives</span>
+            <span>✅ Lazy Loading</span>
+        </div>
+
+        <!-- ==================== Angular Core Q&A ==================== -->
+        <div class="section-title">📌 Core Angular Concepts (Must for Freshers)</div>
+
+        <!-- Q1 -->
+        <div class="qa-card">
+            <div class="question">🔹 1. What is Angular? How is it different from AngularJS?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Angular is a TypeScript-based open-source front-end framework developed by Google for building dynamic single-page applications (SPAs). It's a complete rewrite of AngularJS (v1.x).</p>
+                <ul style="margin-left: 1.2rem;">
+                    <li><strong>AngularJS:</strong> Uses JavaScript, controllers & $scope, MVC pattern.</li>
+                    <li><strong>Angular (2+):</strong> Uses TypeScript, component-based architecture, better performance, mobile support, and CLI.</li>
+                </ul>
+                <div class="note">💡 Key improvements: Unidirectional data flow, Ahead-of-Time (AOT) compilation, RxJS for async tasks.</div>
+            </div>
+        </div>
+
+        <!-- Q2: Architecture -->
+        <div class="qa-card">
+            <div class="question">🔹 2. Explain the core building blocks of an Angular application.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Main building blocks: <strong>Modules, Components, Templates, Metadata, Data Binding, Directives, Services, Dependency Injection</strong>.</p>
+                <ul>
+                    <li><strong>Modules (NgModules):</strong> Container for components, directives, pipes.</li>
+                    <li><strong>Components:</strong> Controls a part of the screen (HTML + logic).</li>
+                    <li><strong>Templates:</strong> HTML with Angular bindings.</li>
+                    <li><strong>Services:</strong> Reusable business logic/data across components.</li>
+                </ul>
+                <div class="code-block">
+                    <pre>// app.module.ts (root module)
+@NgModule({
+  declarations: [AppComponent, UserComponent],
+  imports: [BrowserModule, FormsModule],
+  providers: [UserService],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q3: Component Lifecycle -->
+        <div class="qa-card">
+            <div class="question">🔹 3. List important Angular component lifecycle hooks with examples.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Lifecycle hooks (ordered): <code>ngOnChanges</code>, <code>ngOnInit</code>, <code>ngDoCheck</code>, <code>ngAfterContentInit</code>, <code>ngAfterContentChecked</code>, <code>ngAfterViewInit</code>, <code>ngAfterViewChecked</code>, <code>ngOnDestroy</code>.</p>
+                <div class="code-block">
+                    <pre>export class DemoComponent implements OnInit, OnDestroy {
+  ngOnInit() {
+    console.log('Component initialized - ideal for API calls');
+  }
+  ngOnDestroy() {
+    console.log('Cleanup subscriptions to avoid memory leaks');
+  }
+}</pre>
+                </div>
+                <div class="note">📌 <strong>Most common:</strong> ngOnInit (initialization), ngOnDestroy (cleanup).</div>
+            </div>
+        </div>
+
+        <!-- Q4: Data binding types -->
+        <div class="qa-card">
+            <div class="question">🔹 4. Explain all types of data binding in Angular with code.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Angular supports four types:</p>
+                <ul>
+                    <li><strong>Interpolation:</strong> <code>&#123;&#123; value &#125;&#125;</code> → one-way from component to DOM.</li>
+                    <li><strong>Property binding:</strong> <code>[property]="expression"</code></li>
+                    <li><strong>Event binding:</strong> <code>(event)="handler()"</code></li>
+                    <li><strong>Two-way binding:</strong> <code>[(ngModel)]="property"</code> (FormsModule required)</li>
+                </ul>
+                <div class="code-block">
+                    <pre>&lt;!-- component.html --&gt;
+&lt;h2&gt;Hello {{ userName }}&lt;/h2&gt;
+&lt;button [disabled]="isDisabled" (click)="saveData()"&gt;Save&lt;/button&gt;
+&lt;input [(ngModel)]="userName" placeholder="Edit name" /&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q5: Directives -->
+        <div class="qa-card">
+            <div class="question">🔹 5. What are directives? Explain structural vs attribute directives with examples.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Directives are instructions to manipulate DOM. Types: <strong>Structural</strong> (change layout: *ngIf, *ngFor, *ngSwitch) and <strong>Attribute</strong> (change appearance/behavior: ngClass, ngStyle, custom).</p>
+                <div class="code-block">
+                    <pre>&lt;!-- Structural --&gt;
+&lt;div *ngIf="isLoggedIn"&gt;Welcome back!&lt;/div&gt;
+&lt;li *ngFor="let item of items"&gt;{{ item }}&lt;/li&gt;
+
+&lt;!-- Attribute --&gt;
+&lt;div [ngClass]="{'highlight': isActive}"&gt;Styled div&lt;/div&gt;
+&lt;button [ngStyle]="{'background': color}"&gt;Click&lt;/button&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q6: Services & DI -->
+        <div class="qa-card">
+            <div class="question">🔹 6. Explain services and dependency injection in Angular with code.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Services are singleton objects that encapsulate reusable logic (HTTP calls, shared data). Angular's DI system provides dependencies to components.</p>
+                <div class="code-block">
+                    <pre>// data.service.ts
+@Injectable({ providedIn: 'root' })
+export class DataService {
+  getProducts() { return ['Laptop', 'Mouse']; }
+}
+
+// product.component.ts
+export class ProductComponent {
+  constructor(private dataService: DataService) { }
+  products = this.dataService.getProducts();
+}</pre>
+                </div>
+                <div class="note">✅ Using <code>providedIn: 'root'</code> makes service a singleton across app.</div>
+            </div>
+        </div>
+
+        <!-- Q7: RxJS / Observables -->
+        <div class="qa-card">
+            <div class="question">🔹 7. What are Observables in Angular? How to handle HTTP requests?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Observables (RxJS) handle async operations like HTTP requests, events. Angular's HttpClient returns Observables. You subscribe to get data.</p>
+                <div class="code-block">
+                    <pre>// user.service.ts
+getUsers(): Observable&lt;User[]&gt; {
+  return this.http.get&lt;User[]&gt;('https://api.example.com/users');
+}
+
+// component.ts
+this.userService.getUsers().subscribe({
+  next: (data) => this.users = data,
+  error: (err) => console.error(err)
+});</pre>
+                </div>
+                <div class="note">⚡ Can use <code>async pipe</code> in template to auto-subscribe/unsubscribe.</div>
+            </div>
+        </div>
+
+        <!-- Q8: Routing -->
+        <div class="qa-card">
+            <div class="question">🔹 8. How does Angular routing work? Show a simple route configuration.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> RouterModule enables navigation between views. Define routes, then use <code>&lt;router-outlet&gt;</code> to render components.</p>
+                <div class="code-block">
+                    <pre>// app-routing.module.ts
+const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'products', component: ProductsComponent },
+  { path: 'detail/:id', component: ProductDetailComponent }
+];
+// navigation in template
+&lt;a routerLink="/products"&gt;Products&lt;/a&gt;
+&lt;button routerLink="/detail/5"&gt;View 5&lt;/button&gt;
+&lt;router-outlet&gt;&lt;/router-outlet&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q9: Pipes -->
+        <div class="qa-card">
+            <div class="question">🔹 9. What are pipes? Demonstrate built-in and custom pipe.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Pipes transform data in templates. Built-in: DatePipe, CurrencyPipe, UpperCasePipe. Custom pipes implement <code>PipeTransform</code>.</p>
+                <div class="code-block">
+                    <pre>&lt;p&gt;Today: {{ today | date:'fullDate' }}&lt;/p&gt;
+&lt;p&gt;Price: {{ productPrice | currency:'INR' }}&lt;/p&gt;
+
+// Custom pipe to truncate text
+@Pipe({ name: 'truncate' })
+export class TruncatePipe implements PipeTransform {
+  transform(value: string, limit: number = 10): string {
+    return value.length > limit ? value.substr(0, limit) + '...' : value;
+  }
+}
+// usage: {{ longText | truncate:20 }}</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q10: Template-driven vs Reactive forms -->
+        <div class="qa-card">
+            <div class="question">🔹 10. Compare template-driven forms vs reactive forms with code.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Template-driven: uses <code>ngModel</code>, easier but less scalable. Reactive: uses FormGroup, FormControl, more testable & powerful.</p>
+                <div class="code-block">
+                    <pre>&lt;!-- Template-driven --&gt;
+&lt;input [(ngModel)]="user.name" required #name="ngModel" /&gt;
+
+// Reactive form
+this.profileForm = new FormGroup({
+  name: new FormControl('', [Validators.required]),
+  email: new FormControl('', [Validators.email])
+});
+&lt;form [formGroup]="profileForm"&gt;
+  &lt;input formControlName="name" /&gt;
+&lt;/form&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">🚀 Advanced & Interview Favorites</div>
+
+        <!-- Q11: Change Detection -->
+        <div class="qa-card">
+            <div class="question">🔹 11. How does Angular's change detection work? What is OnPush strategy?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Angular checks component's bindings after each async event. Default = CheckAlways. <strong>OnPush</strong> strategy checks only when input references change or events fire inside component. Improves performance.</p>
+                <div class="code-block">
+                    <pre>@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ListComponent { ... }</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q12: Lazy loading -->
+        <div class="qa-card">
+            <div class="question">🔹 12. What is lazy loading in Angular? Show route configuration.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Lazy loading loads feature modules on-demand, reducing initial bundle size.</p>
+                <div class="code-block">
+                    <pre>const routes: Routes = [
+  { path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule) }
+];</pre>
+                </div>
+                <div class="note">✅ Improves startup performance, great for large enterprise apps.</div>
+            </div>
+        </div>
+
+        <!-- Q13: Angular CLI -->
+        <div class="qa-card">
+            <div class="question">🔹 13. List 5 important Angular CLI commands every fresher must know.</div>
+            <div class="answer">
+                <ul>
+                    <li><code>ng new my-app</code> → creates new Angular project</li>
+                    <li><code>ng generate component product</code> → creates component</li>
+                    <li><code>ng serve</code> → starts dev server</li>
+                    <li><code>ng build --prod</code> → production build</li>
+                    <li><code>ng test</code> → unit tests with Karma</li>
+                </ul>
+                <div class="note">Other: <code>ng generate service data</code>, <code>ng generate module admin --routing</code></div>
+            </div>
+        </div>
+
+        <!-- Q14: @Input & @Output -->
+        <div class="qa-card">
+            <div class="question">🔹 14. Explain component communication using @Input and @Output with example.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Parent → Child using <code>@Input()</code>. Child → Parent using <code>@Output()</code> EventEmitter.</p>
+                <div class="code-block">
+                    <pre>// child.component.ts
+@Input() productName: string;
+@Output() notify = new EventEmitter&lt;string&gt;();
+
+sendToParent() { this.notify.emit('Item purchased'); }
+
+// parent template
+&lt;app-child [productName]="'Laptop'" (notify)="onNotify($event)"&gt;&lt;/app-child&gt;</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q15: ViewChild / ViewChildren -->
+        <div class="qa-card">
+            <div class="question">🔹 15. What is ViewChild? Provide a practical scenario.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> <code>@ViewChild</code> gives access to child component/directive/DOM element from component class.</p>
+                <div class="code-block">
+                    <pre>&lt;input #myInput type="text" /&gt;
+@ViewChild('myInput') inputRef: ElementRef;
+ngAfterViewInit() { this.inputRef.nativeElement.focus(); }</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q16: Guarding Routes -->
+        <div class="qa-card">
+            <div class="question">🔹 16. How to protect routes using AuthGuard?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Implement CanActivate interface in a guard service.</p>
+                <div class="code-block">
+                    <pre>@Injectable({ providedIn: 'root' })
+export class AuthGuard implements CanActivate {
+  canActivate(): boolean { return this.auth.isLoggedIn; }
+}
+// routes: { path: 'dashboard', canActivate: [AuthGuard], component: DashboardComponent }</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q17: What is AOT compilation? -->
+        <div class="qa-card">
+            <div class="question">🔹 17. What is AOT (Ahead-of-Time) compilation vs JIT?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> AOT compiles Angular templates at build time → smaller bundle, faster rendering, fewer errors. JIT compiles at runtime in browser. AOT is default in production builds.</p>
+            </div>
+        </div>
+
+        <!-- Q18: Async Pipe -->
+        <div class="qa-card">
+            <div class="question">🔹 18. What is async pipe and why is it useful?</div>
+            <div class="answer">
+                <div class="code-block">
+                    <pre>&lt;div *ngFor="let user of users$ | async"&gt;{{ user.name }}&lt;/div&gt;</pre>
+                </div>
+                <p>Automatically subscribes to Observable/Promise and unsubscribes on component destroy — prevents memory leaks.</p>
+            </div>
+        </div>
+
+        <!-- Q19: Standalone Components (Angular 14+) -->
+        <div class="qa-card">
+            <div class="question">🔹 19. What are standalone components? How are they different?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Standalone components don't require NgModule. They manage their own dependencies, simplifying app structure.</p>
+                <div class="code-block">
+                    <pre>@Component({
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  selector: 'app-profile',
+  template: `&lt;h2&gt;Standalone!&lt;/h2&gt;`
+})</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Q20: DI Hierarchy -->
+        <div class="qa-card">
+            <div class="question">🔹 20. How does hierarchical dependency injection work in Angular?</div>
+            <div class="answer">
+                <p>Angular has injector tree. A component can have its own injector that falls back to parent. Provided services can be scoped at root, module, or component level.</p>
+                <div class="code-block">
+                    <pre>@Component({ providers: [LocalService] }) // new instance for component + children</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bonus practical task: Debugging -->
+        <div class="qa-card">
+            <div class="question">🔹 21. Tools for debugging Angular applications?</div>
+            <div class="answer">
+                <p>Augury (Chrome DevTools extension), Angular DevTools, console logs, breakpoints in VS Code, and using <code>ng.profiler</code> in browser console.</p>
+            </div>
+        </div>
+
+        <!-- extra fresher tip -->
+        <div style="background: #fef2e8; border-radius: 1.2rem; padding: 1.2rem; margin: 1.8rem 0; border: 1px solid #ffccbc;">
+            <p style="font-weight: 700;">🎯 Fresher's mantra: </p>
+            <p>✔️ Know component lifecycle, data binding, services, routing, and observables. <br>
+            ✔️ Practice building a small todo app with Angular CLI. <br>
+            ✔️ Understand difference between promises and observables. <br>
+            ✔️ Be ready to write small snippets on whiteboard.</p>
+        </div>
+
+        <footer>
+            ⚡ Angular Interview Prep — from basic to advanced (components, DI, RxJS, forms, routing). <br>
+            📚 All code examples aligned with latest Angular versions (v15+). Good luck!
+        </footer>
+    </div>
+</div>
+</body>
+</html>

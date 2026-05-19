@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auth Service — Deep Dive</title>
+<style>
+  :root {
+    --bg: #f8f9fa; --card: #ffffff; --border: #e2e8f0;
+    --primary: #1e40af; --accent: #3b82f6; --green: #16a34a;
+    --red: #dc2626; --orange: #d97706; --purple: #7c3aed;
+    --text: #1e293b; --muted: #64748b; --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  /* NAV */
+  nav { background: var(--primary); color: white; padding: 16px 32px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  nav .logo { font-size: 1.1rem; font-weight: 700; }
+  nav .sub { font-size: 0.8rem; opacity: .7; }
+
+  /* SIDEBAR + CONTENT */
+  .layout { display: flex; min-height: 100vh; }
+  aside { width: 240px; background: var(--card); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 57px; height: calc(100vh - 57px); overflow-y: auto; flex-shrink: 0; }
+  aside a { display: block; padding: 8px 20px; font-size: 0.82rem; color: var(--muted); text-decoration: none; border-left: 3px solid transparent; transition: all .2s; }
+  aside a:hover, aside a.active { color: var(--accent); border-left-color: var(--accent); background: #eff6ff; }
+  aside .section-label { padding: 12px 20px 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: .08em; }
+  main { flex: 1; padding: 32px; max-width: 960px; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 48px; scroll-margin-top: 80px; }
+  h2 { font-size: 1.4rem; font-weight: 700; color: var(--primary); padding-bottom: 10px; border-bottom: 2px solid var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  h2 .num { background: var(--accent); color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+  h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 20px 0 10px; }
+  p { margin-bottom: 12px; font-size: 0.93rem; color: var(--text); }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; color: var(--primary); }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: var(--green); }
+  .badge-red { background: #fee2e2; color: var(--red); }
+  .badge-blue { background: #dbeafe; color: var(--primary); }
+  .badge-orange { background: #fef3c7; color: var(--orange); }
+  .badge-purple { background: #ede9fe; color: var(--purple); }
+
+  /* CODE */
+  pre { background: var(--code-bg); color: var(--code-text); border-radius: 8px; padding: 16px; font-size: 0.82rem; overflow-x: auto; margin: 12px 0; line-height: 1.7; }
+  code { font-family: 'Consolas', 'Cascadia Code', monospace; }
+  .inline-code { background: #f1f5f9; color: var(--primary); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
+
+  /* CALLOUTS */
+  .callout { border-left: 4px solid; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 12px 0; font-size: 0.88rem; }
+  .callout-green { border-color: var(--green); background: #f0fdf4; }
+  .callout-red { border-color: var(--red); background: #fef2f2; }
+  .callout-orange { border-color: var(--orange); background: #fffbeb; }
+  .callout-blue { border-color: var(--accent); background: #eff6ff; }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin: 12px 0; }
+  th { background: #f1f5f9; font-weight: 700; padding: 10px 12px; text-align: left; border: 1px solid var(--border); }
+  td { padding: 9px 12px; border: 1px solid var(--border); }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  /* FLOW */
+  .flow-box { background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-family: monospace; font-size: 0.82rem; line-height: 2; white-space: pre-wrap; }
+  .flow-step { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .flow-num { background: var(--accent); color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+  .flow-text { font-size: 0.88rem; }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width: 700px) { .grid2 { grid-template-columns: 1fr; } aside { display: none; } main { padding: 16px; } }
+
+  /* Q&A */
+  .qa-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+  .qa-q { background: #f1f5f9; padding: 12px 16px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; justify-content: space-between; }
+  .qa-a { padding: 14px 16px; font-size: 0.87rem; display: none; border-top: 1px solid var(--border); line-height: 1.7; }
+  .qa-a.open { display: block; }
+
+  /* HIGHLIGHT */
+  .hl-green { color: #16a34a; font-weight: 600; }
+  .hl-red { color: #dc2626; font-weight: 600; }
+  .hl-blue { color: #2563eb; font-weight: 600; }
+  .hl-orange { color: #d97706; font-weight: 600; }
+
+  /* SUMMARY BOX */
+  .summary-box { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+  .summary-box h1 { font-size: 1.5rem; margin-bottom: 6px; }
+  .summary-box p { opacity: .9; font-size: 0.9rem; margin: 0; }
+  .stat-row { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat .val { font-size: 1.6rem; font-weight: 800; }
+  .stat .lbl { font-size: 0.72rem; opacity: .8; text-transform: uppercase; letter-spacing: .05em; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div>
+    <div class="logo">🔐 Auth Service — Deep Dive</div>
+    <div class="sub">WalletPlatform · Port 5001 · Senior Architect Analysis</div>
+  </div>
+</nav>
+
+<div class="layout">
+<aside>
+  <div class="section-label">Sections</div>
+  <a href="#s1">1. Service Context</a>
+  <a href="#s2">2. Clean Architecture</a>
+  <a href="#s3">3. File-by-File Review</a>
+  <a href="#s4">4. Execution Trace</a>
+  <a href="#s5">5. Distributed Systems</a>
+  <a href="#s6">6. Performance</a>
+  <a href="#s7">7. Security</a>
+  <a href="#s8">8. Design Trade-offs</a>
+  <a href="#s9">9. Edge Cases</a>
+  <a href="#s10">10. Interview Q&A</a>
+  <a href="#s11">11. 30s + 2min Pitch</a>
+</aside>
+
+<main>
+
+<!-- HEADER SUMMARY -->
+<div class="summary-box">
+  <h1>Auth Service</h1>
+  <p>Identity & token management — the trust anchor of the entire platform</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">4</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">DB Tables</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Published</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events Consumed</div></div>
+    <div class="stat"><div class="val">60min</div><div class="lbl">JWT Expiry</div></div>
+    <div class="stat"><div class="val">7 days</div><div class="lbl">Refresh Expiry</div></div>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section" id="s1">
+  <h2><span class="num">1</span> Service Context — System View</h2>
+
+  <div class="card">
+    <div class="card-title">Exact Responsibility</div>
+    <p>Auth Service owns <strong>one job</strong>: prove who you are and issue a signed certificate (JWT) that every other service trusts. It never moves money, stores profiles, or sends emails. It only answers: <em>"Is this person who they claim to be?"</em></p>
+    <p>Think of it as the <strong>passport office</strong> of the platform. It doesn't decide what you can do — it just issues your passport. Other services decide what the passport holder is allowed to do.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">✅ Invariants It Must Always Maintain</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li>Passwords are <strong>never stored in plain text</strong> — BCrypt at work factor 12</li>
+        <li>Refresh tokens are <strong>single-use only</strong> — old token revoked immediately on refresh</li>
+        <li>Role is <strong>always server-assigned</strong> — never from user input</li>
+        <li>Email is <strong>globally unique</strong> — enforced at DB + service layer</li>
+        <li>JWT secret never leaves server — signing is one-way</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">💥 What Breaks If Auth Goes Down</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li><strong>No new logins</strong> — existing valid JWTs still work (stateless)</li>
+        <li><strong>No new registrations</strong> — UserProfile/Wallet not created for new users</li>
+        <li><strong>Token refresh fails</strong> — users get logged out after 60 min</li>
+        <li>Gateway JWT validation still works (secret is in Gateway config too)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Service Interactions</h3>
+  <table>
+    <tr><th>Direction</th><th>Target</th><th>Method</th><th>What</th></tr>
+    <tr><td><span class="badge badge-blue">OUT async</span></td><td>UserProfile, Wallet, Notification, Rewards</td><td>RabbitMQ</td><td>UserRegisteredEvent after register</td></tr>
+    <tr><td><span class="badge badge-green">RECEIVES</span></td><td>API Gateway</td><td>HTTP</td><td>All client requests routed via Ocelot</td></tr>
+    <tr><td><span class="badge badge-orange">NONE</span></td><td>Any service</td><td>Sync HTTP</td><td>Auth never calls other services synchronously</td></tr>
+  </table>
+  <div class="callout callout-blue"><strong>Key insight:</strong> Auth is a pure producer. It publishes one event, consumes none. This is correct design — identity should have zero runtime dependencies on downstream services.</div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section" id="s2">
+  <h2><span class="num">2</span> Clean Architecture Analysis</h2>
+
+  <div class="flow-box">AuthService.Core/          ← Domain layer (pure C#, zero framework dependencies)
+  Entities/
+    User.cs               ← The real domain object
+    RefreshToken.cs
+  Interfaces/
+    IAuthService.cs       ← Contract: what Auth can DO
+    IAuthRepository.cs    ← Contract: how Auth PERSISTS
+    ITokenService.cs      ← Contract: how tokens are GENERATED
+  Services/
+    AuthService.cs        ← Business logic lives here
+    TokenService.cs       ← JWT generation logic
+  DTOs/
+    LoginRequestDto.cs
+    RegisterRequestDto.cs
+    AuthResponseDto.cs
+
+AuthService.Infrastructure/  ← Implementation layer (EF Core, SQL Server)
+  Repositories/
+    AuthRepository.cs     ← Implements IAuthRepository using EF Core
+  Persistence/
+    AuthDbContext.cs       ← EF Core context, table config
+
+AuthService.API/             ← Delivery layer (ASP.NET Core)
+  Controllers/
+    AuthController.cs     ← HTTP in → Service call → HTTP out
+  Program.cs              ← DI wiring, middleware, startup</div>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <div class="card-title">Why Each Layer Exists</div>
+      <p><strong>Core</strong> — Business rules are technology-agnostic. If you swap SQL Server for MongoDB tomorrow, zero Core code changes. The rule "passwords must be BCrypt hashed" lives in Core, not in a controller.</p>
+      <p><strong>Infrastructure</strong> — EF Core is a detail. Core declares <span class="inline-code">IAuthRepository</span>. Infrastructure provides the concrete SQL implementation. Core doesn't know SQL exists.</p>
+      <p><strong>API</strong> — ASP.NET is a delivery mechanism. The real work is in Core. The controller is just a translator: HTTP → domain call → HTTP.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">What Breaks Without This Structure</div>
+      <p>If <strong>controller calls DbContext directly</strong> → you can't unit test it without a real DB. Every test needs SQL Server running.</p>
+      <p>If <strong>entity has controller logic</strong> → changing HTTP response format requires touching your domain model.</p>
+      <p>If <strong>business logic is in repository</strong> → your data access layer starts making business decisions — the classic "fat repository" anti-pattern.</p>
+    </div>
+  </div>
+
+  <h3>Dependency Inversion in Action</h3>
+  <pre><code>// AuthService.cs (Core) — depends on abstraction, not concretion
+public class AuthDomainService : IAuthService
+{
+    private readonly IAuthRepository _users;   // ← interface, not AuthRepository
+    private readonly ITokenService   _tokens;  // ← interface, not TokenService
+    private readonly IEventPublisher _pub;     // ← interface, not RabbitMQ
+
+    // Core has ZERO knowledge of SQL Server, EF, or RabbitMQ
+}
+
+// Program.cs (API) — only place that binds interface → implementation
+builder.Services.AddScoped&lt;IAuthRepository, AuthRepository&gt;();
+builder.Services.AddScoped&lt;IAuthService,    AuthDomainService&gt;();
+builder.Services.AddScoped&lt;ITokenService,   TokenService&gt;();
+builder.Services.AddSingleton&lt;IEventPublisher, RabbitMQPublisher&gt;();</code></pre>
+  <div class="callout callout-green"><strong>Why this matters for your tests:</strong> All 38 unit tests work because <span class="inline-code">AuthService</span> depends on <span class="inline-code">IAuthRepository</span> — not the real one. Tests pass <span class="inline-code">Mock&lt;IAuthRepository&gt;</span> and never touch SQL Server.</div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section" id="s3">
+  <h2><span class="num">3</span> Deep File-by-File Code Review</h2>
+
+  <!-- AuthController -->
+  <div class="card">
+    <div class="card-title">📄 AuthController.cs — API Layer</div>
+    <pre><code>[ApiController]
+[Route("api/auth")]
+public class AuthController : ControllerBase
+{
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)  // ← DI, not new()
+        => _authService = authService;
+
+    [HttpPost("register")]
+    public async Task&lt;IActionResult&gt; Register([FromBody] RegisterRequestDto dto)
+    {
+        // [ApiController] auto-validates data annotations — no if(!ModelState) needed
+        var result = await _authService.RegisterAsync(dto);
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(Register), result.Data)  // 201
+            : Conflict(new { error = result.Error });          // 409
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        // Reads directly from JWT claims — no DB call needed
+        return Ok(new {
+            UserId   = User.FindFirst(ClaimTypes.NameIdentifier)?.Value,
+            Email    = User.FindFirst(ClaimTypes.Email)?.Value,
+            Role     = User.FindFirst(ClaimTypes.Role)?.Value,
+            FullName = User.FindFirst("fullName")?.Value
+        });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin-only")]
+    public IActionResult AdminOnly() =&gt; Ok(new { message = "You are an admin." });
+}</code></pre>
+    <p><strong>Why thin controllers?</strong> The controller has one job: translate HTTP into domain calls. It knows nothing about BCrypt, JWT, or SQL. If you need to add a gRPC endpoint tomorrow, you reuse <span class="inline-code">IAuthService</span> — the business logic is untouched.</p>
+    <p><strong>Trade-off:</strong> <span class="inline-code">/me</span> reads from JWT claims without hitting DB. This means if a user is deactivated, their token is still valid for up to 60 minutes. A real-time check would require a DB call on every request — too expensive at scale.</p>
+  </div>
+
+  <!-- AuthService.cs -->
+  <div class="card">
+    <div class="card-title">📄 AuthService.cs — Core Domain Service</div>
+    <pre><code>public async Task&lt;Result&lt;AuthResponseDto&gt;&gt; RegisterAsync(RegisterRequestDto dto)
+{
+    // 1. Check duplicate email — business rule
+    if (await _users.ExistsByEmailAsync(dto.Email))
+        return Result&lt;AuthResponseDto&gt;.Failure("Email already registered.");
+
+    // 2. Create entity — password hashed HERE, not in repository
+    var user = new User
+    {
+        Id           = Guid.NewGuid(),
+        Email        = dto.Email.ToLower().Trim(),   // normalised
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+        FullName     = dto.FullName,
+        Role         = "User",     // ← ALWAYS server-set, never from input
+        IsActive     = true,
+        CreatedAt    = DateTime.UtcNow
+    };
+
+    // 3. Persist
+    await _users.CreateUserAsync(user);
+
+    // 4. Generate tokens
+    var accessToken  = _tokens.GenerateAccessToken(user);
+    var refreshToken = _tokens.GenerateRefreshToken();
+    await _users.AddRefreshTokenAsync(new RefreshToken {
+        Token     = refreshToken,
+        UserId    = user.Id,
+        ExpiresAt = _tokens.GetRefreshTokenExpiry(),
+        IsRevoked = false
+    });
+
+    // 5. Publish event AFTER persistence — user must exist before consumers reference it
+    await _publisher.PublishAsync("user.exchange", "user.registered",
+        new UserRegisteredEvent { UserId = user.Id, Email = user.Email });
+
+    return Result&lt;AuthResponseDto&gt;.Success(BuildResponse(user, accessToken, refreshToken));
+}
+
+public async Task&lt;Result&lt;AuthResponseDto&gt;&gt; LoginAsync(LoginRequestDto dto)
+{
+    var user = await _users.GetByEmailAsync(dto.Email);
+
+    // Intentionally same error for "not found" and "wrong password"
+    // Prevents user enumeration attack
+    if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+        return Result&lt;AuthResponseDto&gt;.Failure("Invalid email or password.");
+
+    if (!user.IsActive)
+        return Result&lt;AuthResponseDto&gt;.Failure("Account is deactivated.");
+
+    // ... generate + store refresh token, return tokens
+}</code></pre>
+    <div class="callout callout-orange"><strong>Critical security detail:</strong> Login returns the same error for both "user not found" and "wrong password." If you said "Email not found" for missing users, attackers could enumerate which emails are registered. Same error = no information leakage.</div>
+  </div>
+
+  <!-- TokenService.cs -->
+  <div class="card">
+    <div class="card-title">📄 TokenService.cs — JWT Generation</div>
+    <pre><code>public string GenerateAccessToken(User user)
+{
+    var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    var claims = new[]
+    {
+        new Claim(JwtRegisteredClaimNames.Sub,   user.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),  // unique token ID
+        new Claim(ClaimTypes.Role,               user.Role),
+        new Claim("fullName",                    user.FullName)
+    };
+
+    var token = new JwtSecurityToken(
+        issuer:             _config["Jwt:Issuer"],    // WalletPlatform
+        audience:           _config["Jwt:Audience"],  // WalletPlatform.Clients
+        claims:             claims,
+        expires:            DateTime.UtcNow.AddMinutes(60),
+        signingCredentials: creds);
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+// Refresh token = 64 cryptographically random bytes → base64 string
+// NOT a JWT — just an opaque random secret stored in DB
+public string GenerateRefreshToken()
+    =&gt; Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));</code></pre>
+    <p><strong>Why is the refresh token NOT a JWT?</strong> A JWT is self-contained and can't be revoked without a blacklist. The refresh token is stored in DB, so revocation is just marking <span class="inline-code">IsRevoked = true</span>. Simple, reliable, database-backed revocation.</p>
+    <p><strong>Why <span class="inline-code">jti</span> claim?</strong> Each JWT gets a unique ID. In a production system with a token blacklist (Redis), you'd blacklist the <span class="inline-code">jti</span> on logout — allowing near-instant JWT invalidation without full statefulness.</p>
+  </div>
+
+  <!-- AuthRepository.cs -->
+  <div class="card">
+    <div class="card-title">📄 AuthRepository.cs — Infrastructure Layer</div>
+    <pre><code>public class AuthRepository : IAuthRepository
+{
+    private readonly AuthDbContext _ctx;
+
+    // EmailExists — for duplicate check during register
+    public async Task&lt;bool&gt; ExistsByEmailAsync(string email)
+        =&gt; await _ctx.Users
+            .AsNoTracking()                    // ← read-only, no change tracking overhead
+            .AnyAsync(u =&gt; u.Email == email.ToLower().Trim());
+
+    // GetByEmail — for login (needs full entity)
+    public async Task&lt;User?&gt; GetByEmailAsync(string email)
+        =&gt; await _ctx.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u =&gt; u.Email == email.ToLower().Trim());
+
+    // GetRefreshToken — for refresh/revoke (needs tracking to update IsRevoked)
+    public async Task&lt;RefreshToken?&gt; GetRefreshTokenAsync(string token)
+        =&gt; await _ctx.RefreshTokens
+            .Include(rt =&gt; rt.User)   // ← loads User navigation property
+            .FirstOrDefaultAsync(rt =&gt; rt.Token == token &amp;&amp; !rt.IsRevoked);
+}</code></pre>
+    <p><strong>AsNoTracking() strategy:</strong> Used for all reads where you don't intend to update. EF Core won't create a snapshot of the entity for change detection. For a high-read service like Auth, this is a meaningful performance gain — especially under load.</p>
+    <p><strong>GetRefreshToken uses tracking (no AsNoTracking):</strong> Because immediately after loading it, the service calls <span class="inline-code">IsRevoked = true</span> and <span class="inline-code">SaveChangesAsync()</span>. EF's change tracker detects the modification and issues an UPDATE automatically.</p>
+  </div>
+
+  <!-- Entities -->
+  <div class="card">
+    <div class="card-title">📄 User.cs + RefreshToken.cs — Domain Entities</div>
+    <pre><code>// Users table — two tables, clear responsibilities
+public class User : BaseEntity
+{
+    public Guid   Id           { get; set; }
+    public string Email        { get; set; } = string.Empty;  // UNIQUE index in DB
+    public string PasswordHash { get; set; } = string.Empty;  // BCrypt, never plain
+    public string FullName     { get; set; } = string.Empty;
+    public string Phone        { get; set; } = string.Empty;
+    public string Role         { get; set; } = "User";        // "User" | "Admin"
+    public bool   IsActive     { get; set; } = true;
+    public DateTime CreatedAt  { get; set; }
+
+    // Navigation property — EF loads related refresh tokens when needed
+    public ICollection&lt;RefreshToken&gt; RefreshTokens { get; set; } = new List&lt;RefreshToken&gt;();
+}
+
+public class RefreshToken : BaseEntity
+{
+    public Guid     Id             { get; set; }
+    public string   Token          { get; set; } = string.Empty;  // UNIQUE index
+    public DateTime ExpiresAt      { get; set; }
+    public bool     IsRevoked      { get; set; } = false;
+    public string?  ReplacedByToken { get; set; }   // audit trail: what replaced this token
+    public Guid     UserId         { get; set; }    // FK
+    public User     User           { get; set; } = null!;
+}</code></pre>
+    <p><strong>ReplacedByToken field:</strong> When a refresh token is rotated, you store the token that replaced it. This enables an audit trail — if a stolen token is used, you can trace the full token chain and detect the breach.</p>
+  </div>
+
+  <!-- DbContext -->
+  <div class="card">
+    <div class="card-title">📄 AuthDbContext.cs — Persistence Configuration</div>
+    <pre><code>public class AuthDbContext : DbContext
+{
+    public DbSet&lt;User&gt;         Users         { get; set; }
+    public DbSet&lt;RefreshToken&gt; RefreshTokens { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder mb)
+    {
+        // Unique constraint — enforced at DB level, not just service level
+        mb.Entity&lt;User&gt;()
+          .HasIndex(u =&gt; u.Email)
+          .IsUnique();
+
+        mb.Entity&lt;RefreshToken&gt;()
+          .HasIndex(rt =&gt; rt.Token)
+          .IsUnique();
+
+        // Cascade delete — when user deleted, their refresh tokens go too
+        mb.Entity&lt;RefreshToken&gt;()
+          .HasOne(rt =&gt; rt.User)
+          .WithMany(u =&gt; u.RefreshTokens)
+          .HasForeignKey(rt =&gt; rt.UserId)
+          .OnDelete(DeleteBehavior.Cascade);
+    }
+}</code></pre>
+    <div class="callout callout-red"><strong>Defense in depth:</strong> The unique email index exists at both the service layer (ExistsByEmailAsync check) AND the database level (HasIndex.IsUnique). If two concurrent register requests pass the service check simultaneously, the DB constraint catches it. This is essential — never rely on service-layer checks alone for uniqueness.</div>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section" id="s4">
+  <h2><span class="num">4</span> Execution Trace — Login Flow</h2>
+
+  <div class="card">
+    <div class="card-title">Scenario: POST /gateway/auth/login → { email, password }</div>
+
+    <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><strong>Ocelot Gateway (5000)</strong> receives the request. Checks JWT middleware — login is <span class="inline-code">[AllowAnonymous]</span>, so no auth check. Route rule matches <span class="inline-code">/gateway/auth/**</span> → forwards to <span class="inline-code">http://localhost:5001/api/auth/login</span></div></div>
+    <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><strong>AuthController.Login()</strong> — <span class="inline-code">[ApiController]</span> validates model binding. <span class="inline-code">[Required]</span> and <span class="inline-code">[EmailAddress]</span> data annotations checked. If invalid → 400 returned before controller method even executes.</div></div>
+    <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><strong>AuthService.LoginAsync()</strong> — calls <span class="inline-code">_users.GetByEmailAsync(dto.Email)</span>. EF issues: <span class="inline-code">SELECT TOP 1 * FROM Users WHERE Email = 'x@y.com'</span></div></div>
+    <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><strong>Password verification</strong> — <span class="inline-code">BCrypt.Verify(dto.Password, user.PasswordHash)</span>. BCrypt re-hashes the input with the stored salt and compares. This takes ~200ms intentionally — it's the work factor 12 cost that makes brute force expensive.</div></div>
+    <div class="flow-step"><div class="flow-num">5</div><div class="flow-text"><strong>Token generation</strong> — <span class="inline-code">TokenService.GenerateAccessToken(user)</span> builds JWT with claims (sub, email, role, fullName, jti). Signs with HMACSHA256. <span class="inline-code">GenerateRefreshToken()</span> produces 64 random bytes → base64.</div></div>
+    <div class="flow-step"><div class="flow-num">6</div><div class="flow-text"><strong>Refresh token stored</strong> — <span class="inline-code">INSERT INTO RefreshTokens</span> with <span class="inline-code">IsRevoked=false</span>, <span class="inline-code">ExpiresAt = Now+7days</span>.</div></div>
+    <div class="flow-step"><div class="flow-num">7</div><div class="flow-text"><strong>200 OK returned</strong> — <span class="inline-code">{ userId, email, accessToken, refreshToken, accessTokenExpiry }</span></div></div>
+
+    <h3 style="margin-top:20px">What Fails at Each Step</h3>
+    <table>
+      <tr><th>Step</th><th>Failure</th><th>Response</th></tr>
+      <tr><td>1</td><td>Gateway down</td><td>Connection refused (client side)</td></tr>
+      <tr><td>2</td><td>Missing email field</td><td>400 — automatic from [ApiController]</td></tr>
+      <tr><td>3</td><td>Email not in DB</td><td>401 — "Invalid email or password" (no enumeration)</td></tr>
+      <tr><td>4</td><td>Wrong password</td><td>401 — same message as step 3</td></tr>
+      <tr><td>4</td><td>IsActive = false</td><td>401 — "Account is deactivated"</td></tr>
+      <tr><td>6</td><td>DB write fails</td><td>500 — GlobalExceptionMiddleware catches, logs, returns generic error</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section" id="s5">
+  <h2><span class="num">5</span> Distributed Systems Concerns</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Idempotency</div>
+      <p><strong>Register:</strong> Not idempotent by design — sending the same email twice returns 409 on the second call. The unique index guarantees this even under concurrent requests.</p>
+      <p><strong>Login:</strong> Naturally idempotent — calling it N times creates N refresh tokens, but all are valid. Old ones expire after 7 days.</p>
+      <p><strong>Gap:</strong> No explicit idempotency key on register. A network retry after a successful register (client didn't get response) would return 409. This is acceptable UX — tell the user to login instead.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Consistency Model</div>
+      <p><strong>Auth DB:</strong> Strong consistency — all writes go to a single SQL Server. ACID guarantees apply.</p>
+      <p><strong>Cross-service:</strong> Eventual consistency — the UserRegisteredEvent may reach UserProfile/Wallet seconds after Auth responds 200. During that window the user exists in AuthDb but not in UserProfileDb.</p>
+      <p><strong>Risk:</strong> If RabbitMQ is down, the event is lost and downstream services never create the user's profile/wallet. The user can login but can't do anything. Mitigation: Outbox pattern (not implemented — noted gap).</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Refresh Token Rotation — The Revocation Chain</div>
+    <pre><code>// RefreshAsync — token rotation logic
+var existing = await _users.GetRefreshTokenAsync(token);
+
+if (existing == null || existing.IsRevoked || existing.ExpiresAt &lt; DateTime.UtcNow)
+    return Result.Failure("Invalid or expired refresh token.");
+
+// Generate new pair
+var newAccess  = _tokens.GenerateAccessToken(existing.User);
+var newRefresh = _tokens.GenerateRefreshToken();
+
+// Revoke old — set IsRevoked=true, store what replaced it (audit trail)
+existing.IsRevoked      = true;
+existing.ReplacedByToken = newRefresh;
+
+// Store new refresh token
+await _users.AddRefreshTokenAsync(new RefreshToken { Token = newRefresh, ... });
+await _ctx.SaveChangesAsync();  // ← single transaction: revoke + create atomically</code></pre>
+    <div class="callout callout-red"><strong>Reuse detection:</strong> If an attacker steals and uses a refresh token before the legitimate user does, the legitimate user's next refresh call will get 401 (token already revoked). This is a signal of token theft. In production: revoke ALL tokens for this user and force re-login.</div>
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section" id="s6">
+  <h2><span class="num">6</span> Performance & Scalability</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">⚠️ Bottlenecks</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li><strong>BCrypt at work factor 12</strong> — intentionally slow (~200ms). Login is CPU-bound. Under heavy load, this limits login throughput. Mitigation: horizontal scaling (multiple Auth service instances).</li>
+        <li><strong>Email uniqueness check</strong> — requires a DB read on every register. Index on Email makes it O(log n) but still a network round trip.</li>
+        <li><strong>RefreshTokens table growth</strong> — tokens accumulate over 7 days. Need a background cleanup job to delete expired/revoked tokens.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Scaling Strategy</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li><strong>JWT is stateless</strong> — gateway validates token signature without calling Auth service. Auth doesn't get hit on every API call, only on login/refresh.</li>
+        <li><strong>Horizontal scaling</strong> — Auth service can run N replicas. No local state. DB is the only shared state.</li>
+        <li><strong>Caching opportunity:</strong> User lookup by email could be Redis-cached. But cache invalidation is tricky if user is deactivated.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section" id="s7">
+  <h2><span class="num">7</span> Security Analysis</h2>
+
+  <table>
+    <tr><th>Attack Vector</th><th>Mitigation in Your Code</th><th>Gap / Improvement</th></tr>
+    <tr><td>Password brute force</td><td>BCrypt work factor 12 (~200ms/attempt)</td><td>No rate limiting on login endpoint</td></tr>
+    <tr><td>User enumeration</td><td>Same error for "not found" and "wrong password"</td><td>✅ Correctly implemented</td></tr>
+    <tr><td>Token theft (refresh)</td><td>Single-use rotation + IsRevoked flag</td><td>No all-tokens-revoke on suspected theft</td></tr>
+    <tr><td>JWT tampering</td><td>HMACSHA256 signature — any modification invalidates signature</td><td>Key should be 256+ bits (check your .env)</td></tr>
+    <tr><td>Replay attack (JWT)</td><td>60-min expiry limits replay window</td><td>No jti blacklist — revoked access tokens still valid for up to 60min</td></tr>
+    <tr><td>SQL injection</td><td>EF Core parameterized queries — no raw SQL</td><td>✅ Not possible via EF LINQ</td></tr>
+    <tr><td>Role escalation</td><td>Role set server-side only, never from DTO</td><td>✅ Correctly implemented</td></tr>
+    <tr><td>HTTPS downgrade</td><td>Not enforced in dev, should be in prod</td><td>Add HSTS + HTTPS redirect in production</td></tr>
+  </table>
+
+  <div class="callout callout-blue"><strong>JWT statelessness trade-off:</strong> You cannot instantly invalidate a JWT after logout. If a user logs out, their access token is still valid for up to 60 minutes. The industry solution is a Redis-backed token blacklist keyed by <span class="inline-code">jti</span>. Your service has <span class="inline-code">jti</span> in the claims — the plumbing is ready if you add Redis.</div>
+</div>
+
+<!-- SECTION 8 -->
+<div class="section" id="s8">
+  <h2><span class="num">8</span> Design Trade-offs</h2>
+
+  <div class="card">
+    <div class="card-title">Why Microservice for Auth, Not Monolith?</div>
+    <p><strong>Independent deployability:</strong> You can update the refresh token rotation logic or change JWT expiry without touching Wallet or Ledger. In a monolith, any deploy risks breaking everything.</p>
+    <p><strong>Security isolation:</strong> JWT secrets and password hashes are in a separate process with its own DB. If the Catalog service is compromised, attackers don't get access to the AuthDb.</p>
+    <p><strong>Cost:</strong> Each service call now crosses a network boundary. Register triggers RabbitMQ + 3 downstream consumers. In a monolith this would be 3 in-process method calls.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Database-per-service Trade-off</div>
+      <p><strong>Benefit:</strong> Auth's schema can evolve independently. You can add columns to Users without coordination with other teams.</p>
+      <p><strong>Cost:</strong> No cross-service JOIN. If Admin service needs user email + wallet balance, it must call two services, not one SELECT JOIN.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Event-driven Registration Trade-off</div>
+      <p><strong>Benefit:</strong> Auth doesn't wait for UserProfile/Wallet to be created. Register returns in ~300ms regardless of downstream load.</p>
+      <p><strong>Cost:</strong> If RabbitMQ drops the event, user has no wallet. No outbox pattern = no delivery guarantee. This is the most significant reliability gap in Auth.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 9 -->
+<div class="section" id="s9">
+  <h2><span class="num">9</span> Edge Cases & Failure Scenarios</h2>
+
+  <table>
+    <tr><th>Scenario</th><th>What Happens</th><th>Recovery</th></tr>
+    <tr><td>Register twice with same email</td><td>First call succeeds. Second call: service returns 409, DB unique index also blocks it as second line of defence</td><td>User told to login</td></tr>
+    <tr><td>Register succeeds but RabbitMQ event lost</td><td>User can login, JWT issued correctly. But UserProfile/Wallet/Notification never receive the event — user has no wallet</td><td>Manual fix or Outbox pattern (not implemented)</td></tr>
+    <tr><td>Login during DB outage</td><td>GetByEmailAsync throws. GlobalExceptionMiddleware catches → 500. User sees generic error</td><td>DB recovers, login works again automatically</td></tr>
+    <tr><td>Refresh token used after logout</td><td>IsRevoked=true in DB. GetRefreshTokenAsync returns null → 401</td><td>User must login again</td></tr>
+    <tr><td>Stolen refresh token used by attacker first</td><td>Attacker gets new tokens. When legitimate user tries to refresh, gets 401 (token already revoked)</td><td>Legitimate user must login again. No automatic all-token revoke (gap)</td></tr>
+    <tr><td>JWT with Admin role — user later demoted</td><td>JWT still shows Admin role until 60-min expiry. Token is stateless — no way to invalidate it mid-flight</td><td>Wait for expiry or implement jti blacklist</td></tr>
+    <tr><td>Register: DB write succeeds, event publish fails</td><td>User created in AuthDb, UserRegisteredEvent never sent to RabbitMQ. Same as event lost scenario</td><td>Outbox pattern would solve this</td></tr>
+  </table>
+</div>
+
+<!-- SECTION 10 -->
+<div class="section" id="s10">
+  <h2><span class="num">10</span> Interview-Level Q&A</h2>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why can't you immediately invalidate a JWT after logout? How would you fix it? <span>▼</span></div>
+    <div class="qa-a">
+      JWTs are stateless and self-validating. The gateway validates the signature locally — it doesn't call Auth service. So even if you mark the token as "logged out" in your DB, the gateway never checks that. The token is valid until it expires.<br><br>
+      <strong>Fix:</strong> Store revoked JTIs in Redis with TTL equal to token expiry. On every request, gateway checks Redis: "is this jti blacklisted?" If yes → 401. This adds one Redis read per request — but Redis is in-memory so it's microseconds, not milliseconds. The <span class="inline-code">jti</span> claim is already in every JWT in this service — the infrastructure is ready.
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: What is refresh token rotation and why does it improve security? <span>▼</span></div>
+    <div class="qa-a">
+      Refresh token rotation means each time you use a refresh token, it's immediately invalidated and replaced with a new one. The old token's <span class="inline-code">IsRevoked</span> is set to true in the DB.<br><br>
+      <strong>Security gain:</strong> If an attacker steals your refresh token and uses it before you do, your next refresh attempt will fail (token already revoked). This is a signal of token theft. Without rotation, a stolen refresh token is valid for 7 days — the attacker can silently renew access indefinitely.
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: Why return the same error for "email not found" and "wrong password"? <span>▼</span></div>
+    <div class="qa-a">
+      This prevents <strong>user enumeration</strong>. If login returned "Email not registered" for unknown emails, an attacker could iterate through a list of emails and discover which ones have accounts — then target those accounts specifically or sell the list. By returning "Invalid email or password" for both cases, the attacker learns nothing about whether the email exists.
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q4: How does Clean Architecture make this service testable? <span>▼</span></div>
+    <div class="qa-a">
+      <span class="inline-code">AuthService.cs</span> (Core) depends on <span class="inline-code">IAuthRepository</span>, not <span class="inline-code">AuthRepository</span>. In unit tests, you pass <span class="inline-code">Mock&lt;IAuthRepository&gt;</span> that returns controlled data without touching SQL Server. All 38 tests run in milliseconds with no infrastructure dependencies. The interface is the seam that makes testing possible. Without it, every test would need a running database.
+    </div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q5: What is the biggest reliability risk in Auth and how would you fix it? <span>▼</span></div>
+    <div class="qa-a">
+      The event publish happens after the DB write, but there's no transactional guarantee between them. If RabbitMQ is down or the publish fails, the user is created in AuthDb but UserProfile/Wallet never get the event — the user exists but can't use the platform.<br><br>
+      <strong>Fix: Outbox Pattern.</strong> Instead of publishing to RabbitMQ directly, write the event to an <span class="inline-code">OutboxEvents</span> table in the same DB transaction as the user INSERT. A background job polls the outbox table and publishes to RabbitMQ, marking events as published. Now the event is guaranteed to be delivered eventually — even if RabbitMQ was down during registration.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 11 -->
+<div class="section" id="s11">
+  <h2><span class="num">11</span> 30-Second & 2-Minute Explanation</h2>
+
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="card-title">⚡ 30-Second Answer</div>
+    <p>Auth Service is the identity anchor of the platform. It owns user registration, login, and JWT issuance. It uses BCrypt at work factor 12 for password hashing, issues 60-minute JWTs with claims baked in, and manages refresh token rotation with revocation. It publishes a UserRegisteredEvent to RabbitMQ so downstream services (Wallet, UserProfile, Notifications) can set up the user asynchronously. Every other service trusts the JWT — they validate the signature without calling Auth.</p>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--accent)">
+    <div class="card-title">🎯 2-Minute Deep Dive Answer</div>
+    <p>Auth Service follows Clean Architecture: Core holds domain logic and interfaces, Infrastructure implements EF Core repositories, and the API layer is a thin controller that maps HTTP to domain calls. This separation is what makes 38 unit tests possible — the core service has zero framework dependencies.</p>
+    <p>The JWT is stateless — the gateway validates the HMACSHA256 signature locally on every request without calling Auth. This means Auth isn't hit on every API call, only on login and refresh. The trade-off is that a revoked access token remains valid for up to 60 minutes — solvable with a Redis-backed jti blacklist.</p>
+    <p>Refresh tokens are single-use and database-backed — not JWTs — so they can be revoked instantly. Rotation means every use of a refresh token invalidates it and creates a new one. If a stolen token is used before the legitimate user, the legitimate user detects it on their next refresh attempt.</p>
+    <p>The main reliability gap is the UserRegisteredEvent publish. There's no transactional guarantee between the DB write and the RabbitMQ publish. In production I'd add the Outbox Pattern — write the event to the same database transaction, and have a background job guarantee delivery.</p>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+function toggle(el) {
+  const ans = el.nextElementSibling;
+  ans.classList.toggle('open');
+  el.querySelector('span').textContent = ans.classList.contains('open') ? '▲' : '▼';
+}
+// Sidebar active link
+const links = document.querySelectorAll('aside a');
+const sections = document.querySelectorAll('.section');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if(window.scrollY >= s.offsetTop - 100) current = s.id; });
+  links.forEach(l => { l.classList.toggle('active', l.getAttribute('href') === '#'+current); });
+});
+</script>
+</body>
+</html>

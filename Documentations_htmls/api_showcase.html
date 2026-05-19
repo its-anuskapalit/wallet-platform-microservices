@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WalletPlatform API Showcase</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f7fa;color:#1a1a2e;min-height:100vh}
+header{background:#1a1a2e;color:#fff;padding:1.2rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+header h1{font-size:1.1rem;font-weight:600;letter-spacing:.02em}
+header span{font-size:.8rem;opacity:.6;background:#fff1;padding:.3rem .7rem;border-radius:20px}
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:230px;background:#fff;border-right:1px solid #e2e8f0;padding:1rem 0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;flex-shrink:0}
+.sidebar-group{margin-bottom:.25rem}
+.sidebar-title{font-size:.65rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;padding:.5rem 1rem .25rem}
+.sidebar button{width:100%;text-align:left;border:none;background:none;cursor:pointer;padding:.5rem 1rem .5rem 1.2rem;font-size:.82rem;color:#475569;display:flex;align-items:center;gap:.5rem;border-left:3px solid transparent;transition:all .15s}
+.sidebar button:hover{background:#f1f5f9;color:#1e293b}
+.sidebar button.active{background:#eff6ff;color:#2563eb;border-left-color:#2563eb;font-weight:600}
+.badge{font-size:.6rem;font-weight:700;padding:.15rem .4rem;border-radius:4px;letter-spacing:.03em;flex-shrink:0}
+.GET{background:#d1fae5;color:#065f46}.POST{background:#dbeafe;color:#1e40af}.PUT{background:#fef3c7;color:#92400e}.DELETE{background:#fee2e2;color:#991b1b}
+.main{flex:1;padding:2rem;max-width:900px}
+.section{display:none}.section.active{display:block}
+.section-header{margin-bottom:1.5rem}
+.section-header h2{font-size:1.4rem;font-weight:700;color:#1e293b;margin-bottom:.3rem}
+.section-header p{font-size:.88rem;color:#64748b}
+.step-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:1.2rem;overflow:hidden}
+.step-header{display:flex;align-items:center;gap:.75rem;padding:1rem 1.2rem;background:#f8fafc;border-bottom:1px solid #e2e8f0;cursor:pointer}
+.step-num{width:26px;height:26px;border-radius:50%;background:#2563eb;color:#fff;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{font-size:.92rem;font-weight:600;color:#1e293b;flex:1}
+.step-method{font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:5px}
+.step-body{padding:1.2rem}
+.step-body.hidden{display:none}
+.label{font-size:.72rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+.endpoint{font-family:monospace;font-size:.85rem;background:#1e293b;color:#7dd3fc;padding:.6rem 1rem;border-radius:8px;margin-bottom:1rem;word-break:break-all}
+.code-block{background:#1e293b;color:#e2e8f0;padding:1rem 1.2rem;border-radius:8px;font-family:monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;white-space:pre;margin-bottom:1rem}
+.key{color:#93c5fd}.str{color:#86efac}.num{color:#fcd34d}.prop{color:#f9a8d4}
+.sql-block{background:#0f172a;color:#e2e8f0;padding:1rem 1.2rem;border-radius:8px;font-family:monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;white-space:pre;margin-bottom:1rem;border-left:3px solid #f59e0b}
+.sql-kw{color:#f59e0b}.sql-str{color:#86efac}.sql-tbl{color:#7dd3fc}
+.response-block{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:1rem 1.2rem;font-family:monospace;font-size:.8rem;line-height:1.7;overflow-x:auto;white-space:pre;margin-bottom:1rem;color:#166534}
+.info-row{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.info-chip{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;font-size:.75rem;padding:.25rem .7rem;border-radius:20px;font-weight:500}
+.info-chip.warning{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.info-chip.success{background:#f0fdf4;border-color:#bbf7d0;color:#166534}
+.divider{height:1px;background:#e2e8f0;margin:1rem 0}
+.copy-btn{float:right;font-size:.7rem;background:#334155;color:#94a3b8;border:none;border-radius:4px;padding:.2rem .5rem;cursor:pointer;font-family:system-ui;margin-top:-2px}
+.copy-btn:hover{background:#475569;color:#fff}
+.flow-note{background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:.8rem 1rem;font-size:.82rem;color:#713f12;margin-bottom:1rem}
+.flow-note strong{color:#92400e}
+.arrow-flow{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin:.5rem 0 1rem;font-size:.78rem}
+.arrow-flow span{background:#f1f5f9;border:1px solid #e2e8f0;padding:.2rem .6rem;border-radius:5px;color:#475569}
+.arrow-flow .arrow{color:#94a3b8;font-size:.9rem}
+.token-note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.7rem 1rem;font-size:.8rem;color:#1e40af;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>WalletPlatform — API Showcase Guide</h1>
+  <span>Gateway: localhost:5000</span>
+</header>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-group">
+    <div class="sidebar-title">Auth Service</div>
+    <button onclick="show('auth','register',this)" class="active"><span class="badge POST">POST</span>Register</button>
+    <button onclick="show('auth','login',this)"><span class="badge POST">POST</span>Login</button>
+    <button onclick="show('auth','refresh',this)"><span class="badge POST">POST</span>Refresh Token</button>
+    <button onclick="show('auth','logout',this)"><span class="badge POST">POST</span>Logout</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">User Profile</div>
+    <button onclick="show('profile','getprofile',this)"><span class="badge GET">GET</span>Get Profile</button>
+    <button onclick="show('profile','updateprofile',this)"><span class="badge PUT">PUT</span>Update Profile</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">Wallet Service</div>
+    <button onclick="show('wallet','getbalance',this)"><span class="badge GET">GET</span>Get Balance</button>
+    <button onclick="show('wallet','addmoney',this)"><span class="badge POST">POST</span>Add Money</button>
+    <button onclick="show('wallet','transfer',this)"><span class="badge POST">POST</span>Transfer</button>
+    <button onclick="show('wallet','pay',this)"><span class="badge POST">POST</span>Pay Merchant</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">Ledger Service</div>
+    <button onclick="show('ledger','history',this)"><span class="badge GET">GET</span>Transaction History</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">Rewards Service</div>
+    <button onclick="show('rewards','points',this)"><span class="badge GET">GET</span>Get Points</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">Catalog Service</div>
+    <button onclick="show('catalog','services',this)"><span class="badge GET">GET</span>Get Services</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">Admin Service</div>
+    <button onclick="show('admin','users',this)"><span class="badge GET">GET</span>All Users</button>
+    <button onclick="show('admin','transactions',this)"><span class="badge GET">GET</span>All Transactions</button>
+  </div>
+  <div class="sidebar-group">
+    <div class="sidebar-title">Receipts / Notify</div>
+    <button onclick="show('receipts','getreceipt',this)"><span class="badge GET">GET</span>Get Receipt</button>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- AUTH: REGISTER -->
+<div id="auth-register" class="section active">
+  <div class="section-header">
+    <h2>Register New User</h2>
+    <p>Creates a user in AuthDB → publishes UserRegisteredEvent → 4 services auto-create records</p>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('r1')">
+      <div class="step-num">1</div>
+      <div class="step-title">Send POST request to register</div>
+      <span class="step-method POST">POST</span>
+    </div>
+    <div class="step-body" id="r1">
+      <div class="label">Endpoint (via Gateway)</div>
+      <div class="endpoint">POST http://localhost:5000/api/auth/register</div>
+      <div class="label">Request JSON body</div>
+      <div class="code-block"><span class="str">{
+  "<span class="key">fullName</span>":    "<span class="str">Aaryan Sharma</span>",
+  "<span class="key">email</span>":       "<span class="str">aaryan@demo.com</span>",
+  "<span class="key">phoneNumber</span>": "<span class="str">9876543210</span>",
+  "<span class="key">password</span>":    "<span class="str">Test@1234</span>"
+}</span></div>
+      <div class="label">Expected Response (201 Created)</div>
+      <div class="response-block">{
+  "message": "User registered successfully",
+  "userId":  "a1b2c3d4-...",
+  "email":   "aaryan@demo.com"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('r2')">
+      <div class="step-num">2</div>
+      <div class="step-title">Verify in AuthDB — user row created</div>
+      <span class="step-method GET">SQL</span>
+    </div>
+    <div class="step-body" id="r2">
+      <div class="label">SQL — POLLY\SQLEXPRESS → AuthDb</div>
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Id, FullName, Email, PhoneNumber,
+       PasswordHash, IsActive, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">Users</span>
+<span class="sql-kw">WHERE</span>  Email = <span class="sql-str">'aaryan@demo.com'</span>;</div>
+      <div class="flow-note"><strong>What to show:</strong> PasswordHash starts with <code>$2a$12$</code> — BCrypt work factor 12. Never plain text!</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('r3')">
+      <div class="step-num">3</div>
+      <div class="step-title">Verify event cascade — 4 services created records automatically</div>
+      <span class="step-method GET">SQL</span>
+    </div>
+    <div class="step-body" id="r3">
+      <div class="label">UserProfileDb — profile auto-created via RabbitMQ event</div>
+      <div class="sql-block"><span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> <span class="sql-tbl">UserProfiles</span> <span class="sql-kw">WHERE</span> Email = <span class="sql-str">'aaryan@demo.com'</span>;</div>
+      <div class="label">WalletDb — wallet auto-created</div>
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Id, UserId, Balance, RowVersion <span class="sql-kw">FROM</span> <span class="sql-tbl">Wallets</span>
+<span class="sql-kw">WHERE</span> UserId = <span class="sql-str">'&lt;paste userId from step 1&gt;'</span>;</div>
+      <div class="label">RewardsDb — points account created</div>
+      <div class="sql-block"><span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> <span class="sql-tbl">RewardAccounts</span> <span class="sql-kw">WHERE</span> UserId = <span class="sql-str">'&lt;userId&gt;'</span>;</div>
+      <div class="flow-note"><strong>Presenter tip:</strong> This shows event-driven architecture in action. Auth published ONE event, 3 other services reacted automatically. Zero direct API calls between them!</div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH: LOGIN -->
+<div id="auth-login" class="section">
+  <div class="section-header">
+    <h2>Login</h2>
+    <p>Validates credentials → returns JWT access token (60 min) + refresh token (7 days)</p>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('l1')"><div class="step-num">1</div><div class="step-title">POST login credentials</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="l1">
+      <div class="endpoint">POST http://localhost:5000/api/auth/login</div>
+      <div class="code-block">{
+  "<span class="key">email</span>":    "<span class="str">aaryan@demo.com</span>",
+  "<span class="key">password</span>": "<span class="str">Test@1234</span>"
+}</div>
+      <div class="label">Response (200 OK)</div>
+      <div class="response-block">{
+  "accessToken":  "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "d4e5f6a7b8c9...",
+  "expiresIn":    3600,
+  "tokenType":    "Bearer"
+}</div>
+      <div class="token-note">Copy the <strong>accessToken</strong> — you'll need it as <code>Authorization: Bearer &lt;token&gt;</code> for ALL protected APIs below.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('l2')"><div class="step-num">2</div><div class="step-title">Verify refresh token stored (hashed) in DB</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="l2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Token, ExpiryDate, IsRevoked, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">RefreshTokens</span>
+<span class="sql-kw">WHERE</span>  UserId = <span class="sql-str">'&lt;userId&gt;'</span>
+<span class="sql-kw">ORDER BY</span> CreatedAt <span class="sql-kw">DESC</span>;</div>
+      <div class="flow-note"><strong>Key talking point:</strong> Token stored as a hash, not plain text. IsRevoked = 0 (active). On next refresh, this gets set to 1 and a new row is created — that's token rotation.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH: REFRESH -->
+<div id="auth-refresh" class="section">
+  <div class="section-header"><h2>Refresh Token</h2><p>Exchanges a valid refresh token for a new access token. Old token is immediately revoked (rotation).</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('rf1')"><div class="step-num">1</div><div class="step-title">POST refresh token</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="rf1">
+      <div class="endpoint">POST http://localhost:5000/api/auth/refresh</div>
+      <div class="code-block">{
+  "<span class="key">refreshToken</span>": "<span class="str">d4e5f6a7b8c9... (from login)</span>"
+}</div>
+      <div class="label">Response</div>
+      <div class="response-block">{
+  "accessToken":  "eyJhbGciOiJIUzI1NiIs... (NEW token)",
+  "refreshToken": "x9y8z7w6v5u4... (NEW refresh token)",
+  "expiresIn":    3600
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('rf2')"><div class="step-num">2</div><div class="step-title">Verify old token revoked in DB</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="rf2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Token, IsRevoked, ReplacedByToken
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">RefreshTokens</span>
+<span class="sql-kw">WHERE</span>  UserId = <span class="sql-str">'&lt;userId&gt;'</span>
+<span class="sql-kw">ORDER BY</span> CreatedAt <span class="sql-kw">DESC</span>;</div>
+      <div class="flow-note"><strong>Show:</strong> Old row has IsRevoked = 1, ReplacedByToken points to new row. This is how reuse attacks are detected!</div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH: LOGOUT -->
+<div id="auth-logout" class="section">
+  <div class="section-header"><h2>Logout</h2><p>Revokes the refresh token — user must log in again to get a new one.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('lo1')"><div class="step-num">1</div><div class="step-title">POST logout</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="lo1">
+      <div class="endpoint">POST http://localhost:5000/api/auth/logout</div>
+      <div class="label">Headers</div>
+      <div class="code-block">Authorization: Bearer &lt;accessToken&gt;</div>
+      <div class="code-block">{
+  "<span class="key">refreshToken</span>": "<span class="str">d4e5f6a7b8c9...</span>"
+}</div>
+      <div class="response-block">{ "message": "Logged out successfully" }</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE: GET -->
+<div id="profile-getprofile" class="section">
+  <div class="section-header"><h2>Get User Profile</h2><p>Returns the profile created automatically when the user registered (via RabbitMQ event).</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('gp1')"><div class="step-num">1</div><div class="step-title">GET profile (protected)</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="gp1">
+      <div class="endpoint">GET http://localhost:5000/api/userprofile/profile</div>
+      <div class="label">Headers (required)</div>
+      <div class="code-block">Authorization: Bearer &lt;accessToken from login&gt;</div>
+      <div class="label">Response</div>
+      <div class="response-block">{
+  "userId":      "a1b2c3d4-...",
+  "fullName":    "Aaryan Sharma",
+  "email":       "aaryan@demo.com",
+  "phoneNumber": "9876543210",
+  "createdAt":   "2025-04-07T10:30:00Z"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('gp2')"><div class="step-num">2</div><div class="step-title">Verify in UserProfileDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="gp2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> * <span class="sql-kw">FROM</span> <span class="sql-tbl">UserProfiles</span>
+<span class="sql-kw">WHERE</span> Email = <span class="sql-str">'aaryan@demo.com'</span>;</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE: UPDATE -->
+<div id="profile-updateprofile" class="section">
+  <div class="section-header"><h2>Update Profile</h2></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('up1')"><div class="step-num">1</div><div class="step-title">PUT update profile</div><span class="step-method PUT">PUT</span></div>
+    <div class="step-body" id="up1">
+      <div class="endpoint">PUT http://localhost:5000/api/userprofile/profile</div>
+      <div class="code-block">{
+  "<span class="key">fullName</span>":    "<span class="str">Aaryan K Sharma</span>",
+  "<span class="key">phoneNumber</span>": "<span class="str">9999999999</span>"
+}</div>
+      <div class="response-block">{ "message": "Profile updated successfully" }</div>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET: BALANCE -->
+<div id="wallet-getbalance" class="section">
+  <div class="section-header"><h2>Get Wallet Balance</h2><p>Returns current wallet balance. Wallet was auto-created on registration.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('wb1')"><div class="step-num">1</div><div class="step-title">GET wallet balance</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="wb1">
+      <div class="endpoint">GET http://localhost:5000/api/wallet/balance</div>
+      <div class="label">Headers</div>
+      <div class="code-block">Authorization: Bearer &lt;accessToken&gt;</div>
+      <div class="response-block">{
+  "walletId": "w1x2y3z4-...",
+  "userId":   "a1b2c3d4-...",
+  "balance":  0.00,
+  "currency": "INR"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('wb2')"><div class="step-num">2</div><div class="step-title">Verify in WalletDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="wb2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Id, UserId, Balance, RowVersion, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">Wallets</span>
+<span class="sql-kw">WHERE</span>  UserId = <span class="sql-str">'&lt;userId&gt;'</span>;</div>
+      <div class="flow-note"><strong>RowVersion column:</strong> This is EF Core optimistic concurrency. If 2 requests try to update balance simultaneously, one will fail with a conflict — preventing double-spend!</div>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET: ADD MONEY -->
+<div id="wallet-addmoney" class="section">
+  <div class="section-header"><h2>Add Money</h2><p>Credits money to wallet. Creates a double-entry ledger record (Debit + Credit). Idempotency key prevents duplicate credits.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('am1')"><div class="step-num">1</div><div class="step-title">POST add money</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="am1">
+      <div class="endpoint">POST http://localhost:5000/api/wallet/add-money</div>
+      <div class="code-block">{
+  "<span class="key">amount</span>":         <span class="num">500.00</span>,
+  "<span class="key">idempotencyKey</span>": "<span class="str">addmoney-demo-001</span>",
+  "<span class="key">description</span>":    "<span class="str">Demo top-up for presentation</span>"
+}</div>
+      <div class="response-block">{
+  "transactionId": "t1t2t3t4-...",
+  "newBalance":    500.00,
+  "message":       "Money added successfully"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('am2')"><div class="step-num">2</div><div class="step-title">Test idempotency — send SAME request again</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="am2">
+      <div class="flow-note"><strong>Send the exact same JSON again</strong> (same idempotencyKey). Balance should still be ₹500 — NOT ₹1000. This is the idempotency guarantee!</div>
+      <div class="response-block">{ "transactionId": "t1t2t3t4-... (same ID)", "newBalance": 500.00 }</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('am3')"><div class="step-num">3</div><div class="step-title">Verify double-entry in LedgerDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="am3">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> TransactionId, EntryType, Amount, Description, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">LedgerEntries</span>
+<span class="sql-kw">WHERE</span>  WalletId = <span class="sql-str">'&lt;walletId&gt;'</span>
+<span class="sql-kw">ORDER BY</span> CreatedAt <span class="sql-kw">DESC</span>;</div>
+      <div class="flow-note"><strong>Show 2 rows with same TransactionId:</strong> One DEBIT (Amount = 500), one CREDIT (Amount = -500). Sum = 0. This is double-entry bookkeeping — same principle banks use!</div>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET: TRANSFER -->
+<div id="wallet-transfer" class="section">
+  <div class="section-header"><h2>Transfer Money</h2><p>Transfers from your wallet to another user's wallet. Atomic — both debit & credit happen in one DB transaction.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('tr1')"><div class="step-num">0</div><div class="step-title">Pre-step: Register a second user (receiver)</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="tr1">
+      <div class="endpoint">POST http://localhost:5000/api/auth/register</div>
+      <div class="code-block">{
+  "<span class="key">fullName</span>":    "<span class="str">Priya Demo</span>",
+  "<span class="key">email</span>":       "<span class="str">priya@demo.com</span>",
+  "<span class="key">password</span>":    "<span class="str">Test@1234</span>",
+  "<span class="key">phoneNumber</span>": "<span class="str">9111111111</span>"
+}</div>
+      <div class="token-note">Note the <strong>userId</strong> of Priya — you'll use it as receiverUserId below.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('tr2')"><div class="step-num">1</div><div class="step-title">POST transfer (logged in as Aaryan)</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="tr2">
+      <div class="endpoint">POST http://localhost:5000/api/wallet/transfer</div>
+      <div class="code-block">{
+  "<span class="key">receiverUserId</span>": "<span class="str">&lt;Priya's userId&gt;</span>",
+  "<span class="key">amount</span>":         <span class="num">150.00</span>,
+  "<span class="key">idempotencyKey</span>": "<span class="str">transfer-demo-001</span>",
+  "<span class="key">description</span>":    "<span class="str">Demo transfer to Priya</span>"
+}</div>
+      <div class="response-block">{
+  "transactionId": "tx-abc-...",
+  "senderBalance": 350.00,
+  "message":       "Transfer successful"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('tr3')"><div class="step-num">2</div><div class="step-title">Verify BOTH wallets updated atomically</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="tr3">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> UserId, Balance
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">Wallets</span>
+<span class="sql-kw">WHERE</span>  UserId <span class="sql-kw">IN</span> (<span class="sql-str">'&lt;Aaryan userId&gt;'</span>, <span class="sql-str">'&lt;Priya userId&gt;'</span>);</div>
+      <div class="flow-note"><strong>Key point:</strong> Aaryan: ₹350, Priya: ₹150. Both changed in ONE atomic DB transaction. If it fails halfway, NEITHER changes — that's atomicity.</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('tr4')"><div class="step-num">3</div><div class="step-title">See 4 ledger entries (2 per wallet)</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="tr4">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> WalletId, EntryType, Amount, TransactionId
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">LedgerEntries</span>
+<span class="sql-kw">WHERE</span>  TransactionId = <span class="sql-str">'&lt;transactionId from step 1&gt;'</span>;</div>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET: PAY MERCHANT -->
+<div id="wallet-pay" class="section">
+  <div class="section-header"><h2>Pay Merchant</h2><p>Pays a merchant from the catalog. Triggers receipt generation and notification.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('pm1')"><div class="step-num">1</div><div class="step-title">First — get a merchant/service ID from catalog</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="pm1">
+      <div class="endpoint">GET http://localhost:5000/api/catalog/services</div>
+      <div class="response-block">[
+  { "id": "cat-001", "name": "Electricity Bill", "category": "Utilities" },
+  { "id": "cat-002", "name": "Mobile Recharge",  "category": "Telecom" }
+]</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('pm2')"><div class="step-num">2</div><div class="step-title">POST pay merchant</div><span class="step-method POST">POST</span></div>
+    <div class="step-body" id="pm2">
+      <div class="endpoint">POST http://localhost:5000/api/wallet/pay</div>
+      <div class="code-block">{
+  "<span class="key">catalogServiceId</span>": "<span class="str">cat-001</span>",
+  "<span class="key">amount</span>":           <span class="num">200.00</span>,
+  "<span class="key">idempotencyKey</span>":   "<span class="str">pay-demo-001</span>",
+  "<span class="key">description</span>":      "<span class="str">Electricity bill payment</span>"
+}</div>
+      <div class="response-block">{
+  "transactionId": "pay-xyz-...",
+  "newBalance":    150.00,
+  "receiptId":     "rcpt-001",
+  "message":       "Payment successful"
+}</div>
+    </div>
+  </div>
+</div>
+
+<!-- LEDGER: HISTORY -->
+<div id="ledger-history" class="section">
+  <div class="section-header"><h2>Transaction History</h2><p>Returns full paginated ledger for the user — every credit, debit, transfer, payment.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('lh1')"><div class="step-num">1</div><div class="step-title">GET transaction history</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="lh1">
+      <div class="endpoint">GET http://localhost:5000/api/ledger/transactions?page=1&amp;pageSize=10</div>
+      <div class="response-block">{
+  "entries": [
+    { "type": "Credit", "amount": 500.00, "description": "Demo top-up",     "date": "..." },
+    { "type": "Debit",  "amount": 150.00, "description": "Transfer to Priya","date": "..." },
+    { "type": "Debit",  "amount": 200.00, "description": "Electricity bill", "date": "..." }
+  ],
+  "totalCount": 3,
+  "page": 1
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('lh2')"><div class="step-num">2</div><div class="step-title">Verify all entries in DB</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="lh2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> EntryType, Amount, Description, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">LedgerEntries</span>
+<span class="sql-kw">WHERE</span>  WalletId = <span class="sql-str">'&lt;walletId&gt;'</span>
+<span class="sql-kw">ORDER BY</span> CreatedAt <span class="sql-kw">DESC</span>;</div>
+    </div>
+  </div>
+</div>
+
+<!-- REWARDS -->
+<div id="rewards-points" class="section">
+  <div class="section-header"><h2>Get Reward Points</h2><p>Points account was auto-created when user registered (via UserRegisteredEvent).</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('rw1')"><div class="step-num">1</div><div class="step-title">GET reward points</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="rw1">
+      <div class="endpoint">GET http://localhost:5000/api/rewards/points</div>
+      <div class="response-block">{
+  "userId":      "a1b2c3d4-...",
+  "totalPoints": 50,
+  "tier":        "Silver"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('rw2')"><div class="step-num">2</div><div class="step-title">Verify in RewardsDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="rw2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> UserId, TotalPoints, Tier, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">RewardAccounts</span>
+<span class="sql-kw">WHERE</span>  UserId = <span class="sql-str">'&lt;userId&gt;'</span>;</div>
+    </div>
+  </div>
+</div>
+
+<!-- CATALOG -->
+<div id="catalog-services" class="section">
+  <div class="section-header"><h2>Get Catalog Services</h2><p>Returns all available bill payment / merchant services.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('cs1')"><div class="step-num">1</div><div class="step-title">GET all services</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="cs1">
+      <div class="endpoint">GET http://localhost:5000/api/catalog/services</div>
+      <div class="response-block">[
+  { "id": "cat-001", "name": "Electricity Bill", "category": "Utilities",  "iconUrl": "..." },
+  { "id": "cat-002", "name": "Mobile Recharge",  "category": "Telecom",    "iconUrl": "..." },
+  { "id": "cat-003", "name": "DTH Recharge",     "category": "Telecom",    "iconUrl": "..." }
+]</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('cs2')"><div class="step-num">2</div><div class="step-title">Verify seeded data in CatalogDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="cs2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Id, Name, Category, IsActive
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">CatalogServices</span>
+<span class="sql-kw">ORDER BY</span> Category;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: USERS -->
+<div id="admin-users" class="section">
+  <div class="section-header"><h2>Admin — All Users</h2><p>Admin-only endpoint. Requires a JWT from an admin-role account.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('au1')"><div class="step-num">1</div><div class="step-title">GET all users (admin JWT required)</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="au1">
+      <div class="endpoint">GET http://localhost:5000/api/admin/users</div>
+      <div class="label">Headers</div>
+      <div class="code-block">Authorization: Bearer &lt;admin accessToken&gt;</div>
+      <div class="response-block">{
+  "users": [
+    { "id": "...", "email": "aaryan@demo.com", "isActive": true,  "createdAt": "..." },
+    { "id": "...", "email": "priya@demo.com",  "isActive": true,  "createdAt": "..." }
+  ],
+  "totalCount": 2
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('au2')"><div class="step-num">2</div><div class="step-title">See all users in AuthDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="au2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Id, FullName, Email, IsActive, CreatedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">Users</span>
+<span class="sql-kw">ORDER BY</span> CreatedAt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: TRANSACTIONS -->
+<div id="admin-transactions" class="section">
+  <div class="section-header"><h2>Admin — All Transactions</h2></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('at1')"><div class="step-num">1</div><div class="step-title">GET all transactions</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="at1">
+      <div class="endpoint">GET http://localhost:5000/api/admin/transactions?page=1&amp;pageSize=20</div>
+      <div class="label">Headers</div>
+      <div class="code-block">Authorization: Bearer &lt;admin accessToken&gt;</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('at2')"><div class="step-num">2</div><div class="step-title">Cross-service SQL view — full picture</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="at2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> le.TransactionId, le.EntryType, le.Amount,
+       le.Description, le.CreatedAt, w.UserId
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">LedgerEntries</span> le
+<span class="sql-kw">JOIN</span>   <span class="sql-tbl">Wallets</span>       w  <span class="sql-kw">ON</span> le.WalletId = w.Id
+<span class="sql-kw">ORDER BY</span> le.CreatedAt <span class="sql-kw">DESC</span>;</div>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPTS -->
+<div id="receipts-getreceipt" class="section">
+  <div class="section-header"><h2>Get Receipt</h2><p>Receipts are auto-generated after payments via RabbitMQ events.</p></div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('rc1')"><div class="step-num">1</div><div class="step-title">GET receipt by transaction ID</div><span class="step-method GET">GET</span></div>
+    <div class="step-body" id="rc1">
+      <div class="endpoint">GET http://localhost:5000/api/receipts/{transactionId}</div>
+      <div class="response-block">{
+  "receiptId":     "rcpt-001",
+  "transactionId": "pay-xyz-...",
+  "amount":        200.00,
+  "description":   "Electricity bill payment",
+  "generatedAt":   "2025-04-07T11:00:00Z",
+  "status":        "Completed"
+}</div>
+    </div>
+  </div>
+  <div class="step-card">
+    <div class="step-header" onclick="toggle('rc2')"><div class="step-num">2</div><div class="step-title">Verify in ReceiptsDb</div><span class="step-method GET">SQL</span></div>
+    <div class="step-body" id="rc2">
+      <div class="sql-block"><span class="sql-kw">SELECT</span> Id, TransactionId, Amount, Description, GeneratedAt
+<span class="sql-kw">FROM</span>   <span class="sql-tbl">Receipts</span>
+<span class="sql-kw">ORDER BY</span> GeneratedAt <span class="sql-kw">DESC</span>;</div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+function show(service, page, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(service + '-' + page);
+  if (el) { el.classList.add('active'); }
+  if (btn) btn.classList.add('active');
+  const bodies = el ? el.querySelectorAll('.step-body') : [];
+  bodies.forEach(b => b.classList.remove('hidden'));
+}
+function toggle(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('hidden');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>.NET Developer Interview Masterclass</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --surface2: #eef1f6;
+    --border: #dde3ed;
+    --text: #1a2233;
+    --text2: #4a5568;
+    --text3: #718096;
+    --accent: #2563eb;
+    --accent2: #1d4ed8;
+    --accent-bg: #eff6ff;
+    --green: #059669;
+    --green-bg: #ecfdf5;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --red: #dc2626;
+    --red-bg: #fef2f2;
+    --purple: #7c3aed;
+    --purple-bg: #f5f3ff;
+    --code-bg: #1e293b;
+    --code-text: #e2e8f0;
+    --sidebar-w: 280px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 0 0 2rem;
+  }
+
+  .sidebar-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 1.5rem 1.25rem;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .sidebar-header h2 { font-size: 1rem; font-weight: 700; letter-spacing: 0.03em; }
+  .sidebar-header p { font-size: 0.78rem; opacity: 0.8; margin-top: 0.2rem; }
+
+  .sidebar-section { padding: 0.75rem 0.75rem 0; }
+  .sidebar-section-label {
+    font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text3); padding: 0 0.5rem 0.4rem;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.55rem 0.75rem; border-radius: 8px;
+    cursor: pointer; text-decoration: none; color: var(--text2);
+    font-size: 0.875rem; font-weight: 400; transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--accent-bg); color: var(--accent); }
+  .nav-item.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+  .nav-item .num { font-size: 0.72rem; font-weight: 700; color: var(--accent); background: #dbeafe; border-radius: 4px; padding: 1px 5px; min-width: 22px; text-align: center; }
+
+  /* ── MAIN ── */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 2rem 2.5rem 4rem;
+    max-width: 1100px;
+  }
+
+  .page-hero {
+    background: linear-gradient(135deg, var(--accent) 0%, #1e40af 100%);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    color: #fff;
+    margin-bottom: 2.5rem;
+  }
+  .page-hero h1 { font-size: 2rem; font-weight: 700; }
+  .page-hero p { opacity: 0.85; margin-top: 0.5rem; font-size: 1rem; }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .hero-tag { background: rgba(255,255,255,0.2); border-radius: 100px; padding: 3px 12px; font-size: 0.8rem; font-weight: 500; }
+
+  /* ── SECTIONS ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title {
+    font-size: 1.6rem; font-weight: 700; color: var(--text);
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 0.6rem; margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .section-badge {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    background: var(--accent-bg); color: var(--accent);
+    border-radius: 6px; padding: 3px 10px;
+  }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .tab-btn {
+    padding: 0.45rem 1rem; border-radius: 8px; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text2); font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem;
+  }
+  .card-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  .highlight-card {
+    border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem;
+    border-left: 4px solid;
+  }
+  .hc-blue { background: var(--accent-bg); border-color: var(--accent); }
+  .hc-green { background: var(--green-bg); border-color: var(--green); }
+  .hc-amber { background: var(--amber-bg); border-color: var(--amber); }
+  .hc-red { background: var(--red-bg); border-color: var(--red); }
+  .hc-purple { background: var(--purple-bg); border-color: var(--purple); }
+
+  .hc-blue .hc-title { color: var(--accent); }
+  .hc-green .hc-title { color: var(--green); }
+  .hc-amber .hc-title { color: var(--amber); }
+  .hc-red .hc-title { color: var(--red); }
+  .hc-purple .hc-title { color: var(--purple); }
+
+  .hc-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.4rem; }
+
+  /* ── CODE ── */
+  pre {
+    background: var(--code-bg); color: var(--code-text);
+    border-radius: 10px; padding: 1.25rem 1.5rem; overflow-x: auto;
+    font-family: 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.7;
+    margin: 0.75rem 0;
+    border: 1px solid #334155;
+  }
+  code { font-family: 'Fira Code', monospace; font-size: 0.85em; background: var(--surface2); padding: 1px 5px; border-radius: 4px; color: var(--accent2); }
+  pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+
+  .kw { color: #93c5fd; }
+  .cm { color: #94a3b8; font-style: italic; }
+  .str { color: #86efac; }
+  .num { color: #fbbf24; }
+  .cls { color: #f9a8d4; }
+  .fn { color: #67e8f9; }
+  .prop { color: #e2e8f0; }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); margin: 0.75rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  thead tr { background: var(--accent); color: #fff; }
+  thead th { padding: 0.7rem 1rem; text-align: left; font-weight: 600; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+  tbody td { padding: 0.65rem 1rem; color: var(--text2); vertical-align: top; }
+  tbody td strong { color: var(--text); }
+
+  /* ── Q&A ── */
+  .qa-item { border: 1px solid var(--border); border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
+  .qa-q {
+    padding: 0.85rem 1.1rem; background: var(--surface); cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: 600; font-size: 0.9rem; color: var(--text);
+    transition: background 0.15s;
+  }
+  .qa-q:hover { background: var(--accent-bg); }
+  .qa-q .arrow { font-size: 1rem; color: var(--accent); transition: transform 0.2s; }
+  .qa-q.open .arrow { transform: rotate(180deg); }
+  .qa-a {
+    display: none; padding: 1rem 1.1rem;
+    background: var(--surface2); color: var(--text2);
+    font-size: 0.875rem; line-height: 1.75; border-top: 1px solid var(--border);
+  }
+  .qa-a.open { display: block; }
+
+  /* ── REVISION GRID ── */
+  .rev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+  .rev-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 1rem; border-top: 3px solid var(--accent);
+  }
+  .rev-card h4 { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin-bottom: 0.4rem; }
+  .rev-card p { font-size: 0.8rem; color: var(--text2); line-height: 1.6; }
+
+  /* ── LISTS ── */
+  ul { padding-left: 1.4rem; }
+  li { margin-bottom: 0.35rem; color: var(--text2); font-size: 0.9rem; line-height: 1.65; }
+  li strong { color: var(--text); }
+
+  /* ── WALLET TAG ── */
+  .wallet-tag {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+    padding: 2px 8px; font-size: 0.75rem; font-weight: 600; color: #1d4ed8;
+    margin: 0 2px;
+  }
+
+  p { color: var(--text2); line-height: 1.75; margin-bottom: 0.75rem; font-size: 0.9rem; }
+  h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 1.25rem 0 0.6rem; }
+
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #main { margin-left: 0; padding: 1rem; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ SIDEBAR ═══════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <h2>🎯 .NET Interview Masterclass</h2>
+    <p>WalletPlatform Edition</p>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Core C#</div>
+    <a class="nav-item active" onclick="showSection('s1')"><span class="num">01</span> C# & OOP</a>
+    <a class="nav-item" onclick="showSection('s2')"><span class="num">02</span> SOLID Principles</a>
+    <a class="nav-item" onclick="showSection('s3')"><span class="num">03</span> LINQ</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">ASP.NET Core</div>
+    <a class="nav-item" onclick="showSection('s4')"><span class="num">04</span> ASP.NET Core</a>
+    <a class="nav-item" onclick="showSection('s5')"><span class="num">05</span> MVC & Web API</a>
+    <a class="nav-item" onclick="showSection('s6')"><span class="num">06</span> SQL & Databases</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Advanced</div>
+    <a class="nav-item" onclick="showSection('s7')"><span class="num">07</span> Advanced Topics</a>
+    <a class="nav-item" onclick="showSection('s8')"><span class="num">08</span> Design Patterns</a>
+    <a class="nav-item" onclick="showSection('s9')"><span class="num">09</span> SAGA Pattern</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Deep Dives</div>
+    <a class="nav-item" onclick="showSection('s11')"><span class="num">11</span> Fluent API & EF Config</a>
+    <a class="nav-item" onclick="showSection('s12')"><span class="num">12</span> ADO.NET</a>
+    <a class="nav-item" onclick="showSection('s13')"><span class="num">13</span> JWT Deep Dive</a>
+    <a class="nav-item" onclick="showSection('s14')"><span class="num">14</span> RabbitMQ</a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Practice</div>
+    <a class="nav-item" onclick="showSection('s10')"><span class="num">🎤</span> Mock Interview</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════ MAIN ═══════════════════════════════════════ -->
+<main id="main">
+
+  <div class="page-hero">
+    <h1>🧠 .NET Developer Interview Masterclass</h1>
+    <p>Complete guide from fundamentals to architecture — every example tied to WalletPlatform</p>
+    <div class="hero-tags">
+      <span class="hero-tag">C# 10+</span>
+      <span class="hero-tag">ASP.NET Core</span>
+      <span class="hero-tag">LINQ</span>
+      <span class="hero-tag">SQL</span>
+      <span class="hero-tag">Clean Architecture</span>
+      <span class="hero-tag">SAGA Pattern</span>
+      <span class="hero-tag">Design Patterns</span>
+      <span class="hero-tag">Mock Interview</span>
+    </div>
+  </div>
+
+  <!-- ═══ SECTION 1: C# OOP ═══ -->
+  <section id="s1" class="section active">
+    <h2 class="section-title">C# & OOP Concepts <span class="section-badge">Fundamentals</span></h2>
+
+    <div class="tabs" id="tabs-s1">
+      <button class="tab-btn active" onclick="showTab('s1','t1')">4 Pillars</button>
+      <button class="tab-btn" onclick="showTab('s1','t2')">Interface vs Abstract</button>
+      <button class="tab-btn" onclick="showTab('s1','t3')">Polymorphism</button>
+      <button class="tab-btn" onclick="showTab('s1','t4')">Static & Misc</button>
+      <button class="tab-btn" onclick="showTab('s1','t5')">Q&A</button>
+      <button class="tab-btn" onclick="showTab('s1','t6')">Revision</button>
+    </div>
+
+    <!-- Tab 1: 4 Pillars -->
+    <div id="s1-t1" class="tab-panel active">
+      <div class="grid-2">
+        <div class="highlight-card hc-blue">
+          <div class="hc-title">🔒 Encapsulation</div>
+          <p>Bundling data + behaviour and hiding internal state. Only expose what's needed.</p>
+          <pre><code><span class="kw">public class</span> <span class="cls">WalletAccount</span>
+{
+    <span class="kw">private decimal</span> _balance;
+
+    <span class="kw">public decimal</span> Balance
+    {
+        <span class="kw">get</span> => _balance;
+        <span class="kw">private set</span>
+        {
+            <span class="kw">if</span> (value < <span class="num">0</span>)
+                <span class="kw">throw new</span> <span class="cls">InvalidOperationException</span>();
+            _balance = value;
+        }
+    }
+}</code></pre>
+        </div>
+        <div class="highlight-card hc-green">
+          <div class="hc-title">🧬 Inheritance</div>
+          <p>Child class reuses parent's members. Use <code>:</code> in C#. Supports <strong>is-a</strong> relationships.</p>
+          <pre><code><span class="kw">public abstract class</span> <span class="cls">BaseConsumer</span>&lt;<span class="cls">T</span>&gt;
+{
+    <span class="kw">protected abstract void</span> <span class="fn">Process</span>(<span class="cls">T</span> message);
+    <span class="kw">public void</span> <span class="fn">Consume</span>(<span class="cls">T</span> msg) => <span class="fn">Process</span>(msg);
+}
+
+<span class="kw">public class</span> <span class="cls">WalletCreatedConsumer</span>
+    : <span class="cls">BaseConsumer</span>&lt;<span class="cls">UserRegisteredEvent</span>&gt;
+{
+    <span class="kw">protected override void</span> <span class="fn">Process</span>(...) { ... }
+}</code></pre>
+        </div>
+        <div class="highlight-card hc-amber">
+          <div class="hc-title">🎭 Polymorphism</div>
+          <p><strong>Compile-time</strong> (overloading) + <strong>Runtime</strong> (overriding via virtual/override). One interface, many forms.</p>
+          <pre><code><span class="cm">// Runtime polymorphism</span>
+<span class="cls">IPaymentProcessor</span> processor = <span class="kw">new</span> <span class="cls">UpiProcessor</span>();
+processor.<span class="fn">Process</span>(payment); <span class="cm">// dispatches to UPI impl</span>
+
+<span class="cm">// Compile-time (overloading)</span>
+<span class="kw">public</span> Result <span class="fn">Transfer</span>(<span class="cls">Guid</span> to, <span class="kw">decimal</span> amount) {...}
+<span class="kw">public</span> Result <span class="fn">Transfer</span>(<span class="kw">string</span> upiId, <span class="kw">decimal</span> amount) {...}</code></pre>
+        </div>
+        <div class="highlight-card hc-purple">
+          <div class="hc-title">🎨 Abstraction</div>
+          <p>Expose <em>what</em> something does, hide <em>how</em>. Achieved via interfaces and abstract classes.</p>
+          <pre><code><span class="kw">public interface</span> <span class="cls">IWalletRepository</span>
+{
+    <span class="cls">Task</span>&lt;<span class="cls">Wallet</span>&gt; <span class="fn">GetByUserIdAsync</span>(<span class="cls">Guid</span> userId);
+    <span class="cls">Task</span> <span class="fn">UpdateBalanceAsync</span>(<span class="cls">Guid</span> id, <span class="kw">decimal</span> amount);
+}
+<span class="cm">// Caller doesn't know if it's SQL, Redis, or mock</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Interface vs Abstract -->
+    <div id="s1-t2" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feature</th><th>Interface</th><th>Abstract Class</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Instantiation</strong></td><td>Cannot instantiate</td><td>Cannot instantiate</td></tr>
+            <tr><td><strong>Multiple inheritance</strong></td><td>✅ A class can implement many</td><td>❌ Only one abstract class</td></tr>
+            <tr><td><strong>State (fields)</strong></td><td>❌ No instance fields</td><td>✅ Can have fields</td></tr>
+            <tr><td><strong>Constructors</strong></td><td>❌ None</td><td>✅ Has constructors</td></tr>
+            <tr><td><strong>Default impl</strong></td><td>✅ Default interface methods (C# 8+)</td><td>✅ Virtual methods</td></tr>
+            <tr><td><strong>Access modifiers</strong></td><td>All public by default</td><td>Any modifier</td></tr>
+            <tr><td><strong>Use when</strong></td><td>Define a contract / capability</td><td>Share code across related classes</td></tr>
+            <tr><td><strong>WalletPlatform</strong></td><td><code>IWalletRepository</code>, <code>IEventPublisher</code></td><td><code>BaseConsumer&lt;T&gt;</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Diamond Problem — How C# Resolves It</h3>
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">⚠️ The Problem</div>
+        <p>If C# allowed multiple class inheritance and both parents had the same method, which one would the child get? C# avoids this by allowing only <strong>single class inheritance</strong>. For interfaces, you resolve it with explicit implementation:</p>
+      </div>
+      <pre><code><span class="kw">interface</span> <span class="cls">IA</span> { <span class="kw">void</span> <span class="fn">Show</span>(); }
+<span class="kw">interface</span> <span class="cls">IB</span> { <span class="kw">void</span> <span class="fn">Show</span>(); }
+
+<span class="kw">class</span> <span class="cls">C</span> : <span class="cls">IA</span>, <span class="cls">IB</span>
+{
+    <span class="kw">void</span> <span class="cls">IA</span>.<span class="fn">Show</span>() => Console.<span class="fn">WriteLine</span>(<span class="str">"IA"</span>);
+    <span class="kw">void</span> <span class="cls">IB</span>.<span class="fn">Show</span>() => Console.<span class="fn">WriteLine</span>(<span class="str">"IB"</span>);
+}
+
+<span class="cls">C</span> obj = <span class="kw">new</span> <span class="cls">C</span>();
+((<span class="cls">IA</span>)obj).<span class="fn">Show</span>(); <span class="cm">// "IA"</span>
+((<span class="cls">IB</span>)obj).<span class="fn">Show</span>(); <span class="cm">// "IB"</span></code></pre>
+    </div>
+
+    <!-- Tab 3: Polymorphism Deep Dive -->
+    <div id="s1-t3" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">⚡ Compile-time Polymorphism</div>
+          <p>Method <strong>overloading</strong> — same name, different parameters. Resolved at compile time.</p>
+          <pre><code><span class="kw">public class</span> <span class="cls">NotificationService</span>
+{
+    <span class="kw">public void</span> <span class="fn">Send</span>(<span class="kw">string</span> email) { ... }
+    <span class="kw">public void</span> <span class="fn">Send</span>(<span class="kw">string</span> email, <span class="kw">string</span> subject) { ... }
+    <span class="kw">public void</span> <span class="fn">Send</span>(<span class="cls">List</span>&lt;<span class="kw">string</span>&gt; emails) { ... }
+}</code></pre>
+        </div>
+        <div class="card">
+          <div class="card-title">🔄 Runtime Polymorphism</div>
+          <p>Method <strong>overriding</strong> — <code>virtual</code> + <code>override</code>. Resolved via vtable at runtime.</p>
+          <pre><code><span class="kw">public abstract class</span> <span class="cls">BaseConsumer</span>&lt;<span class="cls">T</span>&gt;
+{
+    <span class="kw">public virtual void</span> <span class="fn">OnError</span>(<span class="cls">Exception</span> ex)
+        => <span class="cls">Console</span>.<span class="fn">WriteLine</span>(ex.Message);
+}
+
+<span class="kw">public class</span> <span class="cls">WalletConsumer</span> : <span class="cls">BaseConsumer</span>&lt;<span class="cls">UserRegisteredEvent</span>&gt;
+{
+    <span class="kw">public override void</span> <span class="fn">OnError</span>(<span class="cls">Exception</span> ex)
+    {
+        _logger.<span class="fn">LogError</span>(ex, <span class="str">"Wallet consumer failed"</span>);
+    }
+}</code></pre>
+        </div>
+      </div>
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">🚫 Can we override static methods?</div>
+        <p><strong>No.</strong> Static methods belong to the type, not an instance — they don't use the vtable. You can <em>hide</em> a static method with <code>new</code> keyword, but that's method hiding, not overriding. It's resolved at compile time based on the declared type.</p>
+      </div>
+    </div>
+
+    <!-- Tab 4: Static & Misc -->
+    <div id="s1-t4" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Static Members &amp; Classes</div>
+        <pre><code><span class="kw">public static class</span> <span class="cls">IdempotencyHelper</span>
+{
+    <span class="kw">private static readonly</span> <span class="cls">ConcurrentDictionary</span>&lt;<span class="kw">string</span>, <span class="kw">bool</span>&gt;
+        _cache = <span class="kw">new</span>();
+
+    <span class="kw">public static bool</span> <span class="fn">IsDuplicate</span>(<span class="kw">string</span> key)
+        => !_cache.<span class="fn">TryAdd</span>(key, <span class="kw">true</span>);
+}
+<span class="cm">// ✅ No instantiation needed — utility class
+// ✅ State shared across all callers (be careful!)
+// ✅ Cannot inherit from or use as base class</span></code></pre>
+      </div>
+      <div class="grid-2">
+        <div class="highlight-card hc-green">
+          <div class="hc-title">sealed class</div>
+          <p>Cannot be inherited. Good for security-sensitive or performance-optimized classes. <code>sealed override</code> stops further overriding in a chain.</p>
+        </div>
+        <div class="highlight-card hc-purple">
+          <div class="hc-title">partial class</div>
+          <p>Split a class across multiple files. Used by EF Core scaffolding, WinForms designer. Compiled into one class.</p>
+        </div>
+      </div>
+
+      <h3>Access Modifiers</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Modifier</th><th>Same Class</th><th>Derived</th><th>Assembly</th><th>Everywhere</th></tr></thead>
+          <tbody>
+            <tr><td><code>private</code></td><td>✅</td><td>❌</td><td>❌</td><td>❌</td></tr>
+            <tr><td><code>protected</code></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+            <tr><td><code>internal</code></td><td>✅</td><td>❌</td><td>✅</td><td>❌</td></tr>
+            <tr><td><code>protected internal</code></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td></tr>
+            <tr><td><code>public</code></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 5: Q&A -->
+    <div id="s1-t5" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the difference between an interface and an abstract class? <span class="arrow">▼</span></div><div class="qa-a">An interface defines a pure contract — no state, all public. An abstract class can have fields, constructors, and implementation. Use an interface when defining a capability (IDisposable, IRepository); use abstract class when sharing code across related types (BaseConsumer&lt;T&gt; in WalletPlatform). Key: a class can implement multiple interfaces but only inherit one abstract class.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Can you override static methods in C#? <span class="arrow">▼</span></div><div class="qa-a">No. Static methods are bound at compile-time based on the declared type, not the runtime type. They don't participate in the vtable. You can use the <code>new</code> keyword to hide a static method, but that's not overriding — calling via base class reference still calls the base version.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Explain the diamond problem and how C# handles it. <span class="arrow">▼</span></div><div class="qa-a">If two parent classes define the same method and a child inherits both, which method runs? C# avoids this by allowing only single class inheritance. For interfaces, if two interfaces have the same method signature, the implementing class must explicitly implement each one: <code>void IA.Show()</code> and <code>void IB.Show()</code> separately.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the difference between compile-time and runtime polymorphism? <span class="arrow">▼</span></div><div class="qa-a">Compile-time: overloading — resolved by the compiler based on parameter types. Runtime: overriding — resolved by the CLR via the vtable at runtime. <code>virtual</code>/<code>override</code> enables runtime polymorphism. Example: WalletPlatform has multiple Transfer() overloads (compile-time), and each Consumer overrides Process() (runtime).</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is encapsulation and why is it important? <span class="arrow">▼</span></div><div class="qa-a">Encapsulation bundles data and the methods that operate on it, hiding internal state. It protects invariants — e.g., WalletAccount's balance can't be set to negative because the setter validates it. It also reduces coupling: callers interact through a public API, not raw fields.</div></div>
+    </div>
+
+    <!-- Tab 6: Revision -->
+    <div id="s1-t6" class="tab-panel">
+      <div class="rev-grid">
+        <div class="rev-card"><h4>Encapsulation</h4><p>Private fields + public properties. Protect invariants. private setter = external read-only.</p></div>
+        <div class="rev-card"><h4>Inheritance</h4><p>Single class inheritance only. BaseConsumer&lt;T&gt; → WalletConsumer. Use : syntax.</p></div>
+        <div class="rev-card"><h4>Polymorphism</h4><p>Compile-time = overloading. Runtime = virtual/override via vtable.</p></div>
+        <div class="rev-card"><h4>Abstraction</h4><p>IWalletRepository hides SQL. Caller doesn't know the implementation.</p></div>
+        <div class="rev-card"><h4>Interface vs Abstract</h4><p>Interface = contract, no state. Abstract = partial impl + shared state.</p></div>
+        <div class="rev-card"><h4>Static</h4><p>Belongs to type, not instance. Cannot override. Shared across all callers.</p></div>
+        <div class="rev-card"><h4>sealed</h4><p>No further inheritance. sealed override = stops override chain.</p></div>
+        <div class="rev-card"><h4>Diamond Problem</h4><p>C# prevents via single class inherit. Interface clash → explicit implementation.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2: SOLID ═══ -->
+  <section id="s2" class="section">
+    <h2 class="section-title">SOLID Principles <span class="section-badge">Architecture</span></h2>
+    <div class="tabs" id="tabs-s2">
+      <button class="tab-btn active" onclick="showTab('s2','t1')">SRP</button>
+      <button class="tab-btn" onclick="showTab('s2','t2')">OCP</button>
+      <button class="tab-btn" onclick="showTab('s2','t3')">LSP</button>
+      <button class="tab-btn" onclick="showTab('s2','t4')">ISP</button>
+      <button class="tab-btn" onclick="showTab('s2','t5')">DIP</button>
+      <button class="tab-btn" onclick="showTab('s2','t6')">Q&A</button>
+    </div>
+
+    <div id="s2-t1" class="tab-panel active">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">S — Single Responsibility Principle</div>
+        <p>A class should have only <strong>one reason to change</strong>. In WalletPlatform, <span class="wallet-tag">🏦 Auth Service</span> is a pure event producer — it only handles authentication. It publishes <code>UserRegisteredEvent</code> and makes <strong>zero synchronous outbound calls</strong>. UserProfile creation, Wallet creation, Notification sending — all handled by separate dedicated services.</p>
+      </div>
+      <pre><code><span class="cm">// ✅ SRP: AuthService ONLY handles auth</span>
+<span class="kw">public class</span> <span class="cls">AuthService</span> : <span class="cls">IAuthService</span>
+{
+    <span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">Result</span>&lt;<span class="cls">TokenResponse</span>&gt;&gt; <span class="fn">RegisterAsync</span>(<span class="cls">RegisterRequest</span> req)
+    {
+        <span class="cm">// 1. Validate, 2. Hash password, 3. Save user, 4. Publish event</span>
+        <span class="kw">await</span> _publisher.<span class="fn">PublishAsync</span>(<span class="kw">new</span> <span class="cls">UserRegisteredEvent</span> { UserId = user.Id });
+        <span class="cm">// That's it. No wallet creation, no email sending here.</span>
+        <span class="kw">return</span> <span class="cls">Result</span>&lt;<span class="cls">TokenResponse</span>&gt;.<span class="fn">Success</span>(tokens);
+    }
+}</code></pre>
+    </div>
+
+    <div id="s2-t2" class="tab-panel">
+      <div class="highlight-card hc-green">
+        <div class="hc-title">O — Open/Closed Principle</div>
+        <p>Open for extension, closed for modification. <span class="wallet-tag">🔌 BaseConsumer&lt;T&gt;</span> is never modified — you add new consumers by creating new classes.</p>
+      </div>
+      <pre><code><span class="cm">// Closed for modification — never touch this</span>
+<span class="kw">public abstract class</span> <span class="cls">BaseConsumer</span>&lt;<span class="cls">T</span>&gt;
+{
+    <span class="kw">public async</span> <span class="cls">Task</span> <span class="fn">ConsumeAsync</span>(<span class="kw">string</span> json)
+    {
+        <span class="kw">var</span> msg = <span class="cls">JsonSerializer</span>.<span class="fn">Deserialize</span>&lt;<span class="cls">T</span>&gt;(json);
+        <span class="kw">try</span> { <span class="kw">await</span> <span class="fn">ProcessAsync</span>(msg); _channel.<span class="fn">BasicAck</span>(...); }
+        <span class="kw">catch</span> { _channel.<span class="fn">BasicNack</span>(..., requeue: <span class="kw">true</span>); }
+    }
+    <span class="kw">protected abstract</span> <span class="cls">Task</span> <span class="fn">ProcessAsync</span>(<span class="cls">T</span> message);
+}
+
+<span class="cm">// Open for extension — add new consumers freely</span>
+<span class="kw">public class</span> <span class="cls">RewardsRegistrationConsumer</span> : <span class="cls">BaseConsumer</span>&lt;<span class="cls">UserRegisteredEvent</span>&gt;
+{
+    <span class="kw">protected override async</span> <span class="cls">Task</span> <span class="fn">ProcessAsync</span>(<span class="cls">UserRegisteredEvent</span> e)
+        => <span class="kw">await</span> _rewardsService.<span class="fn">CreateAccountAsync</span>(e.UserId);
+}</code></pre>
+    </div>
+
+    <div id="s2-t3" class="tab-panel">
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">L — Liskov Substitution Principle</div>
+        <p>Subtypes must be substitutable for their base type without breaking behaviour. <span class="wallet-tag">✅ Result&lt;T&gt;</span> extends <code>Result</code> — anywhere a <code>Result</code> is expected, <code>Result&lt;T&gt;</code> works fine.</p>
+      </div>
+      <pre><code><span class="cm">// Classic LSP violation — Square is NOT a substitutable Rectangle</span>
+<span class="kw">class</span> <span class="cls">Rectangle</span> { <span class="kw">public virtual int</span> Width { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="kw">public virtual int</span> Height { <span class="kw">get</span>; <span class="kw">set</span>; } }
+<span class="kw">class</span> <span class="cls">Square</span> : <span class="cls">Rectangle</span>
+{
+    <span class="kw">public override int</span> Width { <span class="kw">set</span> { <span class="kw">base</span>.Width = <span class="kw">base</span>.Height = value; } }
+}
+<span class="cm">// SetWidth(5) also changes height → breaks Rectangle contract</span>
+
+<span class="cm">// ✅ WalletPlatform: Result&lt;T&gt; extends Result without breaking contract</span>
+<span class="kw">public class</span> <span class="cls">Result</span>&lt;<span class="cls">T</span>&gt; : <span class="cls">Result</span>
+{
+    <span class="kw">public</span> <span class="cls">T</span>? Data { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public static</span> <span class="cls">Result</span>&lt;<span class="cls">T</span>&gt; <span class="fn">Success</span>(<span class="cls">T</span> data) => <span class="kw">new</span>() { IsSuccess = <span class="kw">true</span>, Data = data };
+}</code></pre>
+    </div>
+
+    <div id="s2-t4" class="tab-panel">
+      <div class="highlight-card hc-purple">
+        <div class="hc-title">I — Interface Segregation Principle</div>
+        <p>Don't force clients to depend on interfaces they don't use. Split fat interfaces into focused ones.</p>
+      </div>
+      <pre><code><span class="cm">// ❌ FAT interface — forces all services to implement Send()</span>
+<span class="kw">interface</span> <span class="cls">IService</span> { <span class="kw">void</span> <span class="fn">Process</span>(); <span class="kw">void</span> <span class="fn">GenerateReceipt</span>(); <span class="kw">void</span> <span class="fn">SendEmail</span>(); }
+
+<span class="cm">// ✅ Segregated — each service implements only what it needs</span>
+<span class="kw">interface</span> <span class="cls">IPaymentProcessor</span> { <span class="cls">Task</span> <span class="fn">ProcessAsync</span>(<span class="cls">PaymentRequest</span> req); }
+<span class="kw">interface</span> <span class="cls">IReceiptGenerator</span> { <span class="cls">Task</span>&lt;<span class="kw">byte</span>[]&gt; <span class="fn">GeneratePdfAsync</span>(<span class="cls">Guid</span> txId); }
+<span class="kw">interface</span> <span class="cls">INotificationSender</span> { <span class="cls">Task</span> <span class="fn">SendEmailAsync</span>(<span class="kw">string</span> to, <span class="kw">string</span> body); }
+
+<span class="cm">// WalletService only needs IPaymentProcessor — not IReceiptGenerator</span></code></pre>
+    </div>
+
+    <div id="s2-t5" class="tab-panel">
+      <div class="highlight-card hc-red">
+        <div class="hc-title">D — Dependency Inversion Principle</div>
+        <p>High-level modules shouldn't depend on low-level modules. Both should depend on abstractions.</p>
+      </div>
+      <pre><code><span class="cm">// ✅ WalletService depends only on interfaces</span>
+<span class="kw">public class</span> <span class="cls">WalletService</span> : <span class="cls">IWalletService</span>
+{
+    <span class="kw">private readonly</span> <span class="cls">IWalletRepository</span> _repo;
+    <span class="kw">private readonly</span> <span class="cls">ILedgerService</span> _ledger;
+    <span class="kw">private readonly</span> <span class="cls">IIdempotencyService</span> _idempotency;
+    <span class="kw">private readonly</span> <span class="cls">IEventPublisher</span> _publisher;
+
+    <span class="kw">public</span> <span class="cls">WalletService</span>(
+        <span class="cls">IWalletRepository</span> repo,
+        <span class="cls">ILedgerService</span> ledger,
+        <span class="cls">IIdempotencyService</span> idempotency,
+        <span class="cls">IEventPublisher</span> publisher)
+    {
+        _repo = repo; _ledger = ledger;
+        _idempotency = idempotency; _publisher = publisher;
+    }
+}
+<span class="cm">// SQL Server, in-memory, or mock — all injectable without changing WalletService</span></code></pre>
+    </div>
+
+    <div id="s2-t6" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is SRP and how does WalletPlatform follow it? <span class="arrow">▼</span></div><div class="qa-a">SRP says a class has one reason to change. Auth Service is a pure event producer — it authenticates users and publishes UserRegisteredEvent. It does NOT create wallets, profiles, or send emails. Each of those is handled by a dedicated service consuming the event.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Explain OCP with a real example. <span class="arrow">▼</span></div><div class="qa-a">BaseConsumer&lt;T&gt; is closed for modification — its ack/nack error handling is never touched. It's open for extension — whenever we need a new consumer (RewardsConsumer, NotificationConsumer), we create a new subclass and override ProcessAsync(). No existing code changes.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the classic LSP violation example? <span class="arrow">▼</span></div><div class="qa-a">Square extending Rectangle. Setting Width on a Square also sets Height to keep it square — but a Rectangle consumer expects Width and Height to be independent. This breaks the contract. LSP says you should be able to replace a Rectangle with a Square everywhere without surprises.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is DIP and how is it different from DI? <span class="arrow">▼</span></div><div class="qa-a">DIP is the principle: depend on abstractions, not concretions. Dependency Injection (DI) is the mechanism that implements DIP — the runtime injects the concrete implementation through the constructor. WalletService depends on IWalletRepository (DIP). ASP.NET Core's DI container injects SqlWalletRepository at runtime (DI).</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Why should interfaces be segregated? <span class="arrow">▼</span></div><div class="qa-a">If you have a fat interface with 10 methods, every implementation must implement all 10 — even if it only needs 2. This creates unnecessary coupling. Segregated interfaces mean each class only depends on the methods it actually uses, making testing and refactoring easier.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: LINQ ═══ -->
+  <section id="s3" class="section">
+    <h2 class="section-title">LINQ <span class="section-badge">Data Querying</span></h2>
+    <div class="tabs" id="tabs-s3">
+      <button class="tab-btn active" onclick="showTab('s3','t1')">Basics</button>
+      <button class="tab-btn" onclick="showTab('s3','t2')">IEnumerable vs IQueryable</button>
+      <button class="tab-btn" onclick="showTab('s3','t3')">Classic Problems</button>
+      <button class="tab-btn" onclick="showTab('s3','t4')">Q&A</button>
+    </div>
+
+    <div id="s3-t1" class="tab-panel active">
+      <pre><code><span class="cm">// Method syntax vs Query syntax — same IL output</span>
+<span class="kw">var</span> result1 = transactions
+    .<span class="fn">Where</span>(t => t.Amount > <span class="num">1000</span>)
+    .<span class="fn">OrderByDescending</span>(t => t.CreatedAt)
+    .<span class="fn">Select</span>(t => <span class="kw">new</span> { t.Id, t.Amount });
+
+<span class="kw">var</span> result2 = <span class="kw">from</span> t <span class="kw">in</span> transactions
+              <span class="kw">where</span> t.Amount > <span class="num">1000</span>
+              <span class="kw">orderby</span> t.CreatedAt descending
+              <span class="kw">select new</span> { t.Id, t.Amount };
+
+<span class="cm">// GroupBy — frequency count</span>
+<span class="kw">var</span> freq = words.<span class="fn">GroupBy</span>(w => w)
+               .<span class="fn">Select</span>(g => <span class="kw">new</span> { Word = g.Key, Count = g.<span class="fn">Count</span>() })
+               .<span class="fn">OrderByDescending</span>(x => x.Count);
+
+<span class="cm">// Aggregate — running total</span>
+<span class="kw">decimal</span> total = amounts.<span class="fn">Aggregate</span>(<span class="num">0m</span>, (acc, x) => acc + x);</code></pre>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Operator</th><th>Purpose</th><th>Deferred?</th></tr></thead>
+          <tbody>
+            <tr><td><code>Where</code></td><td>Filter</td><td>✅</td></tr>
+            <tr><td><code>Select</code></td><td>Transform/project</td><td>✅</td></tr>
+            <tr><td><code>OrderBy/Desc</code></td><td>Sort</td><td>✅</td></tr>
+            <tr><td><code>GroupBy</code></td><td>Group by key</td><td>✅</td></tr>
+            <tr><td><code>Skip/Take</code></td><td>Pagination</td><td>✅</td></tr>
+            <tr><td><code>SelectMany</code></td><td>Flatten nested collections</td><td>✅</td></tr>
+            <tr><td><code>First/Single/Any/Count</code></td><td>Terminal — executes query</td><td>❌ Immediate</td></tr>
+            <tr><td><code>ToList/ToArray</code></td><td>Materialize result</td><td>❌ Immediate</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="s3-t2" class="tab-panel">
+      <div class="grid-2">
+        <div class="highlight-card hc-blue">
+          <div class="hc-title">IEnumerable&lt;T&gt;</div>
+          <p>In-memory. LINQ runs as C# code. SQL is fetched first, then filtered in memory.</p>
+          <pre><code><span class="cm">// ❌ Loads ALL transactions then filters</span>
+<span class="kw">var</span> big = _context.Transactions
+    .<span class="fn">AsEnumerable</span>()
+    .<span class="fn">Where</span>(t => t.Amount > <span class="num">1000</span>)
+    .<span class="fn">ToList</span>();</code></pre>
+        </div>
+        <div class="highlight-card hc-green">
+          <div class="hc-title">IQueryable&lt;T&gt;</div>
+          <p>Expression tree. EF Core translates LINQ to SQL. Filter happens at the DB — only matching rows sent over the wire.</p>
+          <pre><code><span class="cm">// ✅ Generates: SELECT * WHERE Amount > 1000</span>
+<span class="kw">var</span> big = _context.Transactions
+    .<span class="fn">Where</span>(t => t.Amount > <span class="num">1000</span>)
+    .<span class="fn">ToList</span>();</code></pre>
+        </div>
+      </div>
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">⚡ Key Rule for Interviews</div>
+        <p><strong>DbSet&lt;T&gt; is IQueryable.</strong> Once you call <code>.AsEnumerable()</code>, you switch to in-memory mode. Never filter after AsEnumerable() in production — you'll load millions of rows into RAM.</p>
+      </div>
+    </div>
+
+    <div id="s3-t3" class="tab-panel">
+      <pre><code><span class="cm">// 1. Second highest salary (LINQ)</span>
+<span class="kw">var</span> second = employees
+    .<span class="fn">Select</span>(e => e.Salary)
+    .<span class="fn">Distinct</span>()
+    .<span class="fn">OrderByDescending</span>(s => s)
+    .<span class="fn">Skip</span>(<span class="num">1</span>)
+    .<span class="fn">FirstOrDefault</span>();
+
+<span class="cm">// 2. Duplicates in array</span>
+<span class="kw">var</span> dupes = nums.<span class="fn">GroupBy</span>(n => n)
+               .<span class="fn">Where</span>(g => g.<span class="fn">Count</span>() > <span class="num">1</span>)
+               .<span class="fn">Select</span>(g => g.Key);
+
+<span class="cm">// 3. Top 3 spenders from transactions</span>
+<span class="kw">var</span> top3 = transactions
+    .<span class="fn">GroupBy</span>(t => t.UserId)
+    .<span class="fn">Select</span>(g => <span class="kw">new</span> { UserId = g.Key, Total = g.<span class="fn">Sum</span>(t => t.Amount) })
+    .<span class="fn">OrderByDescending</span>(x => x.Total)
+    .<span class="fn">Take</span>(<span class="num">3</span>);
+
+<span class="cm">// 4. Frequency count</span>
+<span class="kw">var</span> freq = words.<span class="fn">GroupBy</span>(w => w)
+               .<span class="fn">ToDictionary</span>(g => g.Key, g => g.<span class="fn">Count</span>());
+
+<span class="cm">// 5. Users with no transactions (Left Join + null check)</span>
+<span class="kw">var</span> inactive = users
+    .<span class="fn">GroupJoin</span>(transactions, u => u.Id, t => t.UserId, (u, txs) => <span class="kw">new</span> { u, txs })
+    .<span class="fn">Where</span>(x => !x.txs.<span class="fn">Any</span>())
+    .<span class="fn">Select</span>(x => x.u);</code></pre>
+    </div>
+
+    <div id="s3-t4" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is deferred execution in LINQ? <span class="arrow">▼</span></div><div class="qa-a">The LINQ query is defined but not executed until you iterate or call a terminal operator (ToList, Count, First). This means you can build up a query step by step and it only hits the database once. Modifying the query after definition but before execution (e.g., adding .Take(10)) is valid.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">IEnumerable vs IQueryable — when does it matter? <span class="arrow">▼</span></div><div class="qa-a">IQueryable translates your LINQ to SQL (via EF Core expression trees). The filtering happens at the database — efficient. IEnumerable runs the query in C# memory — it loads all rows first. In production with a million transactions, using AsEnumerable() before Where() could OOM your server.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Write a LINQ query to find all duplicate elements in a list. <span class="arrow">▼</span></div><div class="qa-a"><code>var dupes = list.GroupBy(x => x).Where(g => g.Count() > 1).Select(g => g.Key);</code> — GroupBy groups identical elements, Where filters groups with more than one occurrence, Select returns just the key (the value).</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is SelectMany used for? <span class="arrow">▼</span></div><div class="qa-a">SelectMany flattens nested collections. If each User has a List&lt;Transaction&gt;, and you want a flat list of all transactions: <code>users.SelectMany(u => u.Transactions)</code>. It's like doing a flatMap in other languages.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4: ASP.NET CORE ═══ -->
+  <section id="s4" class="section">
+    <h2 class="section-title">ASP.NET Core <span class="section-badge">Web Framework</span></h2>
+    <div class="tabs" id="tabs-s4">
+      <button class="tab-btn active" onclick="showTab('s4','t1')">Middleware Pipeline</button>
+      <button class="tab-btn" onclick="showTab('s4','t2')">Dependency Injection</button>
+      <button class="tab-btn" onclick="showTab('s4','t3')">JWT Auth</button>
+      <button class="tab-btn" onclick="showTab('s4','t4')">Q&A</button>
+    </div>
+
+    <div id="s4-t1" class="tab-panel active">
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">⚡ Pipeline Order Matters!</div>
+        <p>Request flows through each middleware in order. Response flows back in reverse. Exception handler must be FIRST (outermost). Auth before AuthZ always.</p>
+      </div>
+      <pre><code><span class="kw">var</span> app = builder.<span class="fn">Build</span>();
+
+app.<span class="fn">UseMiddleware</span>&lt;<span class="cls">GlobalExceptionMiddleware</span>&gt;(); <span class="cm">// 1st — catches everything</span>
+app.<span class="fn">UseHttpsRedirection</span>();
+app.<span class="fn">UseAuthentication</span>();   <span class="cm">// Who are you? (JWT)</span>
+app.<span class="fn">UseAuthorization</span>();    <span class="cm">// Are you allowed? ([Authorize])</span>
+app.<span class="fn">MapControllers</span>();
+
+<span class="cm">// Custom middleware — Use vs Run vs Map</span>
+app.<span class="fn">Use</span>(<span class="kw">async</span> (ctx, next) => {
+    <span class="cm">// Before next middleware</span>
+    <span class="kw">await</span> <span class="fn">next</span>();   <span class="cm">// Call next — pipeline continues</span>
+    <span class="cm">// After next middleware (response phase)</span>
+});
+
+app.<span class="fn">Run</span>(<span class="kw">async</span> ctx => {
+    <span class="kw">await</span> ctx.Response.<span class="fn">WriteAsync</span>(<span class="str">"Terminal — no next()"</span>);
+});  <span class="cm">// Short-circuits — no next middleware called</span>
+
+app.<span class="fn">Map</span>(<span class="str">"/health"</span>, healthApp => healthApp.<span class="fn">Run</span>(...)); <span class="cm">// Branch pipeline</span></code></pre>
+
+      <pre><code><span class="cm">// GlobalExceptionMiddleware from WalletPlatform</span>
+<span class="kw">public class</span> <span class="cls">GlobalExceptionMiddleware</span>(<span class="cls">RequestDelegate</span> next)
+{
+    <span class="kw">public async</span> <span class="cls">Task</span> <span class="fn">InvokeAsync</span>(<span class="cls">HttpContext</span> ctx)
+    {
+        <span class="kw">try</span> { <span class="kw">await</span> <span class="fn">next</span>(ctx); }
+        <span class="kw">catch</span> (<span class="cls">Exception</span> ex)
+        {
+            ctx.Response.StatusCode = <span class="num">500</span>;
+            <span class="kw">await</span> ctx.Response.<span class="fn">WriteAsJsonAsync</span>(<span class="kw">new</span> {
+                error = ex.Message, traceId = ctx.TraceIdentifier
+            });
+        }
+    }
+}</code></pre>
+    </div>
+
+    <div id="s4-t2" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Lifetime</th><th>Created</th><th>Destroyed</th><th>Use Case</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Transient</strong></td><td>Every injection</td><td>After use</td><td>Stateless services, lightweight ops</td></tr>
+            <tr><td><strong>Scoped</strong></td><td>Once per HTTP request</td><td>End of request</td><td>DbContext, WalletService, most services</td></tr>
+            <tr><td><strong>Singleton</strong></td><td>App startup (once)</td><td>App shutdown</td><td>Config, cache, RabbitMQ connection</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-card hc-red">
+        <div class="hc-title">🔴 Captive Dependency — Interview Trap!</div>
+        <p>Never inject a <strong>Scoped</strong> service into a <strong>Singleton</strong>. The Singleton captures the Scoped instance on first creation and holds it forever — bypassing the per-request lifecycle. Fix: inject <code>IServiceScopeFactory</code> and create a scope manually inside the Singleton.</p>
+      </div>
+      <pre><code><span class="cm">// ❌ Captive dependency — DbContext (Scoped) captured by Singleton</span>
+<span class="kw">public class</span> <span class="cls">MyBackgroundService</span>(<span class="cls">AppDbContext</span> db) : <span class="cls">BackgroundService</span> { ... }
+
+<span class="cm">// ✅ Correct — create scope per operation</span>
+<span class="kw">public class</span> <span class="cls">MyBackgroundService</span>(<span class="cls">IServiceScopeFactory</span> factory) : <span class="cls">BackgroundService</span>
+{
+    <span class="kw">protected override async</span> <span class="cls">Task</span> <span class="fn">ExecuteAsync</span>(<span class="cls">CancellationToken</span> ct)
+    {
+        <span class="kw">using var</span> scope = factory.<span class="fn">CreateScope</span>();
+        <span class="kw">var</span> db = scope.ServiceProvider.<span class="fn">GetRequiredService</span>&lt;<span class="cls">AppDbContext</span>&gt;();
+        <span class="cm">// use db safely</span>
+    }
+}</code></pre>
+    </div>
+
+    <div id="s4-t3" class="tab-panel">
+      <div class="grid-2">
+        <div class="highlight-card hc-blue">
+          <div class="hc-title">Access Token</div>
+          <p><strong>60 minutes</strong>. Short-lived. Stateless — verified by signature, no DB lookup. Contains: UserId, Email, Roles.</p>
+        </div>
+        <div class="highlight-card hc-green">
+          <div class="hc-title">Refresh Token</div>
+          <p><strong>7 days</strong>. Single-use. Stored in DB with <code>IsRevoked</code> flag + <code>ReplacedByToken</code> audit field. Rotated on every use.</p>
+        </div>
+      </div>
+      <pre><code><span class="cm">// Refresh token rotation in WalletPlatform</span>
+<span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">Result</span>&lt;<span class="cls">TokenResponse</span>&gt;&gt; <span class="fn">RefreshAsync</span>(<span class="kw">string</span> refreshToken)
+{
+    <span class="kw">var</span> stored = <span class="kw">await</span> _repo.<span class="fn">GetRefreshTokenAsync</span>(refreshToken);
+    <span class="kw">if</span> (stored == <span class="kw">null</span> || stored.IsRevoked || stored.ExpiresAt < <span class="cls">DateTime</span>.UtcNow)
+        <span class="kw">return</span> <span class="cls">Result</span>&lt;<span class="cls">TokenResponse</span>&gt;.<span class="fn">Failure</span>(<span class="str">"Invalid token"</span>);
+
+    stored.IsRevoked = <span class="kw">true</span>;      <span class="cm">// Revoke old token immediately</span>
+    <span class="kw">var</span> newToken = <span class="fn">GenerateRefreshToken</span>();
+    stored.ReplacedByToken = newToken.Token; <span class="cm">// Audit trail</span>
+    <span class="kw">await</span> _repo.<span class="fn">SaveAsync</span>(stored, newToken);
+
+    <span class="kw">return</span> <span class="cls">Result</span>&lt;<span class="cls">TokenResponse</span>&gt;.<span class="fn">Success</span>(<span class="kw">new</span>() {
+        AccessToken = <span class="fn">GenerateJwt</span>(stored.UserId),
+        RefreshToken = newToken.Token
+    });
+}</code></pre>
+    </div>
+
+    <div id="s4-t4" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is middleware and what order should it be in? <span class="arrow">▼</span></div><div class="qa-a">Middleware are components in the request pipeline — each can process a request and call the next component. Order: Exception handler first (wraps everything), then HTTPS redirect, then Authentication (who are you?), then Authorization (what can you do?), then routing/controllers. Getting this order wrong causes bugs — e.g., AuthZ before AuthN means you can't check if someone is authorized.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the captive dependency problem? <span class="arrow">▼</span></div><div class="qa-a">If you inject a Scoped service (like DbContext) into a Singleton service, the Singleton captures and holds that Scoped instance for its entire lifetime. This means the DbContext is never disposed, leading to stale data and connection leaks. Fix: use IServiceScopeFactory inside the Singleton and create a new scope per operation.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Use vs Run vs Map middleware — what's the difference? <span class="arrow">▼</span></div><div class="qa-a">Use: has access to next() — can choose to call next or short-circuit. Run: terminal — never calls next(). Map: branches the pipeline based on URL path — useful for health checks or different sub-apps.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">How does refresh token rotation work in WalletPlatform? <span class="arrow">▼</span></div><div class="qa-a">On each refresh: 1) Validate old token — check DB, not revoked, not expired. 2) Immediately mark old token IsRevoked=true. 3) Generate new token, store ReplacedByToken=new.Token for audit. 4) Return new access + refresh tokens. Single-use: if someone steals a refresh token, it can only be used once before it's revoked.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 5: MVC & WEB API ═══ -->
+  <section id="s5" class="section">
+    <h2 class="section-title">MVC & Web API <span class="section-badge">API Design</span></h2>
+    <div class="tabs" id="tabs-s5">
+      <button class="tab-btn active" onclick="showTab('s5','t1')">REST & Controllers</button>
+      <button class="tab-btn" onclick="showTab('s5','t2')">EF Core CRUD</button>
+      <button class="tab-btn" onclick="showTab('s5','t3')">Repository Pattern</button>
+      <button class="tab-btn" onclick="showTab('s5','t4')">Q&A</button>
+    </div>
+
+    <div id="s5-t1" class="tab-panel active">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Verb</th><th>Operation</th><th>Idempotent?</th><th>Status Codes</th></tr></thead>
+          <tbody>
+            <tr><td><strong>GET</strong></td><td>Read</td><td>✅</td><td>200, 404</td></tr>
+            <tr><td><strong>POST</strong></td><td>Create</td><td>❌</td><td>201, 400, 409</td></tr>
+            <tr><td><strong>PUT</strong></td><td>Full update/replace</td><td>✅</td><td>200, 204, 404</td></tr>
+            <tr><td><strong>PATCH</strong></td><td>Partial update</td><td>❌</td><td>200, 204, 400</td></tr>
+            <tr><td><strong>DELETE</strong></td><td>Delete</td><td>✅</td><td>204, 404</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code>[<span class="cls">ApiController</span>]
+[<span class="cls">Route</span>(<span class="str">"api/[controller]"</span>)]
+[<span class="cls">Authorize</span>]
+<span class="kw">public class</span> <span class="cls">WalletController</span>(<span class="cls">IWalletService</span> walletService) : <span class="cls">ControllerBase</span>
+{
+    [<span class="cls">HttpPost</span>(<span class="str">"deposit"</span>)]
+    <span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">IActionResult</span>&gt; <span class="fn">Deposit</span>(
+        [<span class="cls">FromBody</span>] <span class="cls">DepositRequest</span> req,
+        [<span class="cls">FromHeader</span>(Name = <span class="str">"Idempotency-Key"</span>)] <span class="kw">string</span> idempotencyKey)
+    {
+        <span class="kw">var</span> userId = <span class="cls">Guid</span>.<span class="fn">Parse</span>(User.<span class="fn">FindFirst</span>(<span class="str">"sub"</span>)!.Value);
+        <span class="kw">var</span> result = <span class="kw">await</span> walletService.<span class="fn">DepositAsync</span>(userId, req.Amount, idempotencyKey);
+        <span class="kw">return</span> result.IsSuccess ? <span class="fn">Ok</span>(result.Data) : <span class="fn">BadRequest</span>(result.Error);
+    }
+}</code></pre>
+    </div>
+
+    <div id="s5-t2" class="tab-panel">
+      <pre><code><span class="cm">// EF Core Code First — Entity</span>
+<span class="kw">public class</span> <span class="cls">Transaction</span>
+{
+    <span class="kw">public</span> <span class="cls">Guid</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">Guid</span> WalletId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public decimal</span> Amount { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">TransactionType</span> Type { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">DateTime</span> CreatedAt { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public virtual</span> <span class="cls">Wallet</span> Wallet { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="cm">// Nav prop</span>
+}
+
+<span class="cm">// DbContext</span>
+<span class="kw">protected override void</span> <span class="fn">OnModelCreating</span>(<span class="cls">ModelBuilder</span> mb)
+{
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Transaction</span>&gt;()
+      .<span class="fn">HasIndex</span>(t => t.IdempotencyKey).<span class="fn">IsUnique</span>();
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;()
+      .<span class="fn">HasMany</span>(w => w.Transactions)
+      .<span class="fn">WithOne</span>(t => t.Wallet)
+      .<span class="fn">HasForeignKey</span>(t => t.WalletId);
+}
+
+<span class="cm">// N+1 Fix — always Include navigation properties</span>
+<span class="kw">var</span> wallets = <span class="kw">await</span> _context.Wallets
+    .<span class="fn">Include</span>(w => w.Transactions)
+    .<span class="fn">AsNoTracking</span>()   <span class="cm">// Read-only — faster, no change tracking</span>
+    .<span class="fn">ToListAsync</span>();</code></pre>
+    </div>
+
+    <div id="s5-t3" class="tab-panel">
+      <pre><code><span class="kw">public interface</span> <span class="cls">IWalletRepository</span>
+{
+    <span class="cls">Task</span>&lt;<span class="cls">Wallet</span>?&gt; <span class="fn">GetByUserIdAsync</span>(<span class="cls">Guid</span> userId);
+    <span class="cls">Task</span>&lt;<span class="cls">Wallet</span>&gt; <span class="fn">CreateAsync</span>(<span class="cls">Wallet</span> wallet);
+    <span class="cls">Task</span> <span class="fn">UpdateBalanceAsync</span>(<span class="cls">Guid</span> walletId, <span class="kw">decimal</span> delta);
+}
+
+<span class="kw">public class</span> <span class="cls">WalletRepository</span>(<span class="cls">WalletDbContext</span> ctx) : <span class="cls">IWalletRepository</span>
+{
+    <span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">Wallet</span>?&gt; <span class="fn">GetByUserIdAsync</span>(<span class="cls">Guid</span> userId)
+        => <span class="kw">await</span> ctx.Wallets.<span class="fn">FirstOrDefaultAsync</span>(w => w.UserId == userId);
+
+    <span class="kw">public async</span> <span class="cls">Task</span> <span class="fn">UpdateBalanceAsync</span>(<span class="cls">Guid</span> walletId, <span class="kw">decimal</span> delta)
+    {
+        <span class="kw">await</span> ctx.Wallets
+            .<span class="fn">Where</span>(w => w.Id == walletId)
+            .<span class="fn">ExecuteUpdateAsync</span>(s => s
+                .<span class="fn">SetProperty</span>(w => w.Balance, w => w.Balance + delta));
+    }
+}</code></pre>
+    </div>
+
+    <div id="s5-t4" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">ControllerBase vs Controller — what's the difference? <span class="arrow">▼</span></div><div class="qa-a">ControllerBase is for APIs — no view support, lighter weight. Controller inherits from ControllerBase but adds view-related helpers (View(), PartialView(), etc.) for MVC. For REST APIs, always use ControllerBase.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the N+1 problem? <span class="arrow">▼</span></div><div class="qa-a">If you load 100 wallets and then access wallet.Transactions for each, EF Core fires 1 query for wallets + 100 queries for transactions = 101 queries. Fix: .Include(w => w.Transactions) — EF Core generates a JOIN and loads everything in 1 query.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What does AsNoTracking() do? <span class="arrow">▼</span></div><div class="qa-a">EF Core normally tracks all loaded entities in the ChangeTracker so it knows what changed on SaveChanges. AsNoTracking() disables this — faster for read-only queries since no tracking overhead. Use it on all GET/report endpoints.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Code First vs Database First? <span class="arrow">▼</span></div><div class="qa-a">Code First: you write C# entities and EF generates migrations + SQL schema. Used in WalletPlatform — full control over schema. Database First: existing DB schema generates C# entities via scaffolding (dotnet ef dbcontext scaffold). Used when the DB already exists.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 6: SQL ═══ -->
+  <section id="s6" class="section">
+    <h2 class="section-title">SQL & Databases <span class="section-badge">Data</span></h2>
+    <div class="tabs" id="tabs-s6">
+      <button class="tab-btn active" onclick="showTab('s6','t1')">Joins & Groups</button>
+      <button class="tab-btn" onclick="showTab('s6','t2')">Window Functions</button>
+      <button class="tab-btn" onclick="showTab('s6','t3')">Transactions & ACID</button>
+      <button class="tab-btn" onclick="showTab('s6','t4')">Classic Problems</button>
+      <button class="tab-btn" onclick="showTab('s6','t5')">Q&A</button>
+    </div>
+
+    <div id="s6-t1" class="tab-panel active">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Join Type</th><th>Returns</th><th>WalletPlatform Use</th></tr></thead>
+          <tbody>
+            <tr><td><strong>INNER JOIN</strong></td><td>Only matching rows from both tables</td><td>Transactions with their wallets</td></tr>
+            <tr><td><strong>LEFT JOIN</strong></td><td>All from left + matches from right (NULL if no match)</td><td>All users, even without transactions</td></tr>
+            <tr><td><strong>RIGHT JOIN</strong></td><td>All from right + matches from left</td><td>Rarely used; flip LEFT JOIN instead</td></tr>
+            <tr><td><strong>FULL OUTER JOIN</strong></td><td>All rows from both tables</td><td>Reconciliation reports</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code><span class="cm">-- GROUP BY vs HAVING</span>
+SELECT UserId, SUM(Amount) AS TotalSpend
+FROM Transactions
+WHERE CreatedAt >= '2024-01-01'    <span class="cm">-- WHERE filters BEFORE grouping</span>
+GROUP BY UserId
+HAVING SUM(Amount) > 10000;        <span class="cm">-- HAVING filters AFTER grouping</span>
+
+<span class="cm">-- Users with no transactions (LEFT JOIN + IS NULL trick)</span>
+SELECT u.Id, u.Email
+FROM Users u
+LEFT JOIN Transactions t ON u.Id = t.UserId
+WHERE t.UserId IS NULL;</code></pre>
+    </div>
+
+    <div id="s6-t2" class="tab-panel">
+      <pre><code><span class="cm">-- ROW_NUMBER vs RANK vs DENSE_RANK</span>
+SELECT
+    UserId,
+    Amount,
+    ROW_NUMBER() OVER (ORDER BY Amount DESC) AS RowNum,   <span class="cm">-- 1,2,3,4,5 always unique</span>
+    RANK()       OVER (ORDER BY Amount DESC) AS Rank,     <span class="cm">-- 1,1,3,4 (skips after tie)</span>
+    DENSE_RANK() OVER (ORDER BY Amount DESC) AS DenseRank <span class="cm">-- 1,1,2,3 (no skip)</span>
+FROM Transactions;
+
+<span class="cm">-- Running total</span>
+SELECT
+    Id, Amount,
+    SUM(Amount) OVER (ORDER BY CreatedAt ROWS UNBOUNDED PRECEDING) AS RunningTotal
+FROM Transactions WHERE WalletId = '...';
+
+<span class="cm">-- Most recent transaction per user</span>
+SELECT * FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY UserId ORDER BY CreatedAt DESC) AS rn
+    FROM Transactions
+) t WHERE rn = 1;</code></pre>
+    </div>
+
+    <div id="s6-t3" class="tab-panel">
+      <div class="grid-2">
+        <div class="highlight-card hc-blue"><div class="hc-title">⚛️ Atomicity</div><p>Transfer either fully completes (debit + credit) or fully rolls back. No partial state.</p></div>
+        <div class="highlight-card hc-green"><div class="hc-title">🔒 Consistency</div><p>Balance constraints enforced. Can't go below 0 if CHECK constraint exists.</p></div>
+        <div class="highlight-card hc-amber"><div class="hc-title">🔁 Isolation</div><p>Concurrent transfers don't see each other's partial state. READ COMMITTED by default.</p></div>
+        <div class="highlight-card hc-purple"><div class="hc-title">💾 Durability</div><p>Once committed, the transfer is permanent — survives crashes, power failures.</p></div>
+      </div>
+      <pre><code><span class="cm">// EF Core transaction — WalletPlatform transfer</span>
+<span class="kw">await using var</span> tx = <span class="kw">await</span> _ctx.<span class="fn">BeginTransactionAsync</span>();
+<span class="kw">try</span>
+{
+    <span class="kw">await</span> _walletRepo.<span class="fn">UpdateBalanceAsync</span>(fromId, -amount);
+    <span class="kw">await</span> _walletRepo.<span class="fn">UpdateBalanceAsync</span>(toId, +amount);
+    <span class="kw">await</span> _ledger.<span class="fn">RecordDoubleEntryAsync</span>(fromId, toId, amount);
+    <span class="kw">await</span> tx.<span class="fn">CommitAsync</span>();
+}
+<span class="kw">catch</span>
+{
+    <span class="kw">await</span> tx.<span class="fn">RollbackAsync</span>();
+    <span class="kw">throw</span>;
+}</code></pre>
+    </div>
+
+    <div id="s6-t4" class="tab-panel">
+      <pre><code><span class="cm">-- Second highest salary using DENSE_RANK</span>
+SELECT Salary FROM (
+    SELECT Salary, DENSE_RANK() OVER (ORDER BY Salary DESC) AS dr
+    FROM Employees
+) r WHERE dr = 2;
+
+<span class="cm">-- Nth highest salary (parameterized)</span>
+SELECT Salary FROM (
+    SELECT DISTINCT Salary,
+           DENSE_RANK() OVER (ORDER BY Salary DESC) AS dr
+    FROM Employees
+) r WHERE dr = @N;
+
+<span class="cm">-- Duplicate rows</span>
+SELECT Name, COUNT(*) FROM Employees
+GROUP BY Name HAVING COUNT(*) > 1;
+
+<span class="cm">-- Delete duplicates, keep one</span>
+DELETE FROM Employees WHERE Id NOT IN (
+    SELECT MIN(Id) FROM Employees GROUP BY Name, Email
+);</code></pre>
+    </div>
+
+    <div id="s6-t5" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">WHERE vs HAVING — what's the difference? <span class="arrow">▼</span></div><div class="qa-a">WHERE filters rows BEFORE grouping — it operates on individual rows. HAVING filters groups AFTER GROUP BY — it operates on aggregated results. You can't use aggregate functions (SUM, COUNT) in WHERE; use HAVING for those.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">RANK vs DENSE_RANK vs ROW_NUMBER? <span class="arrow">▼</span></div><div class="qa-a">ROW_NUMBER: always unique 1,2,3,4. RANK: ties get same rank, next rank skips (1,1,3). DENSE_RANK: ties get same rank, next rank doesn't skip (1,1,2). For "second highest salary" use DENSE_RANK — RANK would skip rank 2 if there's a tie at rank 1.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is a clustered vs non-clustered index? <span class="arrow">▼</span></div><div class="qa-a">Clustered: physically reorders table data — only one per table (usually primary key). Non-clustered: separate structure pointing to rows — multiple allowed. WalletPlatform has a unique non-clustered index on IdempotencyKey to ensure exactly-once processing.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Explain double-entry accounting in WalletPlatform. <span class="arrow">▼</span></div><div class="qa-a">Every transaction creates exactly two ledger entries: one Debit (positive amount) for the sender, one Credit (negative amount, stored as -amount) for the receiver. This ensures the books always balance — sum of all ledger entries = 0. It's the same principle used by real banks.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 7: ADVANCED ═══ -->
+  <section id="s7" class="section">
+    <h2 class="section-title">Advanced C# Topics <span class="section-badge">Senior Level</span></h2>
+    <div class="tabs" id="tabs-s7">
+      <button class="tab-btn active" onclick="showTab('s7','t1')">Async/Await</button>
+      <button class="tab-btn" onclick="showTab('s7','t2')">Delegates & Events</button>
+      <button class="tab-btn" onclick="showTab('s7','t3')">Generics & Collections</button>
+      <button class="tab-btn" onclick="showTab('s7','t4')">Exception Handling</button>
+      <button class="tab-btn" onclick="showTab('s7','t5')">Q&A</button>
+    </div>
+
+    <div id="s7-t1" class="tab-panel active">
+      <div class="highlight-card hc-red">
+        <div class="hc-title">🔴 Deadlock — Most Asked Interview Trap</div>
+        <p>Calling <code>.Result</code> or <code>.Wait()</code> on a Task in a context with a SynchronizationContext (ASP.NET, UI) can deadlock. The async method tries to continue on the captured context, but the context is blocked waiting for the Task. Fix: always <code>await</code>, never block.</p>
+      </div>
+      <pre><code><span class="cm">// ❌ Can deadlock in ASP.NET</span>
+<span class="kw">var</span> result = GetDataAsync().Result;
+
+<span class="cm">// ✅ Always await</span>
+<span class="kw">var</span> result = <span class="kw">await</span> <span class="fn">GetDataAsync</span>();
+
+<span class="cm">// Task.WhenAll — parallel fan-out (WalletPlatform startup consumers)</span>
+<span class="kw">await</span> <span class="cls">Task</span>.<span class="fn">WhenAll</span>(
+    consumer1.<span class="fn">StartAsync</span>(ct),
+    consumer2.<span class="fn">StartAsync</span>(ct),
+    consumer3.<span class="fn">StartAsync</span>(ct)
+); <span class="cm">// All run concurrently, waits for ALL to finish</span>
+
+<span class="cm">// Task.WhenAny — first to finish wins</span>
+<span class="kw">var</span> winner = <span class="kw">await</span> <span class="cls">Task</span>.<span class="fn">WhenAny</span>(task1, task2);
+
+<span class="cm">// CancellationToken — always pass through</span>
+<span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">Result</span>&lt;<span class="cls">Wallet</span>&gt;&gt; <span class="fn">GetWalletAsync</span>(<span class="cls">Guid</span> id, <span class="cls">CancellationToken</span> ct)
+{
+    <span class="kw">var</span> wallet = <span class="kw">await</span> _ctx.Wallets.<span class="fn">FirstOrDefaultAsync</span>(w => w.Id == id, ct);
+    <span class="kw">return</span> wallet <span class="kw">is null</span>
+        ? <span class="cls">Result</span>&lt;<span class="cls">Wallet</span>&gt;.<span class="fn">Failure</span>(<span class="str">"Not found"</span>)
+        : <span class="cls">Result</span>&lt;<span class="cls">Wallet</span>&gt;.<span class="fn">Success</span>(wallet);
+}</code></pre>
+    </div>
+
+    <div id="s7-t2" class="tab-panel">
+      <pre><code><span class="cm">// Built-in generic delegates</span>
+<span class="cls">Func</span>&lt;<span class="kw">decimal</span>, <span class="kw">decimal</span>, <span class="kw">decimal</span>&gt; add = (a, b) => a + b;   <span class="cm">// Returns value</span>
+<span class="cls">Action</span>&lt;<span class="kw">string</span>&gt; log = msg => <span class="cls">Console</span>.<span class="fn">WriteLine</span>(msg);            <span class="cm">// No return (void)</span>
+<span class="cls">Predicate</span>&lt;<span class="kw">decimal</span>&gt; isBig = amount => amount > <span class="num">10000</span>;          <span class="cm">// Returns bool</span>
+
+<span class="cm">// Event pattern</span>
+<span class="kw">public class</span> <span class="cls">TransactionService</span>
+{
+    <span class="kw">public event</span> <span class="cls">EventHandler</span>&lt;<span class="cls">TransactionEventArgs</span>&gt;? TransactionCompleted;
+
+    <span class="kw">private void</span> <span class="fn">OnTransactionCompleted</span>(<span class="cls">Transaction</span> tx)
+        => TransactionCompleted?.Invoke(<span class="kw">this</span>, <span class="kw">new</span>(<span class="str">"success"</span>));
+}
+
+<span class="cm">// Lambda: expression vs statement</span>
+<span class="cls">Func</span>&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt; square = x => x * x;            <span class="cm">// Expression lambda</span>
+<span class="cls">Func</span>&lt;<span class="kw">int</span>, <span class="kw">int</span>&gt; squared = x => { <span class="kw">return</span> x * x; }; <span class="cm">// Statement lambda</span></code></pre>
+    </div>
+
+    <div id="s7-t3" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Collection</th><th>Access</th><th>Ordered?</th><th>Duplicates?</th><th>Thread-safe?</th></tr></thead>
+          <tbody>
+            <tr><td><code>List&lt;T&gt;</code></td><td>O(1) index</td><td>✅</td><td>✅</td><td>❌</td></tr>
+            <tr><td><code>Dictionary&lt;K,V&gt;</code></td><td>O(1) key lookup</td><td>❌</td><td>❌ keys</td><td>❌</td></tr>
+            <tr><td><code>HashSet&lt;T&gt;</code></td><td>O(1)</td><td>❌</td><td>❌</td><td>❌</td></tr>
+            <tr><td><code>Queue&lt;T&gt;</code></td><td>FIFO</td><td>✅</td><td>✅</td><td>❌</td></tr>
+            <tr><td><code>ConcurrentDictionary&lt;K,V&gt;</code></td><td>O(1)</td><td>❌</td><td>❌ keys</td><td>✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code><span class="cm">// Generics with constraints</span>
+<span class="kw">public class</span> <span class="cls">Result</span>&lt;<span class="cls">T</span>&gt; <span class="kw">where</span> <span class="cls">T</span> : <span class="kw">class</span>
+{
+    <span class="kw">public</span> <span class="cls">T</span>? Data { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public bool</span> IsSuccess { <span class="kw">get</span>; <span class="kw">init</span>; }
+    <span class="kw">public</span> <span class="kw">string</span>? Error { <span class="kw">get</span>; <span class="kw">init</span>; }
+
+    <span class="kw">public static</span> <span class="cls">Result</span>&lt;<span class="cls">T</span>&gt; <span class="fn">Success</span>(<span class="cls">T</span> data) => <span class="kw">new</span>() { IsSuccess = <span class="kw">true</span>, Data = data };
+    <span class="kw">public static</span> <span class="cls">Result</span>&lt;<span class="cls">T</span>&gt; <span class="fn">Failure</span>(<span class="kw">string</span> err) => <span class="kw">new</span>() { IsSuccess = <span class="kw">false</span>, Error = err };
+}</code></pre>
+    </div>
+
+    <div id="s7-t4" class="tab-panel">
+      <pre><code><span class="cm">// Custom exceptions</span>
+<span class="kw">public class</span> <span class="cls">InsufficientBalanceException</span> : <span class="cls">Exception</span>
+{
+    <span class="kw">public decimal</span> Available { <span class="kw">get</span>; }
+    <span class="kw">public</span> <span class="cls">InsufficientBalanceException</span>(<span class="kw">decimal</span> available)
+        : <span class="kw">base</span>(<span class="str">$"Balance {available:C} insufficient"</span>)
+        => Available = available;
+}
+
+<span class="cm">// Specific before general — order matters</span>
+<span class="kw">try</span> { <span class="kw">await</span> <span class="fn">TransferAsync</span>(...); }
+<span class="kw">catch</span> (<span class="cls">InsufficientBalanceException</span> ex) { <span class="cm">/* specific */</span> }
+<span class="kw">catch</span> (<span class="cls">InvalidOperationException</span> ex)  { <span class="cm">/* medium */</span>  }
+<span class="kw">catch</span> (<span class="cls">Exception</span> ex)                  { <span class="cm">/* catch-all */</span> }
+<span class="kw">finally</span>                                { <span class="cm">/* always runs */</span> }
+
+<span class="cm">// throw vs throw ex — critical difference</span>
+<span class="kw">catch</span> (<span class="cls">Exception</span> ex)
+{
+    <span class="kw">throw</span>;    <span class="cm">// ✅ Preserves original stack trace</span>
+    <span class="kw">throw</span> ex; <span class="cm">// ❌ Resets stack trace to this line — loses context</span>
+}</code></pre>
+    </div>
+
+    <div id="s7-t5" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What causes a deadlock with async/await? <span class="arrow">▼</span></div><div class="qa-a">Calling .Result or .Wait() on a Task in ASP.NET (which has a SynchronizationContext). The continuation tries to resume on the captured context thread, but that thread is blocked waiting for the Task to complete → circular wait → deadlock. Solution: always await. If you must call sync, use ConfigureAwait(false) to not capture the context.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the difference between Task.WhenAll and Task.WhenAny? <span class="arrow">▼</span></div><div class="qa-a">WhenAll: waits for ALL tasks to complete. If any fails, it throws after all complete. WhenAny: returns as soon as any ONE task completes. Useful for timeout patterns: race your real work against a Task.Delay and if Delay wins, cancel.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">throw vs throw ex — why does it matter? <span class="arrow">▼</span></div><div class="qa-a">throw (bare) rethrows the current exception, preserving the original stack trace. throw ex sets the stack trace starting point to the current line — you lose the original location where the error occurred, making debugging much harder. Always use bare throw in catch blocks.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is ConcurrentDictionary used for? <span class="arrow">▼</span></div><div class="qa-a">Thread-safe key-value store. Use for in-memory caches shared across concurrent requests. Regular Dictionary is not thread-safe — concurrent reads/writes cause race conditions. ConcurrentDictionary uses fine-grained locking internally. WalletPlatform could use it for the idempotency cache layer.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 8: DESIGN PATTERNS ═══ -->
+  <section id="s8" class="section">
+    <h2 class="section-title">Design Patterns <span class="section-badge">Architecture</span></h2>
+    <div class="tabs" id="tabs-s8">
+      <button class="tab-btn active" onclick="showTab('s8','t1')">Singleton & Factory</button>
+      <button class="tab-btn" onclick="showTab('s8','t2')">Strategy & Decorator</button>
+      <button class="tab-btn" onclick="showTab('s8','t3')">Repository & Outbox</button>
+      <button class="tab-btn" onclick="showTab('s8','t4')">Q&A</button>
+    </div>
+
+    <div id="s8-t1" class="tab-panel active">
+      <pre><code><span class="cm">// Singleton — thread-safe with Lazy&lt;T&gt;</span>
+<span class="kw">public class</span> <span class="cls">ConnectionManager</span>
+{
+    <span class="kw">private static readonly</span> <span class="cls">Lazy</span>&lt;<span class="cls">ConnectionManager</span>&gt; _instance
+        = <span class="kw">new</span>(() => <span class="kw">new</span> <span class="cls">ConnectionManager</span>());
+    <span class="kw">public static</span> <span class="cls">ConnectionManager</span> Instance => _instance.Value;
+    <span class="kw">private</span> <span class="cls">ConnectionManager</span>() { }
+}
+<span class="cm">// ✅ Better in ASP.NET Core: services.AddSingleton&lt;IConnectionManager, ConnectionManager&gt;()</span>
+
+<span class="cm">// Factory — OCP-compliant using DI</span>
+<span class="kw">public interface</span> <span class="cls">IPaymentProcessor</span> { <span class="cls">Task</span> <span class="fn">ProcessAsync</span>(<span class="cls">PaymentRequest</span> req); }
+<span class="kw">public class</span> <span class="cls">UpiProcessor</span> : <span class="cls">IPaymentProcessor</span> { ... }
+<span class="kw">public class</span> <span class="cls">CardProcessor</span> : <span class="cls">IPaymentProcessor</span> { ... }
+
+<span class="kw">public class</span> <span class="cls">PaymentProcessorFactory</span>
+{
+    <span class="kw">private readonly</span> <span class="cls">IServiceProvider</span> _sp;
+    <span class="kw">public</span> <span class="cls">IPaymentProcessor</span> <span class="fn">Create</span>(<span class="kw">string</span> type) => type <span class="kw">switch</span>
+    {
+        <span class="str">"upi"</span>  => _sp.<span class="fn">GetRequiredService</span>&lt;<span class="cls">UpiProcessor</span>&gt;(),
+        <span class="str">"card"</span> => _sp.<span class="fn">GetRequiredService</span>&lt;<span class="cls">CardProcessor</span>&gt;(),
+        _ => <span class="kw">throw new</span> <span class="cls">ArgumentException</span>(<span class="str">$"Unknown: {type}"</span>)
+    };
+}</code></pre>
+    </div>
+
+    <div id="s8-t2" class="tab-panel">
+      <pre><code><span class="cm">// Strategy — interchangeable fee calculation</span>
+<span class="kw">public interface</span> <span class="cls">IFeeStrategy</span> { <span class="kw">decimal</span> <span class="fn">Calculate</span>(<span class="kw">decimal</span> amount); }
+<span class="kw">public class</span> <span class="cls">FlatFeeStrategy</span> : <span class="cls">IFeeStrategy</span>
+    { <span class="kw">public decimal</span> <span class="fn">Calculate</span>(<span class="kw">decimal</span> _) => <span class="num">5m</span>; }
+<span class="kw">public class</span> <span class="cls">PercentageFeeStrategy</span> : <span class="cls">IFeeStrategy</span>
+    { <span class="kw">public decimal</span> <span class="fn">Calculate</span>(<span class="kw">decimal</span> amount) => amount * <span class="num">0.02m</span>; }
+
+<span class="cm">// Decorator — adds logging without modifying WalletService</span>
+<span class="kw">public class</span> <span class="cls">LoggingWalletService</span> : <span class="cls">IWalletService</span>
+{
+    <span class="kw">private readonly</span> <span class="cls">IWalletService</span> _inner;
+    <span class="kw">private readonly</span> <span class="cls">ILogger</span> _logger;
+
+    <span class="kw">public</span> <span class="cls">LoggingWalletService</span>(<span class="cls">IWalletService</span> inner, <span class="cls">ILogger</span> logger)
+        => (_inner, _logger) = (inner, logger);
+
+    <span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">Result</span>&lt;<span class="cls">TransactionResponse</span>&gt;&gt; <span class="fn">DepositAsync</span>(...)
+    {
+        _logger.<span class="fn">LogInformation</span>(<span class="str">"Deposit started: {Amount}"</span>, amount);
+        <span class="kw">var</span> result = <span class="kw">await</span> _inner.<span class="fn">DepositAsync</span>(...); <span class="cm">// delegate to real service</span>
+        _logger.<span class="fn">LogInformation</span>(<span class="str">"Deposit done: {Success}"</span>, result.IsSuccess);
+        <span class="kw">return</span> result;
+    }
+}</code></pre>
+    </div>
+
+    <div id="s8-t3" class="tab-panel">
+      <div class="highlight-card hc-red">
+        <div class="hc-title">🔴 Known Gap: Outbox Pattern</div>
+        <p>Auth Service publishes <code>UserRegisteredEvent</code> directly to RabbitMQ after saving to DB. If RabbitMQ is down after the DB commit, the event is lost — wallets/profiles/rewards are never created. Fix: <strong>Outbox Pattern</strong> — write events to an <code>OutboxMessages</code> table inside the same DB transaction, then a background job publishes them asynchronously.</p>
+      </div>
+      <pre><code><span class="cm">// Outbox Pattern implementation</span>
+<span class="kw">public class</span> <span class="cls">OutboxMessage</span>
+{
+    <span class="kw">public</span> <span class="cls">Guid</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="kw">string</span> EventType { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="kw">string</span> Payload { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> Published { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">DateTime</span> CreatedAt { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="kw">public async</span> <span class="cls">Task</span> <span class="fn">RegisterAsync</span>(...)
+{
+    <span class="kw">await using var</span> tx = <span class="kw">await</span> _ctx.<span class="fn">BeginTransactionAsync</span>();
+    <span class="kw">await</span> _ctx.Users.<span class="fn">AddAsync</span>(user);
+    <span class="kw">await</span> _ctx.OutboxMessages.<span class="fn">AddAsync</span>(<span class="kw">new</span> <span class="cls">OutboxMessage</span> {
+        EventType = <span class="str">"UserRegistered"</span>,
+        Payload = <span class="cls">JsonSerializer</span>.<span class="fn">Serialize</span>(evt)
+    });
+    <span class="kw">await</span> _ctx.<span class="fn">SaveChangesAsync</span>();
+    <span class="kw">await</span> tx.<span class="fn">CommitAsync</span>(); <span class="cm">// Both user + outbox saved atomically</span>
+    <span class="cm">// Background job polls OutboxMessages and publishes to RabbitMQ</span>
+}</code></pre>
+    </div>
+
+    <div id="s8-t4" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">When would you use the Decorator pattern? <span class="arrow">▼</span></div><div class="qa-a">When you want to add behaviour (logging, caching, validation) to an existing class without modifying it. LoggingWalletService wraps IWalletService — the original WalletService is unchanged. You can chain decorators: Logging → Caching → Real. Registered in DI in the right order.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Singleton in DI vs manual Singleton? <span class="arrow">▼</span></div><div class="qa-a">Manual Singleton (Lazy&lt;T&gt;) is application-wide global state — hard to test, can't be mocked. DI Singleton (AddSingleton) is resolved by the container, can be injected and mocked in tests. Always prefer DI Singleton. Reserve manual Singleton for cases outside the DI container (e.g., static utilities).</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the Outbox Pattern and why does WalletPlatform need it? <span class="arrow">▼</span></div><div class="qa-a">Currently Auth Service saves user to DB then publishes to RabbitMQ. These are two separate operations — if RabbitMQ is down after the DB commit, event is lost. Outbox Pattern: write events to an OutboxMessages table IN THE SAME TRANSACTION as the user save. A separate background job then polls unpublished messages and sends them. Atomicity guaranteed.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Factory Method vs Abstract Factory? <span class="arrow">▼</span></div><div class="qa-a">Factory Method: one method in a class creates one product type. Abstract Factory: an interface with multiple factory methods, creates families of related products. Example: AbstractFactory for notifications could create EmailSender + SmsSender + PushSender together — ensuring they're all configured for the same provider (e.g., AWS vs Azure).</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 9: SAGA ═══ -->
+  <section id="s9" class="section">
+    <h2 class="section-title">SAGA Pattern <span class="section-badge">Microservices</span></h2>
+    <div class="tabs" id="tabs-s9">
+      <button class="tab-btn active" onclick="showTab('s9','t1')">What is SAGA?</button>
+      <button class="tab-btn" onclick="showTab('s9','t2')">Choreography</button>
+      <button class="tab-btn" onclick="showTab('s9','t3')">Orchestration</button>
+      <button class="tab-btn" onclick="showTab('s9','t4')">Q&A</button>
+    </div>
+
+    <div id="s9-t1" class="tab-panel active">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">Why SAGA? — Distributed Transactions Problem</div>
+        <p>In microservices, you can't use a single database transaction across services. SAGA breaks a distributed transaction into a sequence of local transactions, each publishing an event. If any step fails, <strong>compensating transactions</strong> undo the previous steps.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>SAGA</th><th>2PC (Two-Phase Commit)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Consistency</strong></td><td>Eventual</td><td>Strong</td></tr>
+            <tr><td><strong>Locking</strong></td><td>No locks</td><td>Locks resources during prepare phase</td></tr>
+            <tr><td><strong>Failure point</strong></td><td>Any service</td><td>Coordinator is single point of failure</td></tr>
+            <tr><td><strong>Scalability</strong></td><td>✅ High</td><td>❌ Low (blocking)</td></tr>
+            <tr><td><strong>Complexity</strong></td><td>Compensating transactions needed</td><td>Simpler logic, harder infrastructure</td></tr>
+            <tr><td><strong>Used in</strong></td><td>Microservices (WalletPlatform)</td><td>Legacy enterprise systems</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="s9-t2" class="tab-panel">
+      <div class="highlight-card hc-green">
+        <div class="hc-title">🎭 Choreography — WalletPlatform Registration Flow</div>
+        <p>No central coordinator. Each service listens for events and reacts. Services are decoupled.</p>
+      </div>
+      <pre><code><span class="cm">// Registration Choreography Flow in WalletPlatform</span>
+<span class="cm">// 1. Auth registers user → publishes UserRegisteredEvent</span>
+<span class="cm">// 2. UserProfile Service listens → creates profile</span>
+<span class="cm">// 3. Wallet Service listens → creates wallet</span>
+<span class="cm">// 4. Notification Service listens → sends welcome email</span>
+<span class="cm">// 5. Rewards Service listens → initializes points account</span>
+
+<span class="kw">public class</span> <span class="cls">UserRegisteredEvent</span>
+{
+    <span class="kw">public</span> <span class="cls">Guid</span> UserId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="kw">string</span> Email { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">DateTime</span> RegisteredAt { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="cm">// Auth publishes — doesn't know who listens</span>
+<span class="kw">await</span> _publisher.<span class="fn">PublishAsync</span>(<span class="str">"user.exchange"</span>, <span class="kw">new</span> <span class="cls">UserRegisteredEvent</span> { ... });
+
+<span class="cm">// Each service has its own queue bound to user.exchange</span>
+<span class="cm">// RabbitMQ fan-out exchange delivers to ALL queues simultaneously</span></code></pre>
+    </div>
+
+    <div id="s9-t3" class="tab-panel">
+      <pre><code><span class="cm">// Orchestration — central saga orchestrator manages state</span>
+<span class="kw">public class</span> <span class="cls">MoneyTransferSaga</span>
+{
+    <span class="kw">public</span> <span class="cls">Guid</span> SagaId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">SagaState</span> State { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">Guid</span> FromWalletId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="cls">Guid</span> ToWalletId { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public decimal</span> Amount { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> DebitCompleted { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span> CreditCompleted { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="kw">public async</span> <span class="cls">Task</span> <span class="fn">HandleAsync</span>(<span class="cls">MoneyTransferSaga</span> saga, <span class="kw">string</span> stepResult)
+{
+    <span class="kw">if</span> (stepResult == <span class="str">"DebitSuccess"</span>)
+    {
+        saga.DebitCompleted = <span class="kw">true</span>;
+        <span class="kw">await</span> _creditService.<span class="fn">CreditAsync</span>(saga.ToWalletId, saga.Amount, saga.SagaId);
+    }
+    <span class="kw">else if</span> (stepResult == <span class="str">"CreditFailed"</span> && saga.DebitCompleted)
+    {
+        <span class="cm">// Compensate — reverse the debit</span>
+        <span class="kw">await</span> _debitService.<span class="fn">RefundAsync</span>(saga.FromWalletId, saga.Amount, saga.SagaId);
+        saga.State = <span class="cls">SagaState</span>.Compensated;
+    }
+}</code></pre>
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">⚡ Idempotency in SAGA</div>
+        <p>Every SAGA step must be idempotent — if a message is replayed, it should produce the same result. WalletPlatform uses <code>GetOrExecuteAsync&lt;T&gt;()</code> with a unique DB index on the saga step ID + operation type.</p>
+      </div>
+    </div>
+
+    <div id="s9-t4" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the SAGA pattern and why is it used in microservices? <span class="arrow">▼</span></div><div class="qa-a">SAGA manages distributed transactions across multiple services without a global database lock. Each service performs a local transaction and publishes an event. If any step fails, compensating transactions roll back previous steps. Used because distributed systems can't use ACID transactions across service boundaries.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Choreography vs Orchestration — when would you use each? <span class="arrow">▼</span></div><div class="qa-a">Choreography: services react to events, no central controller. Simple, decoupled, but hard to track overall flow. WalletPlatform registration uses choreography. Orchestration: a saga orchestrator drives the flow, tracks state, and sends commands. More complex but better for long-running multi-step flows with complex compensation logic. Use orchestration when you need visibility into the overall saga state.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What are compensating transactions? Can they always be exact? <span class="arrow">▼</span></div><div class="qa-a">Compensating transactions reverse the effect of a previous step. They must be idempotent. Some can be exact (refunding money is exact). Others are approximate — if a welcome email was sent and the saga fails, you can't "unsend" the email, but you can send a cancellation email. This is an accepted trade-off in eventual consistency.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">SAGA vs 2PC — which would you choose? <span class="arrow">▼</span></div><div class="qa-a">SAGA for microservices — no locks, high availability, eventual consistency. 2PC (Two-Phase Commit) for tightly coupled systems needing strong consistency — but it has a coordinator as single point of failure and holds locks during the prepare phase, reducing throughput. In practice, SAGA with idempotent steps + compensations is the industry standard for microservices.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 10: MOCK INTERVIEW ═══ -->
+  <section id="s10" class="section">
+    <h2 class="section-title">🎤 Mock Interview <span class="section-badge">Practice</span></h2>
+
+    <div class="tabs" id="tabs-s10">
+      <button class="tab-btn active" onclick="showTab('s10','t1')">Round 1: Conceptual</button>
+      <button class="tab-btn" onclick="showTab('s10','t2')">Round 2: Coding</button>
+      <button class="tab-btn" onclick="showTab('s10','t3')">Round 3: Architecture</button>
+      <button class="tab-btn" onclick="showTab('s10','t4')">Scoring Guide</button>
+    </div>
+
+    <div id="s10-t1" class="tab-panel active">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q1: What is the difference between value types and reference types? <span class="arrow">▼</span></div><div class="qa-a"><strong>Value types</strong> (int, decimal, struct, bool) are stored on the stack, copied on assignment. <strong>Reference types</strong> (class, string, array) store a reference on the stack pointing to heap data. Assigning a reference type copies the reference — both variables point to same object. Key interview note: string is reference type but behaves like value type (immutable + interning).</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q2: Walk me through the JWT auth flow in WalletPlatform. <span class="arrow">▼</span></div><div class="qa-a">1) Client sends credentials to Auth Service. 2) Auth validates, generates 60-min access token (JWT) + 7-day refresh token. 3) Refresh token stored in DB with IsRevoked=false. 4) Client sends JWT in Authorization: Bearer header on subsequent requests. 5) Ocelot gateway validates JWT signature — no DB lookup needed. 6) When access token expires, client sends refresh token. 7) Auth marks old refresh token IsRevoked=true, generates new pair (rotation). 8) If refresh token is revoked or expired — re-login required.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q3: Explain double-entry accounting as implemented in the Ledger Service. <span class="arrow">▼</span></div><div class="qa-a">Every financial transaction creates exactly two ledger entries: a Debit entry (positive amount) for the money leaving, and a Credit entry (negative amount, stored as -amount) for the money arriving. The sum of all ledger entries always equals zero — the books balance. This is the same principle used by real banks. In WalletPlatform, a ₹500 transfer creates: Debit(walletId=sender, amount=500) + Credit(walletId=receiver, amount=-500).</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q4: What is idempotency and how is it implemented in WalletPlatform? <span class="arrow">▼</span></div><div class="qa-a">Idempotency means calling an operation multiple times produces the same result as calling it once. Financial APIs must be idempotent — network retries shouldn't double-charge. WalletPlatform: client sends unique Idempotency-Key header. Service calls GetOrExecuteAsync&lt;T&gt;() — checks if this key was already processed (unique DB index). If yes, returns cached result. If no, executes and stores result. Race conditions handled by the unique index constraint throwing a duplicate key exception.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q5: A RabbitMQ consumer shows "Consumers: 0" — how do you debug it? <span class="arrow">▼</span></div><div class="qa-a">This is a hard-won WalletPlatform lesson. Root cause: the consuming service wasn't running when messages were published. Messages sat in the queue with no consumer attached. Fix: 1) Start all services simultaneously (not sequentially). 2) Check the RabbitMQ Management UI at localhost:15672 — verify queue bindings and consumer counts. 3) Ensure exchange-to-queue routing key matches in both publisher and consumer. 4) Check if the service connected to RabbitMQ — look for "Consumer registered" log on startup.</div></div>
+    </div>
+
+    <div id="s10-t2" class="tab-panel">
+      <h3>Challenge 1: Top 3 Spenders</h3>
+      <p>Write a LINQ query to find the top 3 users by total transaction amount from a <code>List&lt;Transaction&gt;</code>.</p>
+      <pre><code><span class="kw">var</span> top3 = transactions
+    .<span class="fn">GroupBy</span>(t => t.UserId)
+    .<span class="fn">Select</span>(g => <span class="kw">new</span> {
+        UserId = g.Key,
+        TotalSpend = g.<span class="fn">Sum</span>(t => t.Amount)
+    })
+    .<span class="fn">OrderByDescending</span>(x => x.TotalSpend)
+    .<span class="fn">Take</span>(<span class="num">3</span>)
+    .<span class="fn">ToList</span>();</code></pre>
+
+      <h3>Challenge 2: Thread-Safe In-Memory Cache</h3>
+      <p>Implement a generic thread-safe cache with TTL (time-to-live) using ConcurrentDictionary.</p>
+      <pre><code><span class="kw">public class</span> <span class="cls">InMemoryCache</span>&lt;<span class="cls">TKey</span>, <span class="cls">TValue</span>&gt; <span class="kw">where</span> <span class="cls">TKey</span> : notnull
+{
+    <span class="kw">private readonly</span> <span class="cls">ConcurrentDictionary</span>&lt;<span class="cls">TKey</span>, (<span class="cls">TValue</span> Value, <span class="cls">DateTime</span> Expiry)&gt; _cache = <span class="kw">new</span>();
+
+    <span class="kw">public void</span> <span class="fn">Set</span>(<span class="cls">TKey</span> key, <span class="cls">TValue</span> value, <span class="cls">TimeSpan</span> ttl)
+        => _cache[key] = (value, <span class="cls">DateTime</span>.UtcNow.Add(ttl));
+
+    <span class="kw">public bool</span> <span class="fn">TryGet</span>(<span class="cls">TKey</span> key, <span class="kw">out</span> <span class="cls">TValue</span>? value)
+    {
+        <span class="kw">if</span> (_cache.<span class="fn">TryGetValue</span>(key, <span class="kw">out var</span> entry) && entry.Expiry > <span class="cls">DateTime</span>.UtcNow)
+        {
+            value = entry.Value;
+            <span class="kw">return true</span>;
+        }
+        value = <span class="kw">default</span>;
+        <span class="kw">return false</span>;
+    }
+
+    <span class="kw">public void</span> <span class="fn">Invalidate</span>(<span class="cls">TKey</span> key) => _cache.<span class="fn">TryRemove</span>(key, <span class="kw">out</span> _);
+}</code></pre>
+
+      <h3>Challenge 3: Deposit Endpoint</h3>
+      <p>Write a complete WalletController POST /deposit endpoint with idempotency, JWT auth, and Result pattern.</p>
+      <pre><code>[<span class="cls">HttpPost</span>(<span class="str">"deposit"</span>)]
+<span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">IActionResult</span>&gt; <span class="fn">Deposit</span>(
+    [<span class="cls">FromBody</span>] <span class="cls">DepositRequest</span> req,
+    [<span class="cls">FromHeader</span>(Name = <span class="str">"Idempotency-Key"</span>)] <span class="kw">string</span>? idempotencyKey)
+{
+    <span class="kw">if</span> (<span class="kw">string</span>.<span class="fn">IsNullOrEmpty</span>(idempotencyKey))
+        <span class="kw">return</span> <span class="fn">BadRequest</span>(<span class="str">"Idempotency-Key header required"</span>);
+
+    <span class="kw">var</span> userId = <span class="cls">Guid</span>.<span class="fn">Parse</span>(User.<span class="fn">FindFirstValue</span>(<span class="str">"sub"</span>)!);
+    <span class="kw">var</span> result = <span class="kw">await</span> _walletService.<span class="fn">DepositAsync</span>(userId, req.Amount, idempotencyKey);
+
+    <span class="kw">return</span> result.IsSuccess
+        ? <span class="fn">Ok</span>(result.Data)
+        : <span class="fn">BadRequest</span>(<span class="kw">new</span> { error = result.Error });
+}</code></pre>
+    </div>
+
+    <div id="s10-t3" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q1: How would you scale WalletPlatform to handle 100K TPS? <span class="arrow">▼</span></div><div class="qa-a">1) Horizontal scaling: multiple instances of each service behind a load balancer. 2) Database: read replicas for queries, write to primary. 3) Caching: Redis for wallet balances + idempotency cache. 4) Async: RabbitMQ absorbs spikes — producers don't wait for consumers. 5) Optimistic locking on wallet balance updates to avoid row-level locks. 6) CQRS: separate read models for reporting. 7) CDN + API Gateway rate limiting. 8) DB connection pooling.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q2: Implement the Outbox Pattern for Auth Service's UserRegisteredEvent. <span class="arrow">▼</span></div><div class="qa-a">1) Add OutboxMessages table to AuthDb. 2) In RegisterAsync: save User + OutboxMessage in the SAME EF Core transaction. 3) OutboxMessage has: Id, EventType, Payload (JSON), Published (bool), CreatedAt. 4) Background service (IHostedService) polls for Published=false messages every 5s. 5) For each: publish to RabbitMQ, then update Published=true. 6) If publish fails: retry with exponential backoff. 7) Dead letter after N retries. This guarantees at-least-once delivery.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Q3: Why did you choose Clean Architecture? <span class="arrow">▼</span></div><div class="qa-a">Clean Architecture enforces a dependency rule: inner layers never reference outer layers. Core domain (entities + interfaces) has zero dependencies. Infrastructure (EF Core, RabbitMQ, MailKit) implements the Core interfaces. API layer orchestrates. Benefits: testability (Core is pure C# with no EF/HTTP dependencies), flexibility (swap SQL Server for Postgres without touching WalletService), clarity (domain logic never leaks into controllers or repositories).</div></div>
+    </div>
+
+    <div id="s10-t4" class="tab-panel">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">⭐⭐⭐ (3/5)</div>
+          <ul>
+            <li>Knows definitions of all concepts</li>
+            <li>Can write basic code with help</li>
+            <li>Understands SOLID at surface level</li>
+            <li>Knows SQL joins and basic queries</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">⭐⭐⭐⭐ (4/5)</div>
+          <ul>
+            <li>Explains trade-offs (not just definitions)</li>
+            <li>WalletPlatform examples are fluent</li>
+            <li>Writes LINQ/async code confidently</li>
+            <li>Understands captive dependency, N+1</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">⭐⭐⭐⭐⭐ (5/5)</div>
+          <ul>
+            <li>Identifies architectural gaps (Outbox)</li>
+            <li>Proposes scaling strategies unprompted</li>
+            <li>Connects SAGA, idempotency, ACID together</li>
+            <li>Production-grade code, no memory leaks</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-card hc-blue" style="margin-top:1rem">
+        <div class="hc-title">🏆 Competitive Differentiator</div>
+        <p>Most .NET candidates know theory. <strong>You have WalletPlatform</strong> — a production-grade system with 10 microservices, RabbitMQ, Clean Architecture, double-entry accounting, and idempotency patterns. Anchor EVERY answer to a concrete example from your project. That's what separates a 3/5 from a 5/5.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ SECTION 11: FLUENT API ═══ -->
+  <section id="s11" class="section">
+    <h2 class="section-title">Fluent API & EF Core Configuration <span class="section-badge">EF Core</span></h2>
+
+    <div class="tabs" id="tabs-s11">
+      <button class="tab-btn active" onclick="showTab('s11','t1')">Fluent API Basics</button>
+      <button class="tab-btn" onclick="showTab('s11','t2')">Relationships</button>
+      <button class="tab-btn" onclick="showTab('s11','t3')">Indexes & Constraints</button>
+      <button class="tab-btn" onclick="showTab('s11','t4')">Data Annotations vs Fluent</button>
+      <button class="tab-btn" onclick="showTab('s11','t5')">Q&A</button>
+    </div>
+
+    <!-- Tab 1 -->
+    <div id="s11-t1" class="tab-panel active">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">What is Fluent API?</div>
+        <p>Fluent API is EF Core's code-based way to configure entity mappings inside <code>OnModelCreating()</code>. It uses a method-chaining ("fluent") syntax. It overrides Data Annotations and gives you full control over the schema — table names, column types, constraints, indexes, relationships, and more.</p>
+      </div>
+      <pre><code><span class="kw">protected override void</span> <span class="fn">OnModelCreating</span>(<span class="cls">ModelBuilder</span> mb)
+{
+    <span class="cm">// Table name</span>
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;().<span class="fn">ToTable</span>(<span class="str">"Wallets"</span>);
+
+    <span class="cm">// Primary key</span>
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;().<span class="fn">HasKey</span>(w => w.Id);
+
+    <span class="cm">// Column config</span>
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;()
+      .<span class="fn">Property</span>(w => w.Balance)
+      .<span class="fn">HasColumnType</span>(<span class="str">"decimal(18,2)"</span>)
+      .<span class="fn">IsRequired</span>()
+      .<span class="fn">HasDefaultValue</span>(<span class="num">0m</span>);
+
+    <span class="cm">// Column name override</span>
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;()
+      .<span class="fn">Property</span>(w => w.CreatedAt)
+      .<span class="fn">HasColumnName</span>(<span class="str">"created_at"</span>)
+      .<span class="fn">HasDefaultValueSql</span>(<span class="str">"GETUTCDATE()"</span>);
+
+    <span class="cm">// Ignore a property (not mapped to DB)</span>
+    mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;().<span class="fn">Ignore</span>(w => w.DisplayBalance);
+}</code></pre>
+
+      <div class="highlight-card hc-green">
+        <div class="hc-title">✅ IEntityTypeConfiguration — Keep it Clean</div>
+        <p>Instead of putting everything in OnModelCreating(), split configs into separate files. WalletPlatform uses this pattern.</p>
+      </div>
+      <pre><code><span class="kw">public class</span> <span class="cls">WalletConfiguration</span> : <span class="cls">IEntityTypeConfiguration</span>&lt;<span class="cls">Wallet</span>&gt;
+{
+    <span class="kw">public void</span> <span class="fn">Configure</span>(<span class="cls">EntityTypeBuilder</span>&lt;<span class="cls">Wallet</span>&gt; builder)
+    {
+        builder.<span class="fn">ToTable</span>(<span class="str">"Wallets"</span>);
+        builder.<span class="fn">HasKey</span>(w => w.Id);
+        builder.<span class="fn">Property</span>(w => w.Balance).<span class="fn">HasColumnType</span>(<span class="str">"decimal(18,2)"</span>).<span class="fn">IsRequired</span>();
+        builder.<span class="fn">HasIndex</span>(w => w.UserId).<span class="fn">IsUnique</span>();
+    }
+}
+
+<span class="cm">// Register all configs at once in DbContext</span>
+<span class="kw">protected override void</span> <span class="fn">OnModelCreating</span>(<span class="cls">ModelBuilder</span> mb)
+    => mb.<span class="fn">ApplyConfigurationsFromAssembly</span>(<span class="fn">typeof</span>(<span class="cls">WalletDbContext</span>).Assembly);</code></pre>
+    </div>
+
+    <!-- Tab 2: Relationships -->
+    <div id="s11-t2" class="tab-panel">
+      <h3>One-to-Many</h3>
+      <pre><code><span class="cm">// Wallet has many Transactions</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;()
+  .<span class="fn">HasMany</span>(w => w.Transactions)
+  .<span class="fn">WithOne</span>(t => t.Wallet)
+  .<span class="fn">HasForeignKey</span>(t => t.WalletId)
+  .<span class="fn">OnDelete</span>(<span class="cls">DeleteBehavior</span>.Cascade);</code></pre>
+
+      <h3>One-to-One</h3>
+      <pre><code><span class="cm">// User has one UserProfile</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">User</span>&gt;()
+  .<span class="fn">HasOne</span>(u => u.Profile)
+  .<span class="fn">WithOne</span>(p => p.User)
+  .<span class="fn">HasForeignKey</span>&lt;<span class="cls">UserProfile</span>&gt;(p => p.UserId)
+  .<span class="fn">OnDelete</span>(<span class="cls">DeleteBehavior</span>.Cascade);</code></pre>
+
+      <h3>Many-to-Many</h3>
+      <pre><code><span class="cm">// User has many Roles; Role assigned to many Users</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">User</span>&gt;()
+  .<span class="fn">HasMany</span>(u => u.Roles)
+  .<span class="fn">WithMany</span>(r => r.Users)
+  .<span class="fn">UsingEntity</span>(j => j.<span class="fn">ToTable</span>(<span class="str">"UserRoles"</span>));
+<span class="cm">// EF Core 5+ auto-creates join table — no explicit entity needed</span></code></pre>
+
+      <h3>DeleteBehavior Options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Behavior</th><th>What Happens</th><th>Use When</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Cascade</strong></td><td>Delete children when parent deleted</td><td>Wallet → Transactions</td></tr>
+            <tr><td><strong>Restrict</strong></td><td>Error if parent has children</td><td>Prevent accidental deletes</td></tr>
+            <tr><td><strong>SetNull</strong></td><td>Set FK to NULL</td><td>Optional relationships</td></tr>
+            <tr><td><strong>NoAction</strong></td><td>DB decides (no EF action)</td><td>Handled by DB triggers</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab 3: Indexes & Constraints -->
+    <div id="s11-t3" class="tab-panel">
+      <pre><code><span class="cm">// Unique index — idempotency key in WalletPlatform</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">Transaction</span>&gt;()
+  .<span class="fn">HasIndex</span>(t => t.IdempotencyKey)
+  .<span class="fn">IsUnique</span>()
+  .<span class="fn">HasDatabaseName</span>(<span class="str">"IX_Transactions_IdempotencyKey"</span>);
+
+<span class="cm">// Composite index</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">LedgerEntry</span>&gt;()
+  .<span class="fn">HasIndex</span>(l => <span class="kw">new</span> { l.WalletId, l.CreatedAt });
+
+<span class="cm">// Check constraint (balance can't be negative)</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">Wallet</span>&gt;()
+  .<span class="fn">ToTable</span>(t => t.<span class="fn">HasCheckConstraint</span>(
+      <span class="str">"CK_Wallet_Balance"</span>,
+      <span class="str">"[Balance] >= 0"</span>));
+
+<span class="cm">// Value conversion (store enum as string)</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">Transaction</span>&gt;()
+  .<span class="fn">Property</span>(t => t.Status)
+  .<span class="fn">HasConversion</span>&lt;<span class="kw">string</span>&gt;();
+
+<span class="cm">// Owned entity (Value Object pattern)</span>
+mb.<span class="fn">Entity</span>&lt;<span class="cls">UserProfile</span>&gt;()
+  .<span class="fn">OwnsOne</span>(u => u.Address, a => {
+      a.<span class="fn">Property</span>(x => x.City).<span class="fn">HasMaxLength</span>(<span class="num">100</span>);
+      a.<span class="fn">Property</span>(x => x.PostalCode).<span class="fn">HasMaxLength</span>(<span class="num">10</span>);
+  });</code></pre>
+    </div>
+
+    <!-- Tab 4: Annotations vs Fluent -->
+    <div id="s11-t4" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feature</th><th>Data Annotations</th><th>Fluent API</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Syntax</strong></td><td><code>[Required]</code>, <code>[MaxLength(100)]</code></td><td><code>.IsRequired()</code>, <code>.HasMaxLength(100)</code></td></tr>
+            <tr><td><strong>Location</strong></td><td>On the entity class itself</td><td>In DbContext / config class</td></tr>
+            <tr><td><strong>Separation of concerns</strong></td><td>❌ Mixes DB config with domain</td><td>✅ DB config stays in Infrastructure</td></tr>
+            <tr><td><strong>Power</strong></td><td>Limited — basic constraints only</td><td>Full — check constraints, owned types, conversions</td></tr>
+            <tr><td><strong>Override priority</strong></td><td>Lower</td><td>Higher — overrides annotations</td></tr>
+            <tr><td><strong>WalletPlatform choice</strong></td><td>Used sparingly on DTOs</td><td>✅ Primary config method for entities</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code><span class="cm">// Data Annotations approach (simpler, less control)</span>
+<span class="kw">public class</span> <span class="cls">Transaction</span>
+{
+    [<span class="cls">Key</span>]
+    <span class="kw">public</span> <span class="cls">Guid</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }
+
+    [<span class="cls">Required</span>]
+    [<span class="cls">Column</span>(TypeName = <span class="str">"decimal(18,2)"</span>)]
+    <span class="kw">public decimal</span> Amount { <span class="kw">get</span>; <span class="kw">set</span>; }
+
+    [<span class="cls">MaxLength</span>(<span class="num">100</span>)]
+    <span class="kw">public</span> <span class="kw">string</span>? IdempotencyKey { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="cm">// ✅ Fluent API (WalletPlatform style) — entity stays clean</span>
+<span class="kw">public class</span> <span class="cls">Transaction</span>
+{
+    <span class="kw">public</span> <span class="cls">Guid</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public decimal</span> Amount { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="kw">string</span>? IdempotencyKey { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+<span class="cm">// All DB config lives in TransactionConfiguration : IEntityTypeConfiguration&lt;Transaction&gt;</span></code></pre>
+    </div>
+
+    <!-- Tab 5: Q&A -->
+    <div id="s11-t5" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is Fluent API and why use it over Data Annotations? <span class="arrow">▼</span></div><div class="qa-a">Fluent API configures EF Core mappings via method chaining in OnModelCreating(). It's more powerful than Data Annotations (supports check constraints, owned entities, value conversions) and keeps DB configuration out of the domain entity — cleaner separation of concerns. In Clean Architecture, entities live in Core, but DB config stays in Infrastructure.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is IEntityTypeConfiguration and why use it? <span class="arrow">▼</span></div><div class="qa-a">It lets you split entity configurations into separate files instead of one massive OnModelCreating method. WalletPlatform has 10 services — each with multiple entities. Using ApplyConfigurationsFromAssembly() automatically picks up all IEntityTypeConfiguration implementations in the assembly. Cleaner, scalable, easy to find and edit individual entity configs.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is an Owned Entity in EF Core? <span class="arrow">▼</span></div><div class="qa-a">An owned entity (OwnsOne/OwnsMany) represents a Value Object — a type that doesn't have its own identity. Address inside UserProfile is a good example. EF Core stores it in the same table as the owner (by default) with column name prefixes like Address_City, Address_PostalCode. It's conceptually clean — Address has no DB identity on its own.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">How does the unique index on IdempotencyKey help with race conditions? <span class="arrow">▼</span></div><div class="qa-a">Two concurrent requests with the same idempotency key both check the DB simultaneously and both see "no existing record." Both try to insert. The unique index causes a duplicate key exception for the second insert. WalletPlatform's GetOrExecuteAsync() catches this exception and returns the result of the first successful insert — ensuring only one execution happens.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What does HasConversion do? <span class="arrow">▼</span></div><div class="qa-a">HasConversion tells EF Core how to convert a .NET type to a DB type and back. Common use: store enums as strings (HasConversion&lt;string&gt;()) instead of integers for readability in the DB. Also used for custom value objects, encrypted fields, or JSON serialization of complex types.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 12: ADO.NET ═══ -->
+  <section id="s12" class="section">
+    <h2 class="section-title">ADO.NET <span class="section-badge">Data Access</span></h2>
+
+    <div class="tabs" id="tabs-s12">
+      <button class="tab-btn active" onclick="showTab('s12','t1')">Core Concepts</button>
+      <button class="tab-btn" onclick="showTab('s12','t2')">SqlConnection & Commands</button>
+      <button class="tab-btn" onclick="showTab('s12','t3')">DataReader vs DataAdapter</button>
+      <button class="tab-btn" onclick="showTab('s12','t4')">Stored Procs & Parameters</button>
+      <button class="tab-btn" onclick="showTab('s12','t5')">ADO vs EF Core</button>
+      <button class="tab-btn" onclick="showTab('s12','t6')">Q&A</button>
+    </div>
+
+    <!-- Tab 1 -->
+    <div id="s12-t1" class="tab-panel active">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">What is ADO.NET?</div>
+        <p>ADO.NET (ActiveX Data Objects) is the low-level .NET data access layer. It talks directly to the database using <code>SqlConnection</code>, <code>SqlCommand</code>, and <code>SqlDataReader</code> — no ORM magic. EF Core is built on top of ADO.NET under the hood.</p>
+      </div>
+      <div class="grid-2">
+        <div class="highlight-card hc-green">
+          <div class="hc-title">Core Classes</div>
+          <ul>
+            <li><strong>SqlConnection</strong> — opens/closes DB connection</li>
+            <li><strong>SqlCommand</strong> — executes SQL or stored proc</li>
+            <li><strong>SqlDataReader</strong> — forward-only, read-only cursor</li>
+            <li><strong>SqlDataAdapter</strong> — fills DataSet/DataTable</li>
+            <li><strong>SqlParameter</strong> — parameterized queries (prevent SQL injection)</li>
+            <li><strong>SqlTransaction</strong> — manual transaction control</li>
+          </ul>
+        </div>
+        <div class="highlight-card hc-amber">
+          <div class="hc-title">Connection String (WalletPlatform)</div>
+          <pre><code><span class="cm">// appsettings.json</span>
+{
+  <span class="str">"ConnectionStrings"</span>: {
+    <span class="str">"DefaultConnection"</span>: <span class="str">"Server=POLLY\\SQLEXPRESS;
+      Database=WalletDb;
+      Trusted_Connection=True;
+      TrustServerCertificate=True"</span>
+  }
+}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: SqlConnection & Commands -->
+    <div id="s12-t2" class="tab-panel">
+      <pre><code><span class="kw">public async</span> <span class="cls">Task</span>&lt;<span class="cls">List</span>&lt;<span class="cls">Transaction</span>&gt;&gt; <span class="fn">GetTransactionsAsync</span>(<span class="cls">Guid</span> walletId)
+{
+    <span class="kw">var</span> results = <span class="kw">new</span> <span class="cls">List</span>&lt;<span class="cls">Transaction</span>&gt;();
+    <span class="kw">var</span> sql = <span class="str">"SELECT Id, Amount, CreatedAt FROM Transactions WHERE WalletId = @WalletId"</span>;
+
+    <span class="cm">// using ensures connection is disposed (closed) after block</span>
+    <span class="kw">await using var</span> conn = <span class="kw">new</span> <span class="cls">SqlConnection</span>(_connectionString);
+    <span class="kw">await</span> conn.<span class="fn">OpenAsync</span>();
+
+    <span class="kw">await using var</span> cmd = <span class="kw">new</span> <span class="cls">SqlCommand</span>(sql, conn);
+    cmd.Parameters.<span class="fn">AddWithValue</span>(<span class="str">"@WalletId"</span>, walletId); <span class="cm">// ✅ Parameterized — no SQL injection</span>
+
+    <span class="kw">await using var</span> reader = <span class="kw">await</span> cmd.<span class="fn">ExecuteReaderAsync</span>();
+    <span class="kw">while</span> (<span class="kw">await</span> reader.<span class="fn">ReadAsync</span>())
+    {
+        results.<span class="fn">Add</span>(<span class="kw">new</span> <span class="cls">Transaction</span>
+        {
+            Id        = reader.<span class="fn">GetGuid</span>(<span class="num">0</span>),
+            Amount    = reader.<span class="fn">GetDecimal</span>(<span class="num">1</span>),
+            CreatedAt = reader.<span class="fn">GetDateTime</span>(<span class="num">2</span>)
+        });
+    }
+    <span class="kw">return</span> results;
+}
+
+<span class="cm">// ExecuteNonQuery — INSERT/UPDATE/DELETE, returns rows affected</span>
+<span class="kw">var</span> rowsAffected = <span class="kw">await</span> cmd.<span class="fn">ExecuteNonQueryAsync</span>();
+
+<span class="cm">// ExecuteScalar — returns single value (COUNT, SUM, etc.)</span>
+<span class="kw">var</span> count = (<span class="kw">int</span>)<span class="kw">await</span> cmd.<span class="fn">ExecuteScalarAsync</span>();</code></pre>
+    </div>
+
+    <!-- Tab 3: DataReader vs DataAdapter -->
+    <div id="s12-t3" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>SqlDataReader</th><th>SqlDataAdapter + DataSet</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Connection</strong></td><td>Connected — connection stays open while reading</td><td>Disconnected — fills data then closes connection</td></tr>
+            <tr><td><strong>Direction</strong></td><td>Forward-only, read-only cursor</td><td>Can navigate, edit, and update</td></tr>
+            <tr><td><strong>Memory</strong></td><td>✅ Low — reads row by row</td><td>❌ Higher — loads all data into memory</td></tr>
+            <tr><td><strong>Speed</strong></td><td>✅ Faster for large reads</td><td>Slower due to full load</td></tr>
+            <tr><td><strong>Use case</strong></td><td>Large result sets, streaming data</td><td>Offline editing, binding to UI grids</td></tr>
+            <tr><td><strong>WalletPlatform</strong></td><td>✅ Preferred for raw queries</td><td>Legacy / admin reports</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code><span class="cm">// DataAdapter fills a DataTable (disconnected)</span>
+<span class="kw">using var</span> adapter = <span class="kw">new</span> <span class="cls">SqlDataAdapter</span>(<span class="str">"SELECT * FROM Wallets"</span>, conn);
+<span class="kw">var</span> table = <span class="kw">new</span> <span class="cls">DataTable</span>();
+adapter.<span class="fn">Fill</span>(table); <span class="cm">// connection auto-opened + closed</span>
+
+<span class="kw">foreach</span> (<span class="cls">DataRow</span> row <span class="kw">in</span> table.Rows)
+    <span class="cls">Console</span>.<span class="fn">WriteLine</span>(row[<span class="str">"Balance"</span>]);</code></pre>
+    </div>
+
+    <!-- Tab 4: Stored Procs & Params -->
+    <div id="s12-t4" class="tab-panel">
+      <pre><code><span class="cm">-- SQL Server stored procedure</span>
+CREATE PROCEDURE GetWalletSummary
+    @UserId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SELECT w.Id, w.Balance,
+           COUNT(t.Id)    AS TxCount,
+           SUM(t.Amount)  AS TotalVolume
+    FROM Wallets w
+    LEFT JOIN Transactions t ON t.WalletId = w.Id
+    WHERE w.UserId = @UserId
+    GROUP BY w.Id, w.Balance
+END</code></pre>
+
+      <pre><code><span class="cm">// Calling a stored procedure from ADO.NET</span>
+<span class="kw">await using var</span> cmd = <span class="kw">new</span> <span class="cls">SqlCommand</span>(<span class="str">"GetWalletSummary"</span>, conn)
+{
+    CommandType = <span class="cls">CommandType</span>.StoredProcedure
+};
+
+cmd.Parameters.<span class="fn">Add</span>(<span class="kw">new</span> <span class="cls">SqlParameter</span>(<span class="str">"@UserId"</span>, <span class="cls">SqlDbType</span>.UniqueIdentifier)
+    { Value = userId });
+
+<span class="kw">await using var</span> reader = <span class="kw">await</span> cmd.<span class="fn">ExecuteReaderAsync</span>();
+<span class="kw">if</span> (<span class="kw">await</span> reader.<span class="fn">ReadAsync</span>())
+{
+    <span class="kw">var</span> balance  = reader.<span class="fn">GetDecimal</span>(reader.<span class="fn">GetOrdinal</span>(<span class="str">"Balance"</span>));
+    <span class="kw">var</span> txCount  = reader.<span class="fn">GetInt32</span>(reader.<span class="fn">GetOrdinal</span>(<span class="str">"TxCount"</span>));
+}</code></pre>
+
+      <h3>ADO.NET Manual Transaction</h3>
+      <pre><code><span class="kw">await using var</span> conn = <span class="kw">new</span> <span class="cls">SqlConnection</span>(_cs);
+<span class="kw">await</span> conn.<span class="fn">OpenAsync</span>();
+<span class="kw">await using var</span> tx = conn.<span class="fn">BeginTransaction</span>();
+<span class="kw">try</span>
+{
+    <span class="kw">await using var</span> cmd1 = <span class="kw">new</span> <span class="cls">SqlCommand</span>(<span class="str">"UPDATE Wallets SET Balance -= @Amt WHERE Id=@From"</span>, conn, tx);
+    cmd1.Parameters.<span class="fn">AddWithValue</span>(<span class="str">"@Amt"</span>, amount);
+    cmd1.Parameters.<span class="fn">AddWithValue</span>(<span class="str">"@From"</span>, fromId);
+    <span class="kw">await</span> cmd1.<span class="fn">ExecuteNonQueryAsync</span>();
+
+    <span class="kw">await using var</span> cmd2 = <span class="kw">new</span> <span class="cls">SqlCommand</span>(<span class="str">"UPDATE Wallets SET Balance += @Amt WHERE Id=@To"</span>, conn, tx);
+    cmd2.Parameters.<span class="fn">AddWithValue</span>(<span class="str">"@Amt"</span>, amount);
+    cmd2.Parameters.<span class="fn">AddWithValue</span>(<span class="str">"@To"</span>, toId);
+    <span class="kw">await</span> cmd2.<span class="fn">ExecuteNonQueryAsync</span>();
+
+    tx.<span class="fn">Commit</span>();
+}
+<span class="kw">catch</span> { tx.<span class="fn">Rollback</span>(); <span class="kw">throw</span>; }</code></pre>
+    </div>
+
+    <!-- Tab 5: ADO vs EF Core -->
+    <div id="s12-t5" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>ADO.NET</th><th>EF Core</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Abstraction</strong></td><td>Low — raw SQL, full control</td><td>High — LINQ → SQL auto-generated</td></tr>
+            <tr><td><strong>Performance</strong></td><td>✅ Fastest — no overhead</td><td>Good — slight ORM overhead</td></tr>
+            <tr><td><strong>Productivity</strong></td><td>Verbose, lots of boilerplate</td><td>✅ Much faster to write CRUD</td></tr>
+            <tr><td><strong>SQL Injection</strong></td><td>Manual — must use SqlParameter</td><td>✅ Auto-parameterized</td></tr>
+            <tr><td><strong>Migrations</strong></td><td>❌ Manual scripts</td><td>✅ Code First migrations</td></tr>
+            <tr><td><strong>Complex queries</strong></td><td>✅ Full SQL power (CTEs, window fns)</td><td>May need .FromSqlRaw() for complex</td></tr>
+            <tr><td><strong>WalletPlatform use</strong></td><td>Interview knowledge only</td><td>✅ All services use EF Core</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">💡 When Would You Choose ADO.NET?</div>
+        <p>High-performance bulk operations (millions of rows), complex queries that EF Core can't translate efficiently, legacy codebases, or when you need SqlBulkCopy for fast batch inserts. In WalletPlatform, EF Core handles everything — but knowing ADO.NET shows depth.</p>
+      </div>
+    </div>
+
+    <!-- Tab 6: Q&A -->
+    <div id="s12-t6" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What are the core ADO.NET classes and what does each do? <span class="arrow">▼</span></div><div class="qa-a">SqlConnection: opens a connection to SQL Server. SqlCommand: executes SQL text or stored procs — ExecuteReader (rows), ExecuteNonQuery (INSERT/UPDATE/DELETE returns rows affected), ExecuteScalar (single value). SqlDataReader: forward-only cursor, reads row by row, keeps connection open. SqlParameter: safe parameterized values — prevents SQL injection. SqlTransaction: wraps multiple commands in a DB transaction.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Why must you always use parameterized queries? <span class="arrow">▼</span></div><div class="qa-a">SQL Injection. If you concatenate user input into SQL strings: <code>"SELECT * FROM Users WHERE Email = '" + email + "'"</code> — an attacker can input <code>' OR 1=1 --</code> and bypass authentication. SqlParameter.AddWithValue() treats the value as data, not SQL code. Always use parameters, never string concatenation with user input.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">SqlDataReader vs SqlDataAdapter — when would you use each? <span class="arrow">▼</span></div><div class="qa-a">SqlDataReader: forward-only, connected cursor. Best for large result sets where you process rows one by one — low memory. SqlDataAdapter + DataSet/DataTable: loads everything into memory, disconnected. Useful for offline editing, data binding to grids, or when you need to navigate back and forth through results. In modern ASP.NET Core APIs, SqlDataReader is preferred for its lower footprint.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">How does ADO.NET compare to Dapper? <span class="arrow">▼</span></div><div class="qa-a">Dapper is a micro-ORM built on top of ADO.NET. It handles mapping query results to objects automatically (no manual reader.GetGuid(0)) while keeping raw SQL performance. It's the middle ground between pure ADO.NET (verbose) and EF Core (full ORM). For complex reporting queries in WalletPlatform, Dapper would be a good addition to complement EF Core.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 13: JWT DEEP DIVE ═══ -->
+  <section id="s13" class="section">
+    <h2 class="section-title">JWT Deep Dive <span class="section-badge">Security</span></h2>
+
+    <div class="tabs" id="tabs-s13">
+      <button class="tab-btn active" onclick="showTab('s13','t1')">JWT Structure</button>
+      <button class="tab-btn" onclick="showTab('s13','t2')">Claims & Validation</button>
+      <button class="tab-btn" onclick="showTab('s13','t3')">Generation & Signing</button>
+      <button class="tab-btn" onclick="showTab('s13','t4')">Refresh Token Rotation</button>
+      <button class="tab-btn" onclick="showTab('s13','t5')">Security Best Practices</button>
+      <button class="tab-btn" onclick="showTab('s13','t6')">Q&A</button>
+    </div>
+
+    <!-- Tab 1: Structure -->
+    <div id="s13-t1" class="tab-panel active">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">JWT = Header.Payload.Signature</div>
+        <p>A JWT (JSON Web Token) is a compact, URL-safe token split into 3 Base64Url-encoded parts separated by dots. It is <strong>signed</strong> but NOT encrypted — anyone can decode the payload.</p>
+      </div>
+      <div class="grid-2">
+        <div class="highlight-card hc-green">
+          <div class="hc-title">Header (alg + typ)</div>
+          <pre><code>{
+  <span class="str">"alg"</span>: <span class="str">"HS256"</span>,   <span class="cm">// HMAC SHA-256</span>
+  <span class="str">"typ"</span>: <span class="str">"JWT"</span>
+}</code></pre>
+        </div>
+        <div class="highlight-card hc-amber">
+          <div class="hc-title">Payload (Claims)</div>
+          <pre><code>{
+  <span class="str">"sub"</span>: <span class="str">"user-guid-here"</span>,
+  <span class="str">"email"</span>: <span class="str">"aaryan@mail.com"</span>,
+  <span class="str">"role"</span>: <span class="str">"User"</span>,
+  <span class="str">"iat"</span>: <span class="num">1714000000</span>,  <span class="cm">// issued at</span>
+  <span class="str">"exp"</span>: <span class="num">1714003600</span>   <span class="cm">// expires (60 min)</span>
+}</code></pre>
+        </div>
+      </div>
+      <div class="highlight-card hc-purple">
+        <div class="hc-title">Signature — The Trust Part</div>
+        <p><code>HMACSHA256(Base64(header) + "." + Base64(payload), secretKey)</code></p>
+        <p>The signature ensures the token hasn't been tampered with. If any bit of the payload changes, the signature won't match. The server verifies the signature on every request — <strong>no DB lookup needed</strong> for access tokens.</p>
+      </div>
+    </div>
+
+    <!-- Tab 2: Claims & Validation -->
+    <div id="s13-t2" class="tab-panel">
+      <pre><code><span class="cm">// Generating token — WalletPlatform AuthService</span>
+<span class="kw">private</span> <span class="kw">string</span> <span class="fn">GenerateAccessToken</span>(<span class="cls">User</span> user)
+{
+    <span class="kw">var</span> claims = <span class="kw">new</span>[]
+    {
+        <span class="kw">new</span> <span class="cls">Claim</span>(<span class="cls">JwtRegisteredClaimNames</span>.Sub,   user.Id.<span class="fn">ToString</span>()),
+        <span class="kw">new</span> <span class="cls">Claim</span>(<span class="cls">JwtRegisteredClaimNames</span>.Email, user.Email),
+        <span class="kw">new</span> <span class="cls">Claim</span>(<span class="cls">ClaimTypes</span>.Role,                user.Role.<span class="fn">ToString</span>()),
+        <span class="kw">new</span> <span class="cls">Claim</span>(<span class="cls">JwtRegisteredClaimNames</span>.Jti,   <span class="cls">Guid</span>.<span class="fn">NewGuid</span>().<span class="fn">ToString</span>()) <span class="cm">// unique token id</span>
+    };
+
+    <span class="kw">var</span> key  = <span class="kw">new</span> <span class="cls">SymmetricSecurityKey</span>(<span class="cls">Encoding</span>.UTF8.<span class="fn">GetBytes</span>(_config[<span class="str">"Jwt:Key"</span>]!));
+    <span class="kw">var</span> cred = <span class="kw">new</span> <span class="cls">SigningCredentials</span>(key, <span class="cls">SecurityAlgorithms</span>.HmacSha256);
+
+    <span class="kw">var</span> token = <span class="kw">new</span> <span class="cls">JwtSecurityToken</span>(
+        issuer:   _config[<span class="str">"Jwt:Issuer"</span>],
+        audience: _config[<span class="str">"Jwt:Audience"</span>],
+        claims:   claims,
+        expires:  <span class="cls">DateTime</span>.UtcNow.<span class="fn">AddMinutes</span>(<span class="num">60</span>),
+        signingCredentials: cred);
+
+    <span class="kw">return new</span> <span class="cls">JwtSecurityTokenHandler</span>().<span class="fn">WriteToken</span>(token);
+}
+
+<span class="cm">// Reading claims in a controller</span>
+<span class="kw">var</span> userId = <span class="cls">Guid</span>.<span class="fn">Parse</span>(User.<span class="fn">FindFirstValue</span>(<span class="cls">ClaimTypes</span>.NameIdentifier)!);
+<span class="kw">var</span> email  = User.<span class="fn">FindFirstValue</span>(<span class="cls">ClaimTypes</span>.Email);</code></pre>
+    </div>
+
+    <!-- Tab 3: Generation & Signing -->
+    <div id="s13-t3" class="tab-panel">
+      <pre><code><span class="cm">// Program.cs — JWT validation config</span>
+builder.Services.<span class="fn">AddAuthentication</span>(<span class="cls">JwtBearerDefaults</span>.AuthenticationScheme)
+    .<span class="fn">AddJwtBearer</span>(options =>
+    {
+        options.TokenValidationParameters = <span class="kw">new</span> <span class="cls">TokenValidationParameters</span>
+        {
+            ValidateIssuer           = <span class="kw">true</span>,
+            ValidateAudience         = <span class="kw">true</span>,
+            ValidateLifetime         = <span class="kw">true</span>,  <span class="cm">// Checks exp claim</span>
+            ValidateIssuerSigningKey = <span class="kw">true</span>,  <span class="cm">// Verifies signature</span>
+            ValidIssuer   = config[<span class="str">"Jwt:Issuer"</span>],
+            ValidAudience = config[<span class="str">"Jwt:Audience"</span>],
+            IssuerSigningKey = <span class="kw">new</span> <span class="cls">SymmetricSecurityKey</span>(
+                <span class="cls">Encoding</span>.UTF8.<span class="fn">GetBytes</span>(config[<span class="str">"Jwt:Key"</span>]!)),
+            ClockSkew = <span class="cls">TimeSpan</span>.<span class="fn">FromSeconds</span>(<span class="num">30</span>) <span class="cm">// allow 30s clock drift</span>
+        };
+    });</code></pre>
+
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">⚠️ HS256 vs RS256</div>
+        <p><strong>HS256</strong> — symmetric: same secret key used to sign AND verify. Simple, fast. Risk: any service with the key can issue tokens. WalletPlatform uses this since Auth Service is the sole issuer. <strong>RS256</strong> — asymmetric: private key signs (Auth only), public key verifies (all services). Better for multi-issuer setups.</p>
+      </div>
+    </div>
+
+    <!-- Tab 4: Refresh Token Rotation -->
+    <div id="s13-t4" class="tab-panel">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">Why Refresh Tokens?</div>
+        <p>Access tokens are short-lived (60 min) and stateless — they can't be revoked before expiry. A refresh token lets the user stay logged in without re-entering credentials, while being revocable. WalletPlatform stores refresh tokens in DB with full rotation — every use generates a new token and revokes the old one.</p>
+      </div>
+      <pre><code><span class="kw">public class</span> <span class="cls">RefreshToken</span>
+{
+    <span class="kw">public</span> <span class="cls">Guid</span>     Id             { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public</span> <span class="kw">string</span>   Token          { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="cm">// Cryptographically random</span>
+    <span class="kw">public</span> <span class="cls">Guid</span>     UserId         { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public bool</span>     IsRevoked      { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="cm">// Revoked on use or logout</span>
+    <span class="kw">public</span> <span class="kw">string</span>?  ReplacedByToken { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="cm">// Audit: what replaced this token</span>
+    <span class="kw">public</span> <span class="cls">DateTime</span> ExpiresAt       { <span class="kw">get</span>; <span class="kw">set</span>; } <span class="cm">// 7 days</span>
+    <span class="kw">public</span> <span class="cls">DateTime</span> CreatedAt       { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="cm">// Generating a cryptographically secure refresh token</span>
+<span class="kw">private</span> <span class="kw">string</span> <span class="fn">GenerateRefreshToken</span>()
+{
+    <span class="kw">var</span> bytes = <span class="kw">new</span> <span class="kw">byte</span>[<span class="num">64</span>];
+    <span class="cls">RandomNumberGenerator</span>.<span class="fn">Fill</span>(bytes);
+    <span class="kw">return</span> <span class="cls">Convert</span>.<span class="fn">ToBase64String</span>(bytes);
+}</code></pre>
+
+      <div class="highlight-card hc-red">
+        <div class="hc-title">🔐 Refresh Token Theft Detection</div>
+        <p>If an attacker steals a refresh token and uses it, but so does the legitimate user — the second use detects that a revoked token was presented. WalletPlatform should revoke all tokens for that user (force re-login) upon detecting a revoked token use. This is the "refresh token reuse detection" security pattern.</p>
+      </div>
+    </div>
+
+    <!-- Tab 5: Security Best Practices -->
+    <div id="s13-t5" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">✅ Do</div>
+          <ul>
+            <li>Use HTTPS — JWTs sent in plaintext are readable</li>
+            <li>Short access token lifetime (15–60 min)</li>
+            <li>Store refresh tokens in HttpOnly cookies or secure DB</li>
+            <li>Validate <code>iss</code>, <code>aud</code>, <code>exp</code>, signature on every request</li>
+            <li>Use cryptographically secure random for refresh tokens</li>
+            <li>Rotate refresh tokens on every use</li>
+            <li>Revoke ALL tokens on password change</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">❌ Don't</div>
+          <ul>
+            <li>Store sensitive data (passwords, card numbers) in JWT payload — it's Base64, not encrypted</li>
+            <li>Use <code>none</code> algorithm — allows unsigned tokens</li>
+            <li>Use long-lived access tokens (hours/days)</li>
+            <li>Store JWT in localStorage — vulnerable to XSS</li>
+            <li>Ignore clock skew — causes valid tokens to fail</li>
+            <li>Use a weak or short secret key (min 256-bit for HS256)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 6: Q&A -->
+    <div id="s13-t6" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What are the three parts of a JWT and what's in each? <span class="arrow">▼</span></div><div class="qa-a">Header: algorithm (HS256/RS256) + type (JWT), Base64Url encoded. Payload: claims — sub (user ID), email, roles, iat (issued at), exp (expiry), jti (unique token ID). Signature: HMAC or RSA signature of header.payload using the secret key. Critical: the payload is only Base64 encoded, not encrypted — never put secrets in it.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">How does the Ocelot gateway validate JWT without hitting Auth Service? <span class="arrow">▼</span></div><div class="qa-a">The gateway shares the same JWT secret key and validation parameters. On each request, Ocelot's JWT bearer middleware verifies the signature, checks issuer/audience match, and confirms the token isn't expired — all in-memory, no network call to Auth Service. This is the stateless nature of JWT: trust is established through cryptography, not a database lookup.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Can you revoke a JWT access token before it expires? <span class="arrow">▼</span></div><div class="qa-a">Not without a server-side store. JWTs are stateless — if the signature is valid and not expired, it's accepted. To enable revocation you'd need a token blacklist (Redis set of revoked JTI values checked on each request). This adds latency but enables instant revocation. WalletPlatform avoids this complexity by keeping access tokens short-lived (60 min) — revoke via refresh token instead.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is ClockSkew in JWT validation? <span class="arrow">▼</span></div><div class="qa-a">ClockSkew is a tolerance window added to expiry validation to account for clock drift between servers. Default in .NET is 5 minutes — a token that "expired" up to 5 minutes ago is still accepted. WalletPlatform sets it to 30 seconds (tighter), since all services run on the same Windows machine. In distributed cloud deployments, use NTP sync and keep skew small.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">HS256 vs RS256 — which would you choose for a multi-service architecture? <span class="arrow">▼</span></div><div class="qa-a">RS256 for multi-service. With HS256, every service that validates tokens needs the secret key — if any service is compromised, the attacker can mint tokens. RS256 uses a private key (only Auth Service holds it) to sign, and a public key (all services can have it) to verify. Compromising a downstream service doesn't let an attacker create tokens.</div></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 14: RABBITMQ ═══ -->
+  <section id="s14" class="section">
+    <h2 class="section-title">RabbitMQ <span class="section-badge">Messaging</span></h2>
+
+    <div class="tabs" id="tabs-s14">
+      <button class="tab-btn active" onclick="showTab('s14','t1')">Core Concepts</button>
+      <button class="tab-btn" onclick="showTab('s14','t2')">Exchanges & Routing</button>
+      <button class="tab-btn" onclick="showTab('s14','t3')">Publisher Code</button>
+      <button class="tab-btn" onclick="showTab('s14','t4')">Consumer & Ack</button>
+      <button class="tab-btn" onclick="showTab('s14','t5')">Reliability Patterns</button>
+      <button class="tab-btn" onclick="showTab('s14','t6')">Q&A</button>
+    </div>
+
+    <!-- Tab 1: Core Concepts -->
+    <div id="s14-t1" class="tab-panel active">
+      <div class="highlight-card hc-blue">
+        <div class="hc-title">What is RabbitMQ?</div>
+        <p>RabbitMQ is a message broker — it decouples producers and consumers. A producer publishes a message to an <strong>Exchange</strong>. The exchange routes it to one or more <strong>Queues</strong> based on routing rules. Consumers listen on queues and process messages.</p>
+      </div>
+      <div class="grid-2">
+        <div class="highlight-card hc-green">
+          <div class="hc-title">Key Terms</div>
+          <ul>
+            <li><strong>Producer</strong> — publishes messages (Auth Service)</li>
+            <li><strong>Exchange</strong> — routing hub (user.exchange)</li>
+            <li><strong>Queue</strong> — buffer per consumer service</li>
+            <li><strong>Consumer</strong> — processes messages (Wallet, Notification, etc.)</li>
+            <li><strong>Binding</strong> — links exchange → queue (with routing key)</li>
+            <li><strong>Ack/Nack</strong> — consumer confirms or rejects a message</li>
+          </ul>
+        </div>
+        <div class="highlight-card hc-amber">
+          <div class="hc-title">WalletPlatform Flow</div>
+          <ul>
+            <li>Auth publishes <code>UserRegisteredEvent</code> → <code>user.exchange</code></li>
+            <li>Exchange fans out to 4 queues simultaneously</li>
+            <li>Queue 1: UserProfile.queue → UserProfile Service</li>
+            <li>Queue 2: Wallet.queue → Wallet Service</li>
+            <li>Queue 3: Notification.queue → Notification Service</li>
+            <li>Queue 4: Rewards.queue → Rewards Service</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Exchange Types -->
+    <div id="s14-t2" class="tab-panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Exchange Type</th><th>Routing</th><th>Use Case</th><th>WalletPlatform</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Direct</strong></td><td>Exact routing key match</td><td>Point-to-point, task queues</td><td>Payment processing commands</td></tr>
+            <tr><td><strong>Fanout</strong></td><td>Broadcasts to ALL bound queues</td><td>Pub/sub, notifications</td><td>✅ user.exchange — all 4 consumers</td></tr>
+            <tr><td><strong>Topic</strong></td><td>Pattern matching (<code>*</code> one word, <code>#</code> many)</td><td>Selective routing by category</td><td>transaction.# → audit + reporting</td></tr>
+            <tr><td><strong>Headers</strong></td><td>Message header attributes</td><td>Complex routing logic</td><td>Rarely used</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code><span class="cm">// Topic exchange routing examples</span>
+<span class="cm">// Pattern: "payment.#"   matches: payment.created, payment.failed, payment.refund.initiated</span>
+<span class="cm">// Pattern: "*.failed"    matches: payment.failed, transfer.failed</span>
+<span class="cm">// Pattern: "payment.*"   matches: payment.created — NOT payment.refund.initiated (only 1 word after .)</span></code></pre>
+    </div>
+
+    <!-- Tab 3: Publisher Code -->
+    <div id="s14-t3" class="tab-panel">
+      <pre><code><span class="cm">// IEventPublisher interface (Core layer — no RabbitMQ dependency)</span>
+<span class="kw">public interface</span> <span class="cls">IEventPublisher</span>
+{
+    <span class="cls">Task</span> <span class="fn">PublishAsync</span>&lt;<span class="cls">T</span>&gt;(<span class="kw">string</span> exchange, <span class="cls">T</span> message);
+}
+
+<span class="cm">// RabbitMqPublisher (Infrastructure layer)</span>
+<span class="kw">public class</span> <span class="cls">RabbitMqPublisher</span> : <span class="cls">IEventPublisher</span>
+{
+    <span class="kw">private readonly</span> <span class="cls">IConnection</span> _connection;
+
+    <span class="kw">public async</span> <span class="cls">Task</span> <span class="fn">PublishAsync</span>&lt;<span class="cls">T</span>&gt;(<span class="kw">string</span> exchange, <span class="cls">T</span> message)
+    {
+        <span class="kw">using var</span> channel = <span class="kw">await</span> _connection.<span class="fn">CreateChannelAsync</span>();
+
+        <span class="cm">// Declare exchange (idempotent — safe to call multiple times)</span>
+        <span class="kw">await</span> channel.<span class="fn">ExchangeDeclareAsync</span>(
+            exchange: exchange,
+            type:     <span class="cls">ExchangeType</span>.Fanout,
+            durable:  <span class="kw">true</span>);    <span class="cm">// Survives RabbitMQ restart</span>
+
+        <span class="kw">var</span> body = <span class="cls">JsonSerializer</span>.<span class="fn">SerializeToUtf8Bytes</span>(message);
+        <span class="kw">var</span> props = <span class="kw">new</span> <span class="cls">BasicProperties</span>
+        {
+            Persistent   = <span class="kw">true</span>,       <span class="cm">// Message survives broker restart</span>
+            ContentType  = <span class="str">"application/json"</span>,
+            MessageId    = <span class="cls">Guid</span>.<span class="fn">NewGuid</span>().<span class="fn">ToString</span>()
+        };
+
+        <span class="kw">await</span> channel.<span class="fn">BasicPublishAsync</span>(
+            exchange:   exchange,
+            routingKey: <span class="str">""</span>,  <span class="cm">// Fanout ignores routing key</span>
+            body:       body,
+            basicProperties: props);
+    }
+}</code></pre>
+    </div>
+
+    <!-- Tab 4: Consumer & Ack -->
+    <div id="s14-t4" class="tab-panel">
+      <pre><code><span class="cm">// BaseConsumer&lt;T&gt; — WalletPlatform's reusable consumer base</span>
+<span class="kw">public abstract class</span> <span class="cls">BaseConsumer</span>&lt;<span class="cls">T</span>&gt; : <span class="cls">BackgroundService</span>
+{
+    <span class="kw">private readonly</span> <span class="cls">IConnection</span> _connection;
+    <span class="kw">protected abstract</span> <span class="kw">string</span> QueueName { <span class="kw">get</span>; }
+    <span class="kw">protected abstract</span> <span class="kw">string</span> ExchangeName { <span class="kw">get</span>; }
+
+    <span class="kw">protected override async</span> <span class="cls">Task</span> <span class="fn">ExecuteAsync</span>(<span class="cls">CancellationToken</span> ct)
+    {
+        <span class="kw">using var</span> channel = <span class="kw">await</span> _connection.<span class="fn">CreateChannelAsync</span>();
+
+        <span class="kw">await</span> channel.<span class="fn">ExchangeDeclareAsync</span>(ExchangeName, <span class="cls">ExchangeType</span>.Fanout, durable: <span class="kw">true</span>);
+        <span class="kw">await</span> channel.<span class="fn">QueueDeclareAsync</span>(QueueName, durable: <span class="kw">true</span>, exclusive: <span class="kw">false</span>, autoDelete: <span class="kw">false</span>);
+        <span class="kw">await</span> channel.<span class="fn">QueueBindAsync</span>(QueueName, ExchangeName, routingKey: <span class="str">""</span>);
+
+        <span class="cm">// Prefetch = 1: don't deliver next message until current is acked</span>
+        <span class="kw">await</span> channel.<span class="fn">BasicQosAsync</span>(prefetchSize: <span class="num">0</span>, prefetchCount: <span class="num">1</span>, global: <span class="kw">false</span>);
+
+        <span class="kw">var</span> consumer = <span class="kw">new</span> <span class="cls">AsyncEventingBasicConsumer</span>(channel);
+        consumer.ReceivedAsync += <span class="kw">async</span> (_, ea) =>
+        {
+            <span class="kw">try</span>
+            {
+                <span class="kw">var</span> message = <span class="cls">JsonSerializer</span>.<span class="fn">Deserialize</span>&lt;<span class="cls">T</span>&gt;(ea.Body.Span)!;
+                <span class="kw">await</span> <span class="fn">ProcessAsync</span>(message, ct);
+                <span class="kw">await</span> channel.<span class="fn">BasicAckAsync</span>(ea.DeliveryTag, multiple: <span class="kw">false</span>); <span class="cm">// ✅ Success</span>
+            }
+            <span class="kw">catch</span> (<span class="cls">Exception</span> ex) <span class="kw">when</span> (<span class="fn">IsTransient</span>(ex))
+            {
+                <span class="kw">await</span> channel.<span class="fn">BasicNackAsync</span>(ea.DeliveryTag, multiple: <span class="kw">false</span>, requeue: <span class="kw">true</span>); <span class="cm">// retry</span>
+            }
+            <span class="kw">catch</span>
+            {
+                <span class="kw">await</span> channel.<span class="fn">BasicNackAsync</span>(ea.DeliveryTag, multiple: <span class="kw">false</span>, requeue: <span class="kw">false</span>); <span class="cm">// dead letter</span>
+            }
+        };
+
+        <span class="kw">await</span> channel.<span class="fn">BasicConsumeAsync</span>(QueueName, autoAck: <span class="kw">false</span>, consumer);
+        <span class="kw">await</span> <span class="cls">Task</span>.<span class="fn">Delay</span>(<span class="cls">Timeout</span>.Infinite, ct);
+    }
+
+    <span class="kw">protected abstract</span> <span class="cls">Task</span> <span class="fn">ProcessAsync</span>(<span class="cls">T</span> message, <span class="cls">CancellationToken</span> ct);
+}</code></pre>
+
+      <div class="highlight-card hc-amber">
+        <div class="hc-title">⚡ autoAck: false — Why It Matters</div>
+        <p>With <code>autoAck: true</code>, RabbitMQ removes the message from the queue as soon as it's delivered — before you process it. If your service crashes mid-process, the message is lost. With <code>autoAck: false</code>, you manually call <code>BasicAck</code> after successful processing. Message stays in queue until you explicitly acknowledge it.</p>
+      </div>
+    </div>
+
+    <!-- Tab 5: Reliability -->
+    <div id="s14-t5" class="tab-panel">
+      <div class="grid-2">
+        <div class="highlight-card hc-blue">
+          <div class="hc-title">Dead Letter Queue (DLQ)</div>
+          <p>Messages that fail repeatedly (BasicNack with requeue:false) are routed to a DLQ instead of being dropped. Allows inspection, alerting, and manual replay of failed messages.</p>
+          <pre><code><span class="cm">// Declare DLQ-enabled queue</span>
+<span class="kw">await</span> channel.<span class="fn">QueueDeclareAsync</span>(
+  <span class="str">"wallet.queue"</span>, durable: <span class="kw">true</span>,
+  arguments: <span class="kw">new</span> <span class="cls">Dictionary</span>&lt;<span class="kw">string</span>,<span class="kw">object</span>&gt;
+  {
+    [<span class="str">"x-dead-letter-exchange"</span>] = <span class="str">"dlx.exchange"</span>
+  });</code></pre>
+        </div>
+        <div class="highlight-card hc-purple">
+          <div class="hc-title">Message Durability</div>
+          <ul>
+            <li><strong>durable: true</strong> on queue — queue survives broker restart</li>
+            <li><strong>persistent: true</strong> on message — message written to disk</li>
+            <li>Both needed together for true durability</li>
+            <li>Tradeoff: disk I/O reduces throughput slightly</li>
+          </ul>
+        </div>
+      </div>
+      <div class="highlight-card hc-red">
+        <div class="hc-title">🔴 "Consumers: 0" — The Hard-Won WalletPlatform Lesson</div>
+        <p>Root cause: services weren't running when messages were published. Messages queued up with no consumer attached. Fix: start ALL services simultaneously. Verify in RabbitMQ Management UI (<code>localhost:15672</code>) that each queue shows Consumers &gt; 0 before running tests. Also ensure exchange-to-queue bindings are correct — a fanout exchange only delivers to queues that are bound at the time of publish.</p>
+      </div>
+
+      <h3>Publisher Confirms</h3>
+      <pre><code><span class="cm">// Publisher Confirms — guarantee message reached the broker</span>
+<span class="kw">await</span> channel.<span class="fn">ConfirmSelectAsync</span>(); <span class="cm">// Enable confirm mode</span>
+<span class="kw">await</span> channel.<span class="fn">BasicPublishAsync</span>(...);
+<span class="kw">await</span> channel.<span class="fn">WaitForConfirmsOrDieAsync</span>(); <span class="cm">// Throws if broker didn't ack</span></code></pre>
+    </div>
+
+    <!-- Tab 6: Q&A -->
+    <div id="s14-t6" class="tab-panel">
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is RabbitMQ and why use it instead of direct service calls? <span class="arrow">▼</span></div><div class="qa-a">RabbitMQ is a message broker that decouples services. Instead of Auth Service calling 4 downstream services synchronously (tight coupling, cascading failures), it publishes one event. Each service consumes independently. Benefits: Auth doesn't wait for Wallet/Notification to respond, services can be down and catch up when restarted, and adding a new consumer requires zero changes to Auth Service.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">Explain the 4 exchange types and when you'd use each. <span class="arrow">▼</span></div><div class="qa-a">Direct: routes to queue with exact routing key match — use for task queues or point-to-point. Fanout: broadcasts to ALL bound queues — use for pub/sub (WalletPlatform registration). Topic: pattern matching with * and # wildcards — use for categorized events (payment.*, *.failed). Headers: routes based on message headers — complex routing, rarely used in practice.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is the difference between BasicAck and BasicNack(requeue:true) vs BasicNack(requeue:false)? <span class="arrow">▼</span></div><div class="qa-a">BasicAck: message processed successfully — remove from queue. BasicNack(requeue:true): processing failed but is likely retryable (transient error like DB connection timeout) — put message back in queue for retry. BasicNack(requeue:false): permanent failure — send to Dead Letter Queue if configured. Critical: if you always requeue:true on failure, a poison message will loop forever and block your queue.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">What is prefetchCount and why set it to 1? <span class="arrow">▼</span></div><div class="qa-a">prefetchCount controls how many unacknowledged messages a consumer receives at once. Setting it to 1 means: don't deliver a new message until the current one is acknowledged. This ensures fair dispatch in multi-instance scenarios and prevents memory overload from buffering too many messages. In WalletPlatform where operations touch the DB, 1 is safe. For high-throughput lightweight tasks, a higher prefetch (e.g., 10–50) improves throughput.</div></div>
+      <div class="qa-item"><div class="qa-q" onclick="toggleQA(this)">How would you handle message ordering guarantees in RabbitMQ? <span class="arrow">▼</span></div><div class="qa-a">RabbitMQ delivers messages in order WITHIN a single queue and single consumer. With multiple consumers or requeue-on-failure, ordering breaks. For strict ordering: 1) Single consumer per queue. 2) Include a sequence number in messages and reorder at the consumer. 3) Use exclusive queues. In WalletPlatform, ledger entries are timestamped and idempotent — exact ordering isn't critical as long as all events eventually arrive.</div></div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showTab(section, tab) {
+    const sec = document.getElementById(section);
+    sec.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    sec.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const panel = document.getElementById(`${section}-${tab}`);
+    if (panel) panel.classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  function toggleQA(el) {
+    el.classList.toggle('open');
+    const answer = el.nextElementSibling;
+    answer.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

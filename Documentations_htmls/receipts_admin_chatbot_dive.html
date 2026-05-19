@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipts + Admin + Chatbot — Deep Dive</title>
+<style>
+:root{
+  --bg:#f8f9fa;--card:#fff;--border:#e2e8f0;
+  --r:#0369a1;--ra:#38bdf8;          /* Receipts - sky blue */
+  --a:#b91c1c;--aa:#f87171;          /* Admin - red */
+  --c:#047857;--ca:#34d399;          /* Chatbot - emerald */
+  --green:#16a34a;--red:#dc2626;--orange:#d97706;--blue:#1d4ed8;--purple:#7c3aed;
+  --text:#1e293b;--muted:#64748b;--code:#0f172a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+nav{background:#0f172a;color:white;padding:14px 32px;position:sticky;top:0;z-index:100;}
+nav .logo{font-size:1rem;font-weight:700;}
+nav .sub{font-size:.75rem;opacity:.6;}
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);position:sticky;top:51px;background:var(--bg);z-index:50;padding:0 32px;}
+.tab{padding:12px 22px;cursor:pointer;font-weight:600;font-size:.87rem;border-bottom:3px solid transparent;color:var(--muted);transition:all .2s;margin-bottom:-2px;}
+.tab.r.active{color:var(--r);border-bottom-color:var(--r);}
+.tab.a.active{color:var(--a);border-bottom-color:var(--a);}
+.tab.c.active{color:var(--c);border-bottom-color:var(--c);}
+.tab:hover{color:var(--text);}
+.pane{display:none;padding:0 32px 48px;}
+.pane.active{display:block;}
+.section{margin-bottom:42px;scroll-margin-top:120px;}
+h2{font-size:1.22rem;font-weight:700;padding-bottom:10px;border-bottom:2px solid;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+h2.r{color:var(--r);border-color:var(--ra);}
+h2.a{color:var(--a);border-color:var(--aa);}
+h2.c{color:var(--c);border-color:var(--ca);}
+h2 .num{color:white;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0;}
+h2.r .num{background:var(--ra);}
+h2.a .num{background:var(--aa);}
+h2.c .num{background:var(--ca);}
+h3{font-size:.92rem;font-weight:700;margin:16px 0 8px;}
+p{margin-bottom:10px;font-size:.9rem;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+.ct{font-weight:700;font-size:.87rem;margin-bottom:10px;}
+.ct.r{color:var(--r);}
+.ct.a{color:var(--a);}
+.ct.c{color:var(--c);}
+pre{background:var(--code);color:#e2e8f0;border-radius:8px;padding:16px;font-size:.79rem;overflow-x:auto;margin:10px 0;line-height:1.75;}
+code{font-family:'Consolas','Cascadia Code',monospace;}
+.ic{background:#f1f5f9;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.83em;}
+.callout{border-left:4px solid;border-radius:0 8px 8px 0;padding:12px 16px;margin:10px 0;font-size:.86rem;}
+.callout-red{border-color:var(--red);background:#fef2f2;}
+.callout-green{border-color:var(--green);background:#f0fdf4;}
+.callout-orange{border-color:var(--orange);background:#fffbeb;}
+.callout-blue{border-color:var(--blue);background:#eff6ff;}
+.callout-sky{border-color:var(--ra);background:#f0f9ff;}
+.callout-emerald{border-color:var(--ca);background:#ecfdf5;}
+.callout strong{display:block;margin-bottom:4px;}
+table{width:100%;border-collapse:collapse;font-size:.83rem;margin:10px 0;}
+th{background:#f1f5f9;font-weight:700;padding:9px 12px;text-align:left;border:1px solid var(--border);}
+td{padding:8px 12px;border:1px solid var(--border);}
+tr:nth-child(even) td{background:#f8fafc;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:.72rem;font-weight:600;}
+.b-green{background:#dcfce7;color:var(--green);}
+.b-red{background:#fee2e2;color:var(--red);}
+.b-blue{background:#dbeafe;color:var(--blue);}
+.b-orange{background:#fef3c7;color:var(--orange);}
+.b-sky{background:#e0f2fe;color:var(--r);}
+.b-emerald{background:#d1fae5;color:var(--c);}
+.qa-item{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+.qa-q{background:#f8fafc;padding:11px 16px;font-weight:700;font-size:.87rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.qa-a{padding:14px 16px;font-size:.86rem;display:none;border-top:1px solid var(--border);line-height:1.75;}
+.qa-a.open{display:block;}
+.hero{border-radius:12px;padding:22px;margin-bottom:24px;color:white;}
+.hero.r{background:linear-gradient(135deg,#0369a1,#38bdf8);}
+.hero.a{background:linear-gradient(135deg,#991b1b,#f87171);}
+.hero.c{background:linear-gradient(135deg,#065f46,#34d399);}
+.hero h1{font-size:1.35rem;margin-bottom:4px;}
+.hero p{opacity:.9;font-size:.87rem;margin:0;}
+.stat-row{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;}
+.stat .val{font-size:1.4rem;font-weight:800;}
+.stat .lbl{font-size:.68rem;opacity:.8;text-transform:uppercase;letter-spacing:.05em;}
+.flow-step{display:flex;gap:12px;margin-bottom:10px;align-items:flex-start;}
+.fn{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:2px;color:white;}
+.fn.r{background:var(--ra);}
+.fn.a{background:var(--aa);}
+.fn.c{background:var(--ca);}
+.ft{font-size:.87rem;line-height:1.6;}
+/* CSV preview */
+.csv-preview{background:#0f172a;color:#86efac;border-radius:8px;padding:14px;font-family:monospace;font-size:.8rem;line-height:1.8;margin:10px 0;}
+/* Python file block */
+.py-block{background:#1a1a2e;color:#a9b7c6;border-radius:8px;padding:16px;font-size:.79rem;overflow-x:auto;margin:10px 0;line-height:1.75;font-family:'Consolas',monospace;}
+.py-kw{color:#cc99cd;}
+.py-str{color:#7ec699;}
+.py-fn{color:#6db3f2;}
+.py-cm{color:#608b4e;}
+.py-dec{color:#dcdcaa;}
+@media(max-width:700px){.grid2{grid-template-columns:1fr;}.tabs,.pane{padding-left:12px;padding-right:12px;}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">🧾 Receipts · 🛡️ Admin · 🤖 Chatbot — Deep Dive</div>
+  <div class="sub">WalletPlatform · Final Services · Senior Architect Analysis</div>
+</nav>
+
+<div class="tabs">
+  <div class="tab r active" onclick="switchTab('r')">🧾 Receipts (5008)</div>
+  <div class="tab a" onclick="switchTab('a')">🛡️ Admin (5009)</div>
+  <div class="tab c" onclick="switchTab('c')">🤖 Chatbot (5010)</div>
+</div>
+
+<!-- ═══ RECEIPTS ═══ -->
+<div id="r-pane" class="pane active">
+<div class="hero r">
+  <h1>Receipts Service</h1>
+  <p>Permanent transaction history — event-driven storage, CSV export, audit records</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">3</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">DB Table</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Consumed</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events Published</div></div>
+    <div class="stat"><div class="val">CSV</div><div class="lbl">Export</div></div>
+    <div class="stat"><div class="val">5008</div><div class="lbl">Port</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="ct r">Exact Responsibility</div>
+    <p>Receipts Service is the <strong>financial paper trail</strong>. Every completed transaction gets a permanent receipt record stored here, created automatically by consuming <span class="ic">TransactionCompletedEvent</span>. Users can query their transaction history and export it as CSV — the digital equivalent of a bank statement.</p>
+    <p>Like Rewards, it is a <strong>pure downstream consumer</strong> — transactions still complete perfectly if Receipts goes down. The events queue in RabbitMQ and process in a burst when the service recovers.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct r">✅ Invariants</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>One receipt per transaction</strong> — idempotency check on TransactionId</li>
+        <li><strong>Receipts never deleted or updated</strong> — permanent record</li>
+        <li><strong>Both sender and receiver see the receipt</strong> — queried by userId (either side)</li>
+        <li><strong>CSV export always reflects full history</strong> — ordered by date desc</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ct r">vs. Ledger — What's the Difference?</div>
+      <p><strong>Ledger Service</strong> owns the accounting entries — double-entry Debit/Credit records for financial correctness.</p>
+      <p><strong>Receipts Service</strong> owns the user-facing transaction record — a single row per transaction that both sender and receiver can query for their statement history.</p>
+      <p>Ledger = accounting. Receipts = customer statement. Both are derived from the same TransactionCompletedEvent.</p>
+    </div>
+  </div>
+  <table>
+    <tr><th>Direction</th><th>Partner</th><th>Method</th><th>What</th></tr>
+    <tr><td><span class="badge b-blue">IN async</span></td><td>Ledger Service</td><td>RabbitMQ</td><td>TransactionCompletedEvent → create receipt record</td></tr>
+    <tr><td><span class="badge b-orange">NONE</span></td><td>Any service</td><td>Events out / Sync</td><td>Receipts never calls other services</td></tr>
+  </table>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">2</span> Deep File Review</h2>
+
+  <div class="card">
+    <div class="ct r">📄 Receipt.cs — One Table, Flat Schema</div>
+    <pre><code>public class Receipt : BaseEntity
+{
+    public Guid     Id               { get; set; }
+    public Guid     TransactionId    { get; set; }   // unique — one receipt per transaction
+    public Guid     SenderUserId     { get; set; }   // used for querying sender's history
+    public Guid     ReceiverUserId   { get; set; }   // used for querying receiver's history
+    public Guid     SenderWalletId   { get; set; }
+    public Guid     ReceiverWalletId { get; set; }
+    public decimal  Amount           { get; set; }
+    public string   Currency         { get; set; } = "INR";
+    public string   TransactionType  { get; set; } = string.Empty;  // "Transfer", "TopUp"
+    public DateTime TransactionDate  { get; set; }
+    // No double-entry here — that's Ledger's job
+    // No status field — receipts are only created for COMPLETED transactions
+}</code></pre>
+    <p><strong>Why is there no Status on Receipt?</strong> Receipts are only created from <span class="ic">TransactionCompletedEvent</span> — the event is only published when the transaction succeeds. A receipt existing means the transaction completed. There's no "pending receipt" or "failed receipt" concept. Failed transactions never produce receipts.</p>
+    <div class="callout callout-sky"><strong>Why store both SenderUserId and ReceiverUserId?</strong> The <span class="ic">GetByUserIdAsync</span> query returns receipts where the user is EITHER the sender OR receiver — it's their full statement. Without both IDs on the row, you'd need a JOIN or two separate queries. Flat denormalised schema trades storage for query simplicity.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct r">📄 TransactionCompletedConsumer.cs — Receipts Side</div>
+    <pre><code>public class TransactionCompletedConsumer : BaseConsumer&lt;TransactionCompletedEvent&gt;
+{
+    protected override string QueueName    =&gt; EventQueues.TransactionCompletedReceipts;
+    protected override string ExchangeName =&gt; EventQueues.TransactionExchange;
+    protected override string RoutingKey   =&gt; "transaction.completed";
+    // Different queue name from Rewards consumer — same exchange/routing key
+    // RabbitMQ fan-out: same event delivered to BOTH queues simultaneously
+
+    protected override async Task HandleAsync(TransactionCompletedEvent message, CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService&lt;IReceiptRepository&gt;();
+
+        // IDEMPOTENCY CHECK — receipt already exists for this transaction?
+        if (await repo.ExistsByTransactionIdAsync(message.TransactionId))
+            return;  // at-least-once delivery handled
+
+        await repo.AddAsync(new Receipt
+        {
+            TransactionId    = message.TransactionId,
+            SenderUserId     = message.SenderUserId,
+            ReceiverUserId   = message.ReceiverUserId,
+            SenderWalletId   = message.SenderWalletId,
+            ReceiverWalletId = message.ReceiverWalletId,
+            Amount           = message.Amount,
+            Currency         = message.Currency ?? "INR",
+            TransactionType  = message.TransactionType ?? "Transfer",
+            TransactionDate  = message.Timestamp ?? DateTime.UtcNow
+        });
+
+        await repo.SaveChangesAsync();
+    }
+}</code></pre>
+    <div class="callout callout-green"><strong>Receipts HAS idempotency — Rewards doesn't.</strong> This consumer correctly checks <span class="ic">ExistsByTransactionIdAsync</span> before inserting. Contrast with the Rewards consumer which is missing this check. This is the correct pattern — if TransactionCompletedEvent is delivered twice, only one receipt is created. The unique index on TransactionId in DbContext is the DB-level second guard.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct r">📄 ReceiptService.cs — Including CSV Export</div>
+    <pre><code>public async Task&lt;Result&lt;byte[]&gt;&gt; ExportCsvAsync(Guid userId)
+{
+    var receipts = await _receipts.GetByUserIdAsync(userId);
+
+    var sb = new StringBuilder();
+    // CSV header row
+    sb.AppendLine("TransactionId,Amount,Currency,Type,Date");
+
+    // CSV data rows — one per receipt
+    foreach (var r in receipts)
+        sb.AppendLine(
+            $"{r.TransactionId}," +
+            $"{r.Amount}," +
+            $"{r.Currency}," +
+            $"{r.TransactionType}," +
+            $"{r.TransactionDate:yyyy-MM-dd HH:mm:ss}");
+
+    // Convert string → UTF-8 bytes for file download
+    return Result&lt;byte[]&gt;.Success(Encoding.UTF8.GetBytes(sb.ToString()));
+}
+
+// Repository query — sender OR receiver, ordered newest first
+public async Task&lt;IEnumerable&lt;Receipt&gt;&gt; GetByUserIdAsync(Guid userId)
+    =&gt; await _db.Receipts
+        .Where(r =&gt; r.SenderUserId == userId || r.ReceiverUserId == userId)
+        .OrderByDescending(r =&gt; r.TransactionDate)
+        .AsNoTracking()  // read-only — no change tracking needed
+        .ToListAsync();</code></pre>
+    <p><strong>Why return <span class="ic">byte[]</span> instead of a string?</strong> The controller sets <span class="ic">Content-Type: text/csv</span> and <span class="ic">Content-Disposition: attachment</span>, returning a file download. The service layer returns raw bytes — it doesn't know or care that this will be a file download. The controller handles the HTTP concern of making it downloadable.</p>
+  </div>
+
+  <div class="card">
+    <div class="ct r">📄 ReceiptsController.cs — CSV Download Pattern</div>
+    <pre><code>[HttpGet("export/csv")]
+public async Task&lt;IActionResult&gt; ExportCsv()
+{
+    var userId = CurrentUserId;
+    var result = await _receiptService.ExportCsvAsync(userId);
+    if (!result.IsSuccess) return BadRequest(new { error = result.Error });
+
+    // Tell browser: this is a file download, not JSON
+    return File(
+        result.Data!,
+        "text/csv",
+        $"transactions_{DateTime.UtcNow:yyyyMMdd}.csv");
+    // Generates: Content-Disposition: attachment; filename="transactions_20260328.csv"
+    // Browser auto-downloads instead of displaying
+}
+
+[HttpGet("transaction/{transactionId:guid}")]
+public async Task&lt;IActionResult&gt; GetByTransaction(Guid transactionId)
+{
+    var result = await _receiptService.GetByTransactionIdAsync(transactionId);
+    return result.IsSuccess ? Ok(result.Data) : NotFound(new { error = result.Error });
+}
+
+[HttpGet("my")]
+public async Task&lt;IActionResult&gt; GetMine()
+{
+    var result = await _receiptService.GetMyReceiptsAsync(CurrentUserId);
+    return Ok(result.Data ?? Enumerable.Empty&lt;ReceiptDto&gt;());
+}</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="ct r">Sample CSV Output</div>
+    <div class="csv-preview">TransactionId,Amount,Currency,Type,Date
+3fa85f64-5717-4562-b3fc-2c963f66afa6,500.00,INR,Transfer,2026-03-28 14:30:00
+9c8b7a6d-4e3f-2c1b-0a9b-8d7e6f5a4b3c,1000.00,INR,TopUp,2026-03-27 09:15:00
+1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d,250.00,INR,Payment,2026-03-26 16:45:00</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">3</span> Distributed Systems + Edge Cases</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct r">Same Event, Two Consumers — Fan-Out</div>
+      <p>Ledger publishes <span class="ic">TransactionCompletedEvent</span> to <span class="ic">transaction.exchange</span>. Both Receipts and Rewards (and Notification) subscribe to the same exchange + routing key but <strong>different queues</strong>:</p>
+      <ul style="font-size:.85rem;padding-left:16px;line-height:1.9">
+        <li><span class="ic">transaction.completed.receipts.queue</span></li>
+        <li><span class="ic">transaction.completed.rewards.queue</span></li>
+        <li><span class="ic">transaction.completed.notification.queue</span></li>
+      </ul>
+      <p>RabbitMQ delivers one copy to each queue independently. Receipts consumer processes its copy; Rewards processes its copy. Fully decoupled — failure in Rewards doesn't affect Receipts.</p>
+    </div>
+    <div class="card">
+      <div class="ct r">Edge Cases</div>
+      <table>
+        <tr><th>Scenario</th><th>Handling</th></tr>
+        <tr><td>Event delivered twice</td><td>ExistsByTransactionIdAsync → skip. DB unique index = second guard.</td></tr>
+        <tr><td>Service down, events queued</td><td>Durable RabbitMQ queue holds events. Processed on recovery.</td></tr>
+        <tr><td>User queries before receipt created</td><td>Empty array returned — not a 404. Eventually consistent.</td></tr>
+        <tr><td>Large CSV (10,000+ rows)</td><td>StringBuilder in-memory — fine for typical user history. For millions of rows, stream with IAsyncEnumerable.</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">4</span> Interview Q&A — Receipts</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: How is Receipts Service different from Ledger Service if both store transaction data? <span>▼</span></div>
+    <div class="qa-a">Ledger owns the financial accounting record — double-entry Debit and Credit entries that must mathematically balance. It's for financial integrity and auditing. Receipts owns the user-facing statement — a single flat row per transaction that users can query and export. Ledger entries are not directly consumable by end users. Receipts are designed for readability: "you sent ₹500 to wallet X on date Y." They serve different consumers: Ledger serves the accounting/audit function; Receipts serve the user-facing product.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: Why does the receipt record store SenderUserId AND ReceiverUserId? <span>▼</span></div>
+    <div class="qa-a">The <span class="ic">GetByUserId</span> query returns receipts where the user is either the sender OR the receiver — it's their complete transaction history. Without both IDs on the row, a WHERE clause would need to JOIN another table to find which transactions involved a particular user. The denormalised flat schema with both IDs means one simple WHERE with an OR condition: <span class="ic">WHERE SenderUserId = ? OR ReceiverUserId = ?</span>. Storage cost is minimal compared to the query simplicity gained.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: If the service is down for 2 hours, what happens to the receipts for transactions that occurred during that time? <span>▼</span></div>
+    <div class="qa-a">RabbitMQ queues are declared as durable — they persist to disk. Messages accumulate in the queue while the service is down. When Receipts Service restarts, the consumer starts processing from where it left off. All 2 hours of transaction events are processed in a burst. The idempotency check ensures no duplicates. The user's transaction history will be complete and correct after recovery — they'll just have a temporary gap in their receipts view during the outage window.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="r"><span class="num">5</span> 30s + 2min Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ct r">⚡ 30-Second</div>
+    <p>Receipts Service consumes TransactionCompletedEvents and stores one flat receipt row per transaction. Both sender and receiver IDs are stored so either party can query their full history. Idempotency is handled correctly — ExistsByTransactionIdAsync prevents duplicate receipts from at-least-once delivery. Three endpoints: get by transaction, get mine (full history), export CSV. The CSV export returns bytes with Content-Type text/csv and Content-Disposition attachment for browser download.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--ra)">
+    <div class="ct r">🎯 2-Minute Deep Dive</div>
+    <p>The key design decision is schema denormalisation. By storing both SenderUserId and ReceiverUserId on the receipt, a single WHERE OR query returns a user's complete transaction history — no joins needed. This is a read-optimisation trade-off: slightly more storage, significantly simpler queries.</p>
+    <p>The consumer correctly implements idempotency — unlike the Rewards consumer. Before inserting, it checks ExistsByTransactionIdAsync. The unique index on TransactionId provides a DB-level second guard against the race condition where two concurrent consumer instances receive the same event.</p>
+    <p>The fan-out pattern means the same TransactionCompletedEvent simultaneously creates a receipt in ReceiptsDb, awards points in RewardsDb, and triggers an email via Notification — all independently and in parallel. If Receipts is slow, it doesn't slow down Rewards or Notification. The services are fully decoupled through the queue.</p>
+  </div>
+</div>
+</div><!-- end receipts -->
+
+<!-- ═══ ADMIN ═══ -->
+<div id="a-pane" class="pane">
+<div class="hero a">
+  <h1>Admin Service</h1>
+  <p>Platform oversight — fraud flagging, dashboard, Admin-role-only operations</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">3</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">DB Table</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">Events</div></div>
+    <div class="stat"><div class="val">Admin</div><div class="lbl">Role Only</div></div>
+    <div class="stat"><div class="val">5009</div><div class="lbl">Port</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="a"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="ct a">Exact Responsibility</div>
+    <p>Admin Service is the <strong>operations control panel</strong>. It is the only service where every single endpoint requires <span class="ic">Role = "Admin"</span>. It owns one domain: <strong>fraud flags</strong> — the ability for admins to mark suspicious transactions for investigation. It also provides a dashboard summary of platform-wide statistics.</p>
+    <p>It is deliberately the <strong>leanest service</strong> in the platform. No RabbitMQ, no complex business logic, no cross-service calls in the core implementation. Just direct DB operations and JWT-role enforcement.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct a">✅ Invariants</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>ALL endpoints require Admin role</strong> — no User-accessible endpoints</li>
+        <li><strong>Each transaction can only be flagged once</strong> — duplicate guard</li>
+        <li><strong>FlaggedByUserId always from JWT</strong> — audit trail, not from request body</li>
+        <li><strong>IsResolved defaults false</strong> — flags require explicit resolution</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ct a">🎯 Design Choice — Why So Minimal?</div>
+      <p>The original design included controllers for listing all users and all KYC requests — but these were intentionally removed. Those queries would require cross-service calls (Admin → Auth, Admin → UserProfile) creating coupling.</p>
+      <p>The decision: Admin can access those directly through the Auth and UserProfile services. Admin Service owns what only Admin owns — fraud investigation tooling. Clean separation, no unnecessary coupling.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="a"><span class="num">2</span> Deep File Review</h2>
+
+  <div class="card">
+    <div class="ct a">📄 FraudFlag.cs — The Only Entity</div>
+    <pre><code>public class FraudFlag : BaseEntity
+{
+    public Guid     TransactionId     { get; set; }   // UNIQUE — one flag per transaction
+    public Guid     FlaggedByUserId   { get; set; }   // admin's userId from JWT — audit trail
+    public string   Reason            { get; set; } = string.Empty;  // mandatory
+    public bool     IsResolved        { get; set; } = false;
+    public string?  Resolution        { get; set; }   // null until resolved
+    public DateTime? ResolvedAt       { get; set; }   // null until resolved
+}</code></pre>
+    <p><strong>Why is <span class="ic">FlaggedByUserId</span> important?</strong> Audit trail — in a regulated fintech platform, every admin action must be traceable to a specific admin user. If a transaction is flagged incorrectly (or fraudulently by a rogue admin), you need to know who did it. This field is always populated from the JWT claim, never from the request body.</p>
+  </div>
+
+  <div class="card">
+    <div class="ct a">📄 AdminService.cs — Three Operations</div>
+    <pre><code>public async Task&lt;Result&lt;DashboardDto&gt;&gt; GetDashboardAsync()
+{
+    // Reads only from AdminDb — no cross-service calls in current implementation
+    var fraudFlags      = await _adminRepo.GetFraudFlagCountAsync();
+    var unresolvedFlags = await _adminRepo.GetUnresolvedFraudFlagCountAsync();
+
+    return Result&lt;DashboardDto&gt;.Success(new DashboardDto
+    {
+        TotalUsers            = 0,  // populated 0 — would need HTTP call to Auth
+        ActiveUsers           = 0,  // populated 0 — would need HTTP call to Auth
+        PendingKyc            = 0,  // populated 0 — would need HTTP call to UserProfile
+        ApprovedKyc           = 0,  // populated 0 — would need HTTP call to UserProfile
+        TotalTransactions     = 0,  // populated 0 — would need HTTP call to Ledger
+        TotalTransactionAmount = 0, // populated 0 — would need HTTP call to Ledger
+        FraudFlags            = fraudFlags,
+        UnresolvedFraudFlags  = unresolvedFlags
+    });
+}
+
+public async Task&lt;Result&lt;FraudFlagResponseDto&gt;&gt; FlagTransactionAsync(
+    Guid transactionId, FraudFlagDto dto, Guid flaggedBy)
+{
+    // Idempotency — one flag per transaction
+    var existing = await _adminRepo.GetFraudFlagByTransactionIdAsync(transactionId);
+    if (existing is not null)
+        return Result&lt;FraudFlagResponseDto&gt;.Failure("Transaction already flagged.");
+
+    var flag = new FraudFlag
+    {
+        TransactionId   = transactionId,
+        FlaggedByUserId = flaggedBy,   // ← from JWT, never from dto
+        Reason          = dto.Reason,
+        IsResolved      = false
+    };
+
+    await _adminRepo.AddFraudFlagAsync(flag);
+    await _adminRepo.SaveChangesAsync();
+
+    return Result&lt;FraudFlagResponseDto&gt;.Success(MapToDto(flag));
+}
+
+public async Task&lt;Result&lt;IEnumerable&lt;FraudFlagResponseDto&gt;&gt;&gt; GetFraudFlagsAsync()
+{
+    var flags = await _adminRepo.GetAllFraudFlagsAsync();
+    return Result&lt;IEnumerable&lt;FraudFlagResponseDto&gt;&gt;.Success(flags.Select(MapToDto));
+}</code></pre>
+    <div class="callout callout-orange"><strong>Dashboard gap — cross-service data:</strong> TotalUsers, TotalTransactions, etc. are all hardcoded to 0 because fetching them requires calling Auth/Ledger/UserProfile services. The correct production implementation uses either: (1) HttpClient calls to each service with the admin's forwarded JWT, or (2) a read model/materialized view maintained by events. For a portfolio project, the honest answer is "this is a known gap I'd address with typed HttpClient factories and IHttpClientFactory."</div>
+  </div>
+
+  <div class="card">
+    <div class="ct a">📄 AdminController.cs — Role Enforcement Pattern</div>
+    <pre><code>[ApiController]
+[Route("api/admin")]
+[Authorize(Roles = "Admin")]   // ← CLASS LEVEL — all endpoints in this controller = Admin only
+public class AdminTransactionController : ControllerBase
+{
+    private Guid CurrentUserId =&gt; Guid.Parse(
+        User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    [HttpPost("transactions/{transactionId}/flag")]
+    public async Task&lt;IActionResult&gt; FlagTransaction(
+        Guid transactionId,
+        [FromBody] FraudFlagDto dto)
+    {
+        var result = await _adminService.FlagTransactionAsync(
+            transactionId,
+            dto,
+            CurrentUserId);  // ← FlaggedBy extracted from JWT, not from request
+        return result.IsSuccess
+            ? Ok(result.Data)
+            : BadRequest(new { error = result.Error });
+    }
+
+    [HttpGet("transactions/fraud-flags")]
+    public async Task&lt;IActionResult&gt; GetFraudFlags()
+    {
+        var result = await _adminService.GetFraudFlagsAsync();
+        return Ok(result.Data);
+    }
+}
+
+// Class-level [Authorize(Roles = "Admin")] is better than method-level
+// because it's impossible to forget it on a new endpoint
+// If you add a new method, it AUTOMATICALLY requires Admin — no human error</code></pre>
+    <div class="callout callout-red"><strong>Class-level vs method-level authorization:</strong> Putting <span class="ic">[Authorize(Roles = "Admin")]</span> on the class means every endpoint is protected by default. A developer adding a new method doesn't need to remember to add the attribute — forgetting it would be a serious security hole in an admin-only service. This is defense in depth: make the secure path the default path.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct a">📄 AdminDbContext.cs — Simple Schema</div>
+    <pre><code>protected override void OnModelCreating(ModelBuilder mb)
+{
+    mb.Entity&lt;FraudFlag&gt;(e =&gt; {
+        // One flag per transaction — enforced at DB level
+        e.HasIndex(f =&gt; f.TransactionId).IsUnique();
+        e.Property(f =&gt; f.Reason).IsRequired().HasMaxLength(500);
+        e.Property(f =&gt; f.Resolution).HasMaxLength(500);
+    });
+}
+// Note: TransactionId here is NOT a real FK — FraudFlags DB != Ledger DB
+// Application layer enforces the relationship — same database-per-service trade-off as everywhere</code></pre>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="a"><span class="num">3</span> Security Deep Dive</h2>
+  <div class="card">
+    <div class="ct a">The Three Layers of Admin Authorization</div>
+    <table>
+      <tr><th>Layer</th><th>Where</th><th>What It Does</th></tr>
+      <tr><td>1. JWT Validation</td><td>Ocelot Gateway</td><td>Validates JWT signature. If invalid → 401 before request reaches Admin Service.</td></tr>
+      <tr><td>2. Role Claim Check</td><td>ASP.NET Core Middleware</td><td>Reads <span class="ic">Role</span> claim from valid JWT. If not "Admin" → 403. Class-level attribute catches all endpoints.</td></tr>
+      <tr><td>3. FlaggedByUserId from JWT</td><td>Controller code</td><td>Even if a non-admin somehow got through, the audit trail records who flagged — never user-supplied.</td></tr>
+    </table>
+    <p style="margin-top:8px">This is <strong>defense in depth</strong> — three independent layers, each protecting against a different failure mode.</p>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="a"><span class="num">4</span> Interview Q&A — Admin</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why is the dashboard showing 0 for most stats? Is this a bug or a design choice? <span>▼</span></div>
+    <div class="qa-a">It's an honest known gap, not a bug. Populating TotalUsers, TotalTransactions etc. requires Admin Service to call Auth, Ledger, and UserProfile services via HTTP. This is cross-service synchronous coupling — and for a dashboard that's refreshed frequently, it could cause cascading latency.<br><br>The production fix: use IHttpClientFactory with typed clients to call each service. Register them in Program.cs with base addresses. The admin's JWT gets forwarded as a Bearer header on each call. A more advanced approach is CQRS with a read model — each service publishes events that Admin subscribes to, maintaining its own materialized view of aggregate stats. This avoids synchronous calls entirely.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: Why is [Authorize(Roles = "Admin")] at the class level, not the method level? <span>▼</span></div>
+    <div class="qa-a">Security by default. If the authorization attribute is on each method, a developer adding a new endpoint to AdminController might forget to add the attribute — that endpoint would then be publicly accessible. In an admin-only service, that's a critical vulnerability.<br><br>Class-level authorization means every endpoint in the controller is Admin-only by default. If you specifically want to expose one endpoint publicly (unlikely for Admin), you explicitly add [AllowAnonymous] — requiring active effort to make something less secure rather than more secure. Always make the secure path the default path.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: What would you add to Admin Service to make it production-grade? <span>▼</span></div>
+    <div class="qa-a">Four things: (1) Dashboard cross-service data — typed HttpClient factories calling Auth, Ledger, UserProfile with cached responses (5-minute Redis cache for aggregate stats). (2) FraudFlag resolution — a PATCH endpoint to mark flags as resolved with a resolution message. (3) Audit logging — every admin action (who flagged what, when, and why) written to a separate AuditLog table. (4) Role granularity — "Super Admin" vs "Support Agent" roles with different permission levels. Right now "Admin" is one undifferentiated role — a support agent and a super admin have identical access.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="a"><span class="num">5</span> 30s + 2min Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ct a">⚡ 30-Second</div>
+    <p>Admin Service is intentionally minimal. It owns fraud flagging — the ability for admins to mark transactions for investigation. Class-level [Authorize(Roles="Admin")] protects all endpoints. FlaggedByUserId always comes from the JWT, never the request body — audit trail. One FraudFlag per transaction enforced by a unique index. Dashboard currently shows 0 for cross-service stats — this is a known gap requiring typed HttpClient calls to Auth/Ledger/UserProfile services.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--aa)">
+    <div class="ct a">🎯 2-Minute Deep Dive</div>
+    <p>The key architectural decision was to keep Admin Service lean rather than duplicating data from other services. We removed the AdminUser and AdminKyc controllers because they would have required HTTP calls to Auth and UserProfile services — introducing coupling without adding unique value that those services don't already provide.</p>
+    <p>Authorization is layered: the Ocelot Gateway validates the JWT signature, ASP.NET Core middleware checks the Role claim against the class-level attribute, and the code extracts FlaggedByUserId from the JWT rather than accepting it from the client. Three independent guards.</p>
+    <p>The honest production gap: the dashboard hardcodes 0 for aggregate stats. The fix uses IHttpClientFactory registered in Program.cs — typed clients for each service, forwarding the admin's JWT as a Bearer header. For better scalability, a CQRS read model maintained by event subscriptions would avoid synchronous cross-service calls entirely.</p>
+  </div>
+</div>
+</div><!-- end admin -->
+
+<!-- ═══ CHATBOT ═══ -->
+<div id="c-pane" class="pane">
+<div class="hero c">
+  <h1>Python Chatbot Service</h1>
+  <p>FastAPI + Anthropic Claude API — polyglot microservice, multi-turn AI assistant</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">1</div><div class="lbl">Endpoint</div></div>
+    <div class="stat"><div class="val">Python</div><div class="lbl">Language</div></div>
+    <div class="stat"><div class="val">FastAPI</div><div class="lbl">Framework</div></div>
+    <div class="stat"><div class="val">Claude</div><div class="lbl">AI Model</div></div>
+    <div class="stat"><div class="val">5010</div><div class="lbl">Port</div></div>
+    <div class="stat"><div class="val">0</div><div class="lbl">.NET deps</div></div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">1</span> Service Context</h2>
+  <div class="card">
+    <div class="ct c">Exact Responsibility</div>
+    <p>The chatbot is a <strong>completely independent polyglot microservice</strong> — written in Python, not .NET. It handles natural language FAQ for the platform: "how do I top up?", "why is my KYC pending?", "how do I earn points?" It uses the Anthropic Claude API with a custom system prompt tailored to WalletPlatform.</p>
+    <p>It is the perfect example of microservices enabling polyglot architecture — the best tool for the job. AI/NLP is Python's domain; this service uses Python while the rest of the platform stays in .NET. The two stacks never directly depend on each other.</p>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="ct c">Architecture Position</div>
+      <ul style="font-size:.87rem;padding-left:16px;line-height:2">
+        <li><strong>Zero .NET dependencies</strong> — completely independent process</li>
+        <li><strong>Angular frontend calls it directly</strong> — POST /api/chat</li>
+        <li><strong>Multi-turn conversation</strong> — history passed in every request</li>
+        <li><strong>Optional live data enrichment</strong> — can call gateway for rewards data</li>
+        <li><strong>No RabbitMQ, no SQL Server</strong> — stateless, no persistence</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ct c">💥 The 502 Error Story (Interview Gold)</div>
+      <p><strong>Root cause:</strong> <span class="ic">google-generativeai</span> package was installed alongside <span class="ic">anthropic</span>. It monkey-patched HTTP client configuration, routing requests to Gemini instead of Anthropic API. Gateway received the Gemini error — 502 Bad Gateway.</p>
+      <p><strong>Fix:</strong> Clean venv + <span class="ic">pip install anthropic==0.28.0</span> only. No other AI packages in the same environment.</p>
+      <p><strong>Lesson:</strong> Always pin AI SDK versions. Never install competing AI provider SDKs in the same venv.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">2</span> Deep File Review</h2>
+
+  <div class="card">
+    <div class="ct c">📄 main.py — The Entire Service</div>
+    <div class="py-block"><span class="py-kw">from</span> fastapi <span class="py-kw">import</span> FastAPI
+<span class="py-kw">from</span> fastapi.middleware.cors <span class="py-kw">import</span> CORSMiddleware
+<span class="py-kw">from</span> pydantic <span class="py-kw">import</span> BaseModel
+<span class="py-kw">from</span> anthropic <span class="py-kw">import</span> Anthropic
+<span class="py-kw">from</span> dotenv <span class="py-kw">import</span> load_dotenv
+<span class="py-kw">import</span> os
+<span class="py-kw">from</span> typing <span class="py-kw">import</span> List
+
+load_dotenv()  <span class="py-cm"># loads ANTHROPIC_API_KEY from .env</span>
+
+app = FastAPI(title=<span class="py-str">"WalletPlatform Chatbot"</span>)
+
+<span class="py-cm"># CORS — Angular runs on different port, needs to be allowed</span>
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[<span class="py-str">"http://localhost:4200"</span>],  <span class="py-cm"># Angular dev server</span>
+    allow_methods=[<span class="py-str">"*"</span>],
+    allow_headers=[<span class="py-str">"*"</span>],
+)
+
+client = Anthropic()  <span class="py-cm"># reads ANTHROPIC_API_KEY from env automatically</span>
+
+<span class="py-cm"># Request model — history is the full conversation so far</span>
+<span class="py-kw">class</span> <span class="py-dec">ChatMessage</span>(BaseModel):
+    role: str      <span class="py-cm"># "user" or "assistant"</span>
+    content: str
+
+<span class="py-kw">class</span> <span class="py-dec">ChatRequest</span>(BaseModel):
+    message: str                    <span class="py-cm"># latest user message</span>
+    history: List[ChatMessage] = [] <span class="py-cm"># full conversation history</span>
+
+SYSTEM_PROMPT = <span class="py-str">"""
+You are a helpful assistant for WalletPlatform, a digital wallet app.
+You help users with:
+- How to top up their wallet
+- How to make transfers
+- Understanding their KYC status
+- Rewards points and tier system (Bronze/Silver/Gold)
+- Redeeming points in the catalog
+- Transaction history and receipts
+
+Keep responses concise and helpful. If unsure, say so.
+"""</span>
+
+<span class="py-dec">@app.post</span>(<span class="py-str">"/api/chat"</span>)
+<span class="py-kw">async def</span> <span class="py-fn">chat</span>(request: ChatRequest):
+    <span class="py-cm"># Build messages array: history + new user message</span>
+    messages = [
+        {<span class="py-str">"role"</span>: msg.role, <span class="py-str">"content"</span>: msg.content}
+        <span class="py-kw">for</span> msg <span class="py-kw">in</span> request.history
+    ]
+    messages.append({<span class="py-str">"role"</span>: <span class="py-str">"user"</span>, <span class="py-str">"content"</span>: request.message})
+
+    <span class="py-cm"># Call Anthropic API — claude-sonnet model</span>
+    response = client.messages.create(
+        model=<span class="py-str">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="py-str">1024</span>,
+        system=SYSTEM_PROMPT,     <span class="py-cm"># platform context</span>
+        messages=messages         <span class="py-cm"># full conversation incl. new message</span>
+    )
+
+    <span class="py-kw">return</span> {
+        <span class="py-str">"response"</span>: response.content[0].text,
+        <span class="py-str">"model"</span>:    response.model
+    }</div>
+    <div class="callout callout-emerald"><strong>Why pass full history on every request?</strong> Claude has no memory between API calls — each call is stateless. To maintain conversation context ("earlier you mentioned you were having trouble with KYC..."), the frontend must send the entire conversation history on every request. The service is therefore completely stateless — it holds no session state. This means it's trivially horizontally scalable: any instance can handle any request.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct c">📄 .env + requirements.txt — Minimal Configuration</div>
+    <pre><code># .env (excluded from git by .gitignore)
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# requirements.txt — PINNED — this is critical
+anthropic==0.28.0
+fastapi==0.110.0
+uvicorn==0.29.0
+python-dotenv==1.0.0
+pydantic==2.6.4
+# DO NOT ADD: google-generativeai — causes 502 error (package conflict)</code></pre>
+
+    <pre><code># How to run
+python -m venv venv
+venv\Scripts\activate          # Windows
+pip install -r requirements.txt
+uvicorn main:app --port 5010 --reload</code></pre>
+    <div class="callout callout-red"><strong>Why pin anthropic==0.28.0?</strong> The Anthropic Python SDK changes its API surface across versions. A newer version might rename methods, change the response format, or alter authentication. Pinning ensures the code works identically in every environment. For production, test upgrades in a branch before changing the pin.</div>
+  </div>
+
+  <div class="card">
+    <div class="ct c">The 502 Error — Root Cause and Fix in Detail</div>
+    <pre><code># WHAT WENT WRONG:
+pip install google-generativeai   # ← this was installed accidentally
+pip install anthropic==0.28.0
+
+# google-generativeai patches HTTP clients at import time
+# When anthropic client initialises, google-generativeai has already
+# changed the default API endpoint configuration
+# Requests to Anthropic API got routed to Google's endpoint instead
+# Google returned an error → Ocelot received it → 502 Bad Gateway
+
+# THE FIX — completely clean environment:
+deactivate
+rmdir /s venv            # Windows — delete the entire venv
+python -m venv venv      # fresh venv
+venv\Scripts\activate
+pip install anthropic==0.28.0   # ONLY this package (+ fastapi, uvicorn, etc.)
+# Never install competing AI SDK packages in the same environment
+
+# VERIFY the environment is clean:
+pip list | findstr google   # Windows — should return nothing
+pip list | findstr gemini   # should return nothing</code></pre>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">3</span> Multi-Turn Conversation Flow</h2>
+  <div class="card">
+    <div class="ct c">How History Works Across Turns</div>
+    <pre><code>// Turn 1: Angular sends
+POST /api/chat
+{ "message": "How do I top up my wallet?", "history": [] }
+
+// Service sends to Claude:
+messages = [{ "role": "user", "content": "How do I top up my wallet?" }]
+// Claude responds: "You can top up by going to..."
+
+// Turn 2: Angular sends
+POST /api/chat
+{
+  "message": "What's the maximum amount?",
+  "history": [
+    { "role": "user",      "content": "How do I top up my wallet?" },
+    { "role": "assistant", "content": "You can top up by going to..." }
+  ]
+}
+
+// Service sends to Claude:
+messages = [
+  { "role": "user",      "content": "How do I top up my wallet?" },
+  { "role": "assistant", "content": "You can top up by going to..." },
+  { "role": "user",      "content": "What's the maximum amount?" }
+]
+// Claude has full context — understands "maximum amount" refers to top-up</code></pre>
+    <p><strong>Who manages history?</strong> The Angular frontend. It maintains the conversation array in component state, appending each exchange. The chatbot service is stateless — it receives history, calls Claude, returns response. The frontend appends the response to history for the next turn.</p>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">4</span> Architecture Significance — Polyglot Microservices</h2>
+  <div class="card">
+    <div class="ct c">Why This Service Demonstrates Real Microservices Understanding</div>
+    <table>
+      <tr><th>Property</th><th>Chatbot Service</th><th>All .NET Services</th></tr>
+      <tr><td>Language</td><td>Python 3.11</td><td>C# / .NET 10</td></tr>
+      <tr><td>Framework</td><td>FastAPI (ASGI)</td><td>ASP.NET Core (Kestrel)</td></tr>
+      <tr><td>Database</td><td>None</td><td>SQL Server per service</td></tr>
+      <tr><td>Messaging</td><td>None</td><td>RabbitMQ</td></tr>
+      <tr><td>Dependency on other services</td><td>Zero (optional gateway call)</td><td>Events only</td></tr>
+      <tr><td>Deployment unit</td><td>Python process on port 5010</td><td>.NET process per service</td></tr>
+    </table>
+    <div class="callout callout-emerald"><strong>The interview point:</strong> "We have a Python chatbot service that coexists with 9 .NET services. They communicate only through HTTP — the chatbot has zero knowledge of .NET, EF Core, RabbitMQ, or SQL Server. This is polyglot microservices: each service uses the best technology for its domain. AI/NLP tooling is vastly richer in Python; financial transaction processing is more naturally in .NET with its type system and EF Core."</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">5</span> Interview Q&A — Chatbot</h2>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why is the chatbot in Python instead of .NET? <span>▼</span></div>
+    <div class="qa-a">Two reasons. First, practical: the Anthropic Python SDK is the most mature and best-documented client. Python has the richest AI/ML ecosystem — langchain, embeddings, vector databases — all available if we want to extend the chatbot later. The .NET SDK exists but has less community support.<br><br>Second, architectural: microservices enable polyglot architecture — use the best tool for each domain. AI processing is Python's domain. Financial transaction processing is .NET's domain. As long as they communicate via HTTP, they never need to know what language the other is written in. This is the key microservices benefit: independent technology stacks per service.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: The service is stateless — how does it maintain conversation context? <span>▼</span></div>
+    <div class="qa-a">The frontend manages state. Every request to POST /api/chat includes the complete conversation history as an array of {role, content} objects. The service appends the new user message, sends the full array to Claude, and returns the response. It stores nothing between requests.<br><br>This is correct design for a horizontally scalable service. If you have 3 chatbot instances behind a load balancer, any instance can handle any request from any user because the request is self-contained — it carries all the context needed. If state were in the service, you'd need sticky sessions or a shared session store like Redis.</div>
+  </div>
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: What caused the 502 error and what does it tell you about dependency management? <span>▼</span></div>
+    <div class="qa-a">google-generativeai was installed alongside anthropic in the same virtual environment. The Google package patches Python's HTTP client configuration at import time — when Anthropic initialises its client, the endpoint routing was already corrupted, directing requests to Google's API instead. Google's API returned an error that Ocelot received and surfaced as 502.<br><br>The fix: delete the venv entirely and recreate it with only the required packages — no competing AI SDKs. The lesson: virtual environments provide isolation between projects but not between packages within the same project. Competing packages from the same domain (AI/ML providers) often conflict at the HTTP client level. Always pin versions in requirements.txt and audit dependencies before adding new ones to an existing environment.</div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="c"><span class="num">6</span> 30s + 2min Pitch</h2>
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ct c">⚡ 30-Second</div>
+    <p>The chatbot is a Python FastAPI service on port 5010, completely independent from the .NET stack. It exposes one endpoint — POST /api/chat — which receives the user message and full conversation history, calls the Anthropic Claude API with a WalletPlatform system prompt, and returns the response. The service is stateless; the Angular frontend manages conversation history. We had a 502 error caused by google-generativeai package conflict — fixed by clean venv with only anthropic==0.28.0.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--ca)">
+    <div class="ct c">🎯 2-Minute Deep Dive</div>
+    <p>The chatbot demonstrates polyglot microservices — the principle that each service uses the best technology for its domain. AI processing belongs in Python; financial transaction processing belongs in .NET. They communicate only via HTTP, completely ignorant of each other's internal implementation.</p>
+    <p>The stateless design is important. Every request carries the complete conversation history — no session state stored in the service. This means any chatbot instance handles any request, making horizontal scaling trivial. FastAPI's async support with uvicorn means the service can handle many concurrent AI calls without blocking.</p>
+    <p>The 502 debugging story is interview-worthy. The root cause was a Python dependency conflict — google-generativeai patched the HTTP client at import time, redirecting Anthropic API calls to Google's endpoint. The fix was a clean virtual environment with pinned package versions. This highlights why requirements.txt version pinning and clean venv isolation are production necessities, not optional practices. It also shows the importance of understanding your dependency graph in AI services where SDK ecosystems often have overlapping HTTP client configurations.</p>
+  </div>
+</div>
+</div><!-- end chatbot -->
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.tab.'+t).classList.add('active');
+  document.getElementById(t+'-pane').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function toggle(el){
+  const a=el.nextElementSibling;
+  a.classList.toggle('open');
+  el.querySelector('span').textContent=a.classList.contains('open')?'▲':'▼';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>.NET & Full Stack — Developer Study Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --border: #1e2330;
+    --accent: #5af0c0;
+    --accent2: #f0c45a;
+    --accent3: #c45af0;
+    --text: #d4dbe8;
+    --muted: #6b7a99;
+    --heading: #ffffff;
+    --code-bg: #0a0c10;
+    --tag-bg: #1a2540;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding-bottom: 40px;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+
+  .sidebar-header .logo {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: -1px;
+    display: block;
+  }
+
+  .sidebar-header .sub {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .search-box {
+    margin: 16px 16px 0;
+    position: relative;
+  }
+
+  .search-box input {
+    width: 100%;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    outline: none;
+  }
+
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .nav-section { padding: 8px 0; }
+
+  .nav-cat {
+    padding: 10px 20px 4px;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-cat::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .nav-link {
+    display: block;
+    padding: 5px 20px 5px 28px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 11px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    background: rgba(90,240,192,0.04);
+    padding-left: 30px;
+  }
+
+  /* MAIN */
+  #main {
+    margin-left: 260px;
+    padding: 60px 80px;
+    max-width: 1100px;
+  }
+
+  .page-header {
+    margin-bottom: 60px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+  }
+
+  .page-header h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+
+  .page-header h1 span { color: var(--accent); }
+
+  .page-header p {
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 70px;
+    scroll-margin-top: 30px;
+  }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-title .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(90,240,192,0.1);
+    border: 1px solid rgba(90,240,192,0.2);
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-weight: 400;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 24px;
+    padding-left: 2px;
+  }
+
+  /* TOPIC CARDS */
+  .topics-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .topic {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .topic:hover { border-color: #2a3350; }
+
+  .topic-header {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    user-select: none;
+  }
+
+  .topic-header:hover { background: rgba(255,255,255,0.02); }
+
+  .topic-arrow {
+    color: var(--muted);
+    font-size: 10px;
+    margin-top: 2px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+
+  .topic.open .topic-arrow { transform: rotate(90deg); color: var(--accent); }
+
+  .topic-name {
+    font-size: 12.5px;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.5;
+  }
+
+  .topic.open .topic-name { color: var(--heading); }
+
+  .topic-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .tag {
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+  }
+
+  .tag.core { color: var(--accent); border-color: rgba(90,240,192,0.2); background: rgba(90,240,192,0.06); }
+  .tag.advanced { color: var(--accent2); border-color: rgba(240,196,90,0.2); background: rgba(240,196,90,0.06); }
+  .tag.db { color: var(--accent3); border-color: rgba(196,90,240,0.2); background: rgba(196,90,240,0.06); }
+
+  .topic-body {
+    display: none;
+    padding: 0 18px 18px 40px;
+    border-top: 1px solid var(--border);
+  }
+
+  .topic.open .topic-body { display: block; }
+
+  .topic-body p {
+    color: var(--text);
+    margin: 14px 0 10px;
+    font-size: 12.5px;
+    line-height: 1.9;
+  }
+
+  .topic-body h4 {
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .topic-body ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .topic-body ul li {
+    padding: 3px 0 3px 14px;
+    color: var(--text);
+    font-size: 12px;
+    position: relative;
+    line-height: 1.7;
+  }
+
+  .topic-body ul li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+  }
+
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 11.5px;
+    color: #c8d3e8;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+
+  .code-block .kw { color: #c678dd; }
+  .code-block .cls { color: #e5c07b; }
+  .code-block .str { color: #98c379; }
+  .code-block .cmt { color: #5c6370; font-style: italic; }
+  .code-block .num { color: #d19a66; }
+  .code-block .fn { color: #61afef; }
+
+  .note-box {
+    background: rgba(90,240,192,0.04);
+    border: 1px solid rgba(90,240,192,0.15);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 11.5px;
+    color: var(--text);
+  }
+
+  .note-box strong { color: var(--accent); }
+
+  .warn-box {
+    background: rgba(240,196,90,0.04);
+    border: 1px solid rgba(240,196,90,0.15);
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    font-size: 11.5px;
+    color: var(--text);
+  }
+
+  .warn-box strong { color: var(--accent2); }
+
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+    margin: 12px 0;
+  }
+
+  .compare-table th {
+    background: var(--code-bg);
+    color: var(--accent);
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+  }
+
+  .compare-table td {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .compare-table tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
+
+  /* Progress bar */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 260px; right: 0;
+    height: 2px;
+    background: var(--border);
+    z-index: 200;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    width: 0%;
+    transition: width 0.1s;
+  }
+
+  /* Back to top */
+  #btt {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0;
+  }
+
+  #btt:hover { color: var(--accent); border-color: var(--accent); }
+  #btt.visible { opacity: 1; }
+
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #main { margin-left: 0; padding: 30px 20px; }
+    .progress-bar { left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <span class="logo">// devnotes</span>
+    <span class="sub">.NET Full Stack Curriculum</span>
+  </div>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="search topics..." autocomplete="off">
+  </div>
+  <div class="nav-section" id="navLinks">
+    <div class="nav-cat">Foundation</div>
+    <a class="nav-link" href="#s1">01 · .NET Framework & Core</a>
+    <a class="nav-link" href="#s2">02 · C# Language Basics</a>
+    <a class="nav-link" href="#s3">03 · OOP in C#</a>
+    <a class="nav-link" href="#s4">04 · Advanced C# Features</a>
+    <a class="nav-link" href="#s5">05 · Exception & Memory Mgmt</a>
+    <a class="nav-link" href="#s6">06 · Collections & Generics</a>
+    <a class="nav-link" href="#s7">07 · Delegates, Events & LINQ</a>
+    <a class="nav-link" href="#s8">08 · File I/O & Serialization</a>
+    <a class="nav-link" href="#s9">09 · Threading & Async</a>
+    <a class="nav-link" href="#s10">10 · C# 8 / 10 / 12 Features</a>
+    <div class="nav-cat">Database</div>
+    <a class="nav-link" href="#s11">11 · SQL & MySQL Fundamentals</a>
+    <a class="nav-link" href="#s12">12 · Advanced SQL</a>
+    <a class="nav-link" href="#s13">13 · ADO.NET</a>
+    <a class="nav-link" href="#s14">14 · Entity Framework</a>
+    <div class="nav-cat">Backend</div>
+    <a class="nav-link" href="#s15">15 · ASP.NET MVC</a>
+    <a class="nav-link" href="#s16">16 · Web APIs (REST)</a>
+    <a class="nav-link" href="#s17">17 · Authentication & JWT</a>
+    <div class="nav-cat">Frontend</div>
+    <a class="nav-link" href="#s18">18 · HTML, CSS & JS Basics</a>
+    <a class="nav-link" href="#s19">19 · TypeScript</a>
+    <a class="nav-link" href="#s20">20 · Angular</a>
+    <div class="nav-cat">Tools</div>
+    <a class="nav-link" href="#s21">21 · Git & Azure Repos</a>
+    <a class="nav-link" href="#s22">22 · Selenium Testing</a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+  <div class="page-header">
+    <h1>.NET Full Stack<br><span>Developer Notes</span></h1>
+    <p>Click any topic to expand → read the concept → see the code → understand why it matters</p>
+  </div>
+
+  <!-- ===================== SECTION 1 ===================== -->
+  <section class="section" id="s1">
+    <div class="section-title"><span class="num">01</span> .NET Framework & Core</div>
+    <div class="section-desc">The platform that runs your C# code — what it is, how it compiles, and where .NET Core fits in.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">What is .NET Platform? What is .NET Framework?</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p><strong>.NET Platform</strong> is Microsoft's developer ecosystem — a collection of tools, languages, and runtimes that let you build applications for Windows, web, mobile, cloud, and more.</p>
+          <p><strong>.NET Framework</strong> is the original Windows-only implementation of that platform. It includes the CLR (runtime), BCL (base class library), and supports languages like C#, VB.NET, F#.</p>
+          <h4>Quick mental model</h4>
+          <ul>
+            <li>Think of .NET Platform = the idea/specification</li>
+            <li>.NET Framework = Windows-only older implementation (v1.0–v4.8)</li>
+            <li>.NET Core / .NET 5+ = cross-platform modern implementation</li>
+            <li>Mono = community cross-platform implementation (used in Xamarin)</li>
+          </ul>
+          <h4>Architecture layers</h4>
+          <div class="code-block">
+┌────────────────────────────────────┐
+│     Your App (C# / VB.NET / F#)    │
+├────────────────────────────────────┤
+│       BCL — Base Class Library     │  ← String, List, File, etc.
+├────────────────────────────────────┤
+│   CLR — Common Language Runtime    │  ← Manages execution, GC, JIT
+├────────────────────────────────────┤
+│         Operating System           │
+└────────────────────────────────────┘
+          </div>
+          <div class="note-box"><strong>Why it matters:</strong> Every feature you use in C# — from <code>string</code> to async/await — is provided either by the CLR or BCL. Knowing the layers helps you debug and make architecture decisions.</div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">CLR — Common Language Runtime</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p>The CLR is the virtual machine that runs your .NET code. You write C# → compiler produces IL (Intermediate Language) → CLR's JIT compiler converts IL to native machine code at runtime.</p>
+          <h4>What CLR manages for you</h4>
+          <ul>
+            <li><strong>JIT Compilation</strong> — converts IL → native code per method, on first call</li>
+            <li><strong>Garbage Collection</strong> — automatic memory management, no manual free()</li>
+            <li><strong>Type Safety</strong> — prevents illegal memory access</li>
+            <li><strong>Exception Handling</strong> — structured try/catch/finally across languages</li>
+            <li><strong>Thread Management</strong> — managed threads, thread pool</li>
+            <li><strong>Security</strong> — Code Access Security (CAS)</li>
+          </ul>
+          <h4>Compilation flow</h4>
+          <div class="code-block">
+C# Code (.cs)
+    ↓  [C# Compiler — csc.exe / Roslyn]
+IL Code (.dll / .exe)  ←— language-agnostic
+    ↓  [CLR JIT Compiler — at runtime]
+Native Machine Code
+    ↓
+CPU Executes
+          </div>
+          <div class="note-box"><strong>CLS & CTS:</strong> CLS (Common Language Specification) = rules all .NET languages must follow. CTS (Common Type System) = defines how types work so C# and VB.NET can share objects.</div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">.NET Core — Overview, Versions, Composition, DI</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p>.NET Core is the cross-platform, open-source rewrite of .NET Framework. It runs on Windows, Linux, and macOS. From .NET 5 onward the name became simply ".NET".</p>
+          <h4>Key differences from .NET Framework</h4>
+          <table class="compare-table">
+            <tr><th>.NET Framework</th><th>.NET Core / .NET 5+</th></tr>
+            <tr><td>Windows only</td><td>Cross-platform</td></tr>
+            <tr><td>Installed machine-wide</td><td>Can be self-contained in app folder</td></tr>
+            <tr><td>System.Web (heavy)</td><td>Middleware pipeline (lightweight)</td></tr>
+            <tr><td>No built-in DI</td><td>Built-in Dependency Injection</td></tr>
+            <tr><td>Max v4.8, no new features</td><td>Active development, .NET 8+ LTS</td></tr>
+          </table>
+          <h4>Dependency Injection (DI)</h4>
+          <p>DI is a design pattern where objects receive their dependencies from outside rather than creating them. .NET Core has a built-in IoC container.</p>
+          <div class="code-block">
+<span class="cmt">// Register in Program.cs</span>
+builder.Services.<span class="fn">AddScoped</span>&lt;<span class="cls">IOrderService</span>, <span class="cls">OrderService</span>&gt;();
+
+<span class="cmt">// Inject via constructor — no "new" keyword needed</span>
+<span class="kw">public class</span> <span class="cls">OrderController</span>(<span class="cls">IOrderService</span> orderService)
+{
+    <span class="kw">private readonly</span> <span class="cls">IOrderService</span> _svc = orderService;
+}
+          </div>
+          <h4>Service lifetimes</h4>
+          <ul>
+            <li><strong>AddSingleton</strong> — one instance for the entire app lifetime</li>
+            <li><strong>AddScoped</strong> — one instance per HTTP request</li>
+            <li><strong>AddTransient</strong> — new instance every time it's requested</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 2 ===================== -->
+  <section class="section" id="s2">
+    <div class="section-title"><span class="num">02</span> C# Language Basics</div>
+    <div class="section-desc">Types, variables, arrays, and the quirks you'll hit daily.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Value Types vs Reference Types · Boxing & Unboxing</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p><strong>Value types</strong> store data directly in memory (stack). <strong>Reference types</strong> store a pointer to data on the heap.</p>
+          <table class="compare-table">
+            <tr><th>Value Types</th><th>Reference Types</th></tr>
+            <tr><td>int, float, double, bool, char, struct, enum</td><td>class, string, array, interface, delegate</td></tr>
+            <tr><td>Stored on Stack</td><td>Stored on Heap, pointer on Stack</td></tr>
+            <tr><td>Copy on assignment</td><td>Reference copy on assignment</td></tr>
+            <tr><td>No null (unless Nullable&lt;T&gt;)</td><td>Can be null</td></tr>
+          </table>
+          <div class="code-block">
+<span class="kw">int</span> a = <span class="num">5</span>;
+<span class="kw">int</span> b = a;  <span class="cmt">// b gets a COPY — changing b doesn't change a</span>
+
+<span class="cls">Person</span> p1 = <span class="kw">new</span> <span class="cls">Person</span> { Name = <span class="str">"Anuska"</span> };
+<span class="cls">Person</span> p2 = p1;  <span class="cmt">// p2 points to SAME object — changing p2.Name changes p1.Name!</span>
+          </div>
+          <h4>Boxing & Unboxing</h4>
+          <p><strong>Boxing</strong> = wrapping a value type in an object (goes to heap). <strong>Unboxing</strong> = pulling it back out. Both are performance-heavy — avoid in hot paths.</p>
+          <div class="code-block">
+<span class="kw">int</span> x = <span class="num">42</span>;
+<span class="kw">object</span> boxed = x;        <span class="cmt">// Boxing — heap allocation happens here</span>
+<span class="kw">int</span> unboxed = (<span class="kw">int</span>)boxed;  <span class="cmt">// Unboxing — explicit cast required</span>
+          </div>
+          <div class="warn-box"><strong>⚠ Performance tip:</strong> Generics (List&lt;int&gt;) avoid boxing. Always prefer generics over non-generic collections like ArrayList when possible.</div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Arrays — Single, Multi-dimensional, Jagged</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Single dimensional</span>
+<span class="kw">int</span>[] nums = { <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span> };
+
+<span class="cmt">// Multi-dimensional (rectangular — every row same length)</span>
+<span class="kw">int</span>[,] grid = <span class="kw">new</span> <span class="kw">int</span>[<span class="num">3</span>,<span class="num">3</span>];
+grid[<span class="num">0</span>,<span class="num">0</span>] = <span class="num">5</span>;
+
+<span class="cmt">// Jagged — array of arrays (rows can differ in length)</span>
+<span class="kw">int</span>[][] jagged = <span class="kw">new</span> <span class="kw">int</span>[<span class="num">3</span>][];
+jagged[<span class="num">0</span>] = <span class="kw">new</span> <span class="kw">int</span>[] { <span class="num">1</span>, <span class="num">2</span> };
+jagged[<span class="num">1</span>] = <span class="kw">new</span> <span class="kw">int</span>[] { <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span> };
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">var vs dynamic · Nullable Types · ref vs out · is vs as</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <h4>var vs dynamic</h4>
+          <table class="compare-table">
+            <tr><th>var</th><th>dynamic</th></tr>
+            <tr><td>Type inferred at compile-time — still statically typed</td><td>Type resolved at runtime — bypasses static checks</td></tr>
+            <tr><td>var x = 5; → x is int forever</td><td>dynamic x = 5; x = "now a string"; ✓</td></tr>
+            <tr><td>Intellisense works</td><td>No compile-time intellisense</td></tr>
+            <tr><td>Zero runtime overhead</td><td>Small runtime overhead</td></tr>
+          </table>
+          <h4>Nullable Types</h4>
+          <div class="code-block">
+<span class="kw">int</span>? age = <span class="kw">null</span>;           <span class="cmt">// int? = Nullable&lt;int&gt;</span>
+<span class="kw">if</span> (age.<span class="fn">HasValue</span>)
+    Console.<span class="fn">WriteLine</span>(age.<span class="fn">Value</span>);
+
+<span class="kw">int</span> result = age ?? <span class="num">18</span>;  <span class="cmt">// Null-coalescing: use 18 if age is null</span>
+          </div>
+          <h4>ref vs out</h4>
+          <ul>
+            <li><strong>ref</strong> — variable must be initialized before passing; method can read AND write it</li>
+            <li><strong>out</strong> — variable doesn't need initialization; method MUST assign it before returning</li>
+          </ul>
+          <div class="code-block">
+<span class="kw">void</span> <span class="fn">Double</span>(<span class="kw">ref int</span> x) => x *= <span class="num">2</span>;
+<span class="kw">bool</span> ok = <span class="kw">int</span>.<span class="fn">TryParse</span>(<span class="str">"42"</span>, <span class="kw">out int</span> parsed);  <span class="cmt">// out — parsed assigned inside</span>
+          </div>
+          <h4>is vs as</h4>
+          <div class="code-block">
+<span class="kw">object</span> obj = <span class="str">"hello"</span>;
+
+<span class="cmt">// is — checks type, returns bool</span>
+<span class="kw">if</span> (obj <span class="kw">is string</span> s) <span class="cls">Console</span>.<span class="fn">WriteLine</span>(s.<span class="fn">ToUpper</span>());
+
+<span class="cmt">// as — attempts cast, returns null on failure (no exception)</span>
+<span class="kw">string</span> str = obj <span class="kw">as string</span>;  <span class="cmt">// null if obj isn't string</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">String vs StringBuilder · Parse vs TryParse vs Convert</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p><strong>string</strong> is immutable — every concatenation creates a new object. <strong>StringBuilder</strong> mutates a buffer in-place — use it in loops.</p>
+          <div class="code-block">
+<span class="cmt">// BAD — creates 1000 string objects in memory</span>
+<span class="kw">string</span> result = <span class="str">""</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < <span class="num">1000</span>; i++) result += i;
+
+<span class="cmt">// GOOD — one buffer, one final ToString()</span>
+<span class="kw">var</span> sb = <span class="kw">new</span> <span class="cls">StringBuilder</span>();
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i < <span class="num">1000</span>; i++) sb.<span class="fn">Append</span>(i);
+<span class="kw">string</span> result = sb.<span class="fn">ToString</span>();
+          </div>
+          <h4>Parse vs TryParse vs Convert</h4>
+          <table class="compare-table">
+            <tr><th>Method</th><th>On failure</th><th>Use when</th></tr>
+            <tr><td>int.Parse("abc")</td><td>Throws FormatException</td><td>You're sure it's valid</td></tr>
+            <tr><td>int.TryParse("abc", out x)</td><td>Returns false, x=0</td><td>User input — safest</td></tr>
+            <tr><td>Convert.ToInt32(null)</td><td>Returns 0 for null</td><td>Working with DB nulls</td></tr>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 3 ===================== -->
+  <section class="section" id="s3">
+    <div class="section-title"><span class="num">03</span> OOP in C#</div>
+    <div class="section-desc">Object-Oriented Programming concepts — the backbone of all .NET code.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Access Modifiers · Abstract · Sealed · Method Hiding</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <h4>Access Modifiers</h4>
+          <table class="compare-table">
+            <tr><th>Modifier</th><th>Accessible from</th></tr>
+            <tr><td>public</td><td>Anywhere</td></tr>
+            <tr><td>private</td><td>Same class only</td></tr>
+            <tr><td>protected</td><td>Same class + derived classes</td></tr>
+            <tr><td>internal</td><td>Same assembly (.dll/.exe)</td></tr>
+            <tr><td>protected internal</td><td>Same assembly OR derived class</td></tr>
+            <tr><td>private protected</td><td>Same class OR derived in same assembly</td></tr>
+          </table>
+          <h4>Abstract vs Sealed</h4>
+          <div class="code-block">
+<span class="cmt">// Abstract — cannot instantiate, child must implement abstract members</span>
+<span class="kw">abstract class</span> <span class="cls">Shape</span> {
+    <span class="kw">public abstract double</span> <span class="fn">Area</span>();           <span class="cmt">// no body</span>
+    <span class="kw">public virtual void</span> <span class="fn">Draw</span>() { ... }      <span class="cmt">// can override</span>
+}
+
+<span class="cmt">// Sealed — cannot be inherited (opposite of abstract)</span>
+<span class="kw">sealed class</span> <span class="cls">FinalClass</span> { }
+          </div>
+          <h4>Method Hiding (new keyword)</h4>
+          <div class="code-block">
+<span class="kw">class</span> <span class="cls">Base</span> { <span class="kw">public void</span> <span class="fn">Show</span>() => Console.<span class="fn">WriteLine</span>(<span class="str">"Base"</span>); }
+
+<span class="kw">class</span> <span class="cls">Child</span> : <span class="cls">Base</span> {
+    <span class="kw">public new void</span> <span class="fn">Show</span>() => Console.<span class="fn">WriteLine</span>(<span class="str">"Child"</span>);  <span class="cmt">// hides base</span>
+}
+
+<span class="cls">Base</span> obj = <span class="kw">new</span> <span class="cls">Child</span>();
+obj.<span class="fn">Show</span>();  <span class="cmt">// "Base" — hiding is NOT polymorphism</span>
+<span class="cmt">// Use override (with virtual) for true polymorphism</span>
+          </div>
+          <div class="warn-box"><strong>Hiding vs Overriding:</strong> override + virtual = runtime polymorphism. new (hiding) = compile-time, based on declared type. Hiding is usually a design smell.</div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Interfaces · Interface Inheritance · Properties in Interfaces</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p>An interface defines a contract — what methods/properties a class must have, without saying how. A class can implement multiple interfaces (unlike inheritance — only one base class).</p>
+          <div class="code-block">
+<span class="kw">interface</span> <span class="cls">IAnimal</span> {
+    <span class="kw">string</span> Name { <span class="kw">get</span>; }         <span class="cmt">// property in interface</span>
+    <span class="kw">void</span> <span class="fn">MakeSound</span>();
+    <span class="kw">string</span> <span class="fn">Describe</span>() => <span class="str">$"I am {Name}"</span>; <span class="cmt">// default impl (C# 8+)</span>
+}
+
+<span class="kw">interface</span> <span class="cls">IPet</span> : <span class="cls">IAnimal</span> {   <span class="cmt">// interface inheritance</span>
+    <span class="kw">string</span> Owner { <span class="kw">get</span>; }
+}
+
+<span class="kw">class</span> <span class="cls">Dog</span> : <span class="cls">IPet</span> {
+    <span class="kw">public string</span> Name => <span class="str">"Rex"</span>;
+    <span class="kw">public string</span> Owner => <span class="str">"Alice"</span>;
+    <span class="kw">public void</span> <span class="fn">MakeSound</span>() => Console.<span class="fn">WriteLine</span>(<span class="str">"Woof!"</span>);
+}
+          </div>
+          <div class="note-box"><strong>When to use interface vs abstract class?</strong> Interface = capability contract (IDisposable, IComparable). Abstract class = shared base behavior with partial implementation. Use interfaces for "can do", abstract class for "is a".</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 4 ===================== -->
+  <section class="section" id="s4">
+    <div class="section-title"><span class="num">04</span> Advanced C# Features</div>
+    <div class="section-desc">Generics, extension methods, properties, indexers, and patterns that make C# expressive.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Generics — Classes, Methods, Constraints</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>Generics let you write type-safe, reusable code without knowing the type at design time. No boxing overhead. Compiler enforces correctness.</p>
+          <div class="code-block">
+<span class="cmt">// Generic class</span>
+<span class="kw">class</span> <span class="cls">Box</span>&lt;T&gt; {
+    <span class="kw">public</span> T Value { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="cmt">// Generic method</span>
+<span class="kw">T</span> <span class="fn">GetMax</span>&lt;T&gt;(T a, T b) <span class="kw">where</span> T : <span class="cls">IComparable</span>&lt;T&gt;
+    => a.<span class="fn">CompareTo</span>(b) &gt; <span class="num">0</span> ? a : b;
+
+<span class="cmt">// Constraints</span>
+<span class="kw">where</span> T : <span class="kw">class</span>        <span class="cmt">// must be reference type</span>
+<span class="kw">where</span> T : <span class="kw">struct</span>       <span class="cmt">// must be value type</span>
+<span class="kw">where</span> T : <span class="kw">new</span>()        <span class="cmt">// must have parameterless constructor</span>
+<span class="kw">where</span> T : <span class="cls">BaseClass</span>   <span class="cmt">// must inherit from BaseClass</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Extension Methods · Object Initializers · Anonymous Types · Partial Types</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <h4>Extension Methods</h4>
+          <p>Add methods to existing types without modifying them. Must be in a static class, first param is <code>this TypeName</code>.</p>
+          <div class="code-block">
+<span class="kw">public static class</span> <span class="cls">StringExtensions</span> {
+    <span class="kw">public static bool</span> <span class="fn">IsEmail</span>(<span class="kw">this string</span> s)
+        => s.<span class="fn">Contains</span>(<span class="str">'@'</span>) && s.<span class="fn">Contains</span>(<span class="str">'.'</span>);
+}
+<span class="cmt">// Usage:</span>
+<span class="str">"hello@world.com"</span>.<span class="fn">IsEmail</span>();  <span class="cmt">// true — reads like a native method</span>
+          </div>
+          <h4>Object Initializer</h4>
+          <div class="code-block">
+<span class="kw">var</span> p = <span class="kw">new</span> <span class="cls">Person</span> { Name = <span class="str">"Anuska"</span>, Age = <span class="num">24</span> };  <span class="cmt">// no separate assignment lines</span>
+          </div>
+          <h4>Anonymous Types</h4>
+          <div class="code-block">
+<span class="kw">var</span> anon = <span class="kw">new</span> { Name = <span class="str">"Alice"</span>, Score = <span class="num">95</span> };  <span class="cmt">// compiler generates class</span>
+Console.<span class="fn">WriteLine</span>(anon.Name);  <span class="cmt">// but type has no name — often used in LINQ projections</span>
+          </div>
+          <h4>Partial Types</h4>
+          <p>Split a class definition across multiple files. Useful for generated code (designer files) + your hand-written code.</p>
+          <div class="code-block">
+<span class="cmt">// File1.cs</span>
+<span class="kw">public partial class</span> <span class="cls">Order</span> { <span class="kw">public int</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; } }
+
+<span class="cmt">// File2.cs</span>
+<span class="kw">public partial class</span> <span class="cls">Order</span> { <span class="kw">public void</span> <span class="fn">Process</span>() { } }
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Regular Expressions in C#</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>Regex lets you match, search, and replace patterns in strings. Use <code>System.Text.RegularExpressions.Regex</code>.</p>
+          <div class="code-block">
+<span class="kw">using</span> System.Text.RegularExpressions;
+
+<span class="kw">string</span> email = <span class="str">"anuska@example.com"</span>;
+<span class="kw">bool</span> isValid = <span class="cls">Regex</span>.<span class="fn">IsMatch</span>(email, <span class="str">@"^[\w.-]+@[\w.-]+\.\w{2,}$"</span>);
+
+<span class="cmt">// Replace</span>
+<span class="kw">string</span> cleaned = <span class="cls">Regex</span>.<span class="fn">Replace</span>(<span class="str">"Hello   World"</span>, <span class="str">@"\s+"</span>, <span class="str">" "</span>);
+
+<span class="cmt">// Groups</span>
+<span class="kw">var</span> match = <span class="cls">Regex</span>.<span class="fn">Match</span>(<span class="str">"2024-05-03"</span>, <span class="str">@"(\d{4})-(\d{2})-(\d{2})"</span>);
+<span class="kw">string</span> year = match.Groups[<span class="num">1</span>].Value;  <span class="cmt">// "2024"</span>
+          </div>
+          <h4>Common patterns</h4>
+          <ul>
+            <li><code>\d</code> — digit, <code>\w</code> — word char, <code>\s</code> — whitespace</li>
+            <li><code>+</code> — one or more, <code>*</code> — zero or more, <code>?</code> — optional</li>
+            <li><code>^</code> — start, <code>$</code> — end, <code>[]</code> — character class</li>
+            <li><code>()</code> — capture group, <code>|</code> — OR</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 5 ===================== -->
+  <section class="section" id="s5">
+    <div class="section-title"><span class="num">05</span> Exception Handling & Memory Management</div>
+    <div class="section-desc">How .NET handles errors and reclaims memory — critical for production code.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Exception Handling — try/catch/finally · Custom Exceptions · Best Practices</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="kw">try</span> {
+    <span class="kw">int</span> result = <span class="num">10</span> / <span class="fn">GetDivisor</span>();
+}
+<span class="kw">catch</span> (<span class="cls">DivideByZeroException</span> ex) {
+    _logger.<span class="fn">LogError</span>(ex, <span class="str">"Division by zero"</span>);
+    <span class="kw">throw</span>;          <span class="cmt">// rethrow — preserves original stack trace</span>
+}
+<span class="kw">catch</span> (<span class="cls">Exception</span> ex) <span class="kw">when</span> (ex.<span class="fn">Message</span>.<span class="fn">Contains</span>(<span class="str">"timeout"</span>)) {  <span class="cmt">// exception filter</span>
+    <span class="kw">throw new</span> <span class="cls">AppException</span>(<span class="str">"Service timeout"</span>, ex);  <span class="cmt">// wrap with inner exception</span>
+}
+<span class="kw">finally</span> {
+    <span class="cmt">// ALWAYS runs — cleanup here (close connections etc.)</span>
+}
+          </div>
+          <h4>Custom Exception</h4>
+          <div class="code-block">
+<span class="kw">public class</span> <span class="cls">OrderNotFoundException</span> : <span class="cls">Exception</span> {
+    <span class="kw">public int</span> OrderId { <span class="kw">get</span>; }
+    <span class="kw">public</span> <span class="fn">OrderNotFoundException</span>(<span class="kw">int</span> id)
+        : <span class="kw">base</span>(<span class="str">$"Order {id} not found"</span>) => OrderId = id;
+}
+          </div>
+          <h4>Best Practices</h4>
+          <ul>
+            <li>Never catch Exception and swallow it silently — always log</li>
+            <li>Use specific exception types — catch the narrowest applicable type</li>
+            <li>Use <code>throw;</code> not <code>throw ex;</code> to preserve stack trace</li>
+            <li>Validate inputs early (guard clauses) to avoid exceptions altogether</li>
+            <li>Wrap exceptions with context using inner exceptions</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Garbage Collection · Finalize vs Dispose</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>The GC automatically finds unreachable objects and frees their memory. It uses a generational algorithm: Gen 0 (short-lived) → Gen 1 → Gen 2 (long-lived).</p>
+          <h4>GC Algorithm</h4>
+          <ul>
+            <li><strong>Mark</strong> — trace all reachable objects from GC roots (stack, static fields)</li>
+            <li><strong>Sweep</strong> — reclaim memory of unreachable objects</li>
+            <li><strong>Compact</strong> — defragment heap (moves objects together)</li>
+          </ul>
+          <h4>Finalize vs Dispose</h4>
+          <table class="compare-table">
+            <tr><th>Finalize (~Destructor)</th><th>Dispose (IDisposable)</th></tr>
+            <tr><td>Called by GC — unpredictable timing</td><td>Called explicitly by you or using block</td></tr>
+            <tr><td>Unmanaged resource cleanup</td><td>Any resource cleanup</td></tr>
+            <tr><td>Do NOT access managed objects (may be collected)</td><td>Can access managed objects</td></tr>
+          </table>
+          <div class="code-block">
+<span class="cmt">// Always use 'using' for IDisposable — auto-calls Dispose()</span>
+<span class="kw">using</span> <span class="kw">var</span> conn = <span class="kw">new</span> <span class="cls">SqlConnection</span>(connStr);
+conn.<span class="fn">Open</span>();
+<span class="cmt">// Dispose() called automatically when scope ends, even if exception thrown</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 6 ===================== -->
+  <section class="section" id="s6">
+    <div class="section-title"><span class="num">06</span> Collections & Generics</div>
+    <div class="section-desc">The data structures you'll use in 90% of your .NET code.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Collection Classes · Interfaces · Iterators</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <table class="compare-table">
+            <tr><th>Collection</th><th>Key characteristics</th><th>Use when</th></tr>
+            <tr><td>List&lt;T&gt;</td><td>Dynamic array, index access O(1)</td><td>Most common general-purpose</td></tr>
+            <tr><td>Dictionary&lt;K,V&gt;</td><td>Hash table, O(1) lookup by key</td><td>Key-value pairs, fast lookup</td></tr>
+            <tr><td>HashSet&lt;T&gt;</td><td>Unique elements, O(1) contains</td><td>Deduplication, membership tests</td></tr>
+            <tr><td>Queue&lt;T&gt;</td><td>FIFO</td><td>Task queues, BFS</td></tr>
+            <tr><td>Stack&lt;T&gt;</td><td>LIFO</td><td>Undo, DFS, expression parsing</td></tr>
+            <tr><td>LinkedList&lt;T&gt;</td><td>O(1) insert/delete at any node</td><td>Frequent middle insertions</td></tr>
+            <tr><td>SortedDictionary&lt;K,V&gt;</td><td>Ordered by key, O(log n)</td><td>Need sorted iteration</td></tr>
+          </table>
+          <h4>Key Interfaces</h4>
+          <ul>
+            <li><strong>IEnumerable&lt;T&gt;</strong> — can foreach over it (yields items one at a time)</li>
+            <li><strong>ICollection&lt;T&gt;</strong> — IEnumerable + Count, Add, Remove</li>
+            <li><strong>IList&lt;T&gt;</strong> — ICollection + index access</li>
+          </ul>
+          <h4>Iterator / yield return</h4>
+          <div class="code-block">
+<span class="kw">public</span> IEnumerable&lt;<span class="kw">int</span>&gt; <span class="fn">EvenNumbers</span>(<span class="kw">int</span> max) {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt;= max; i += <span class="num">2</span>)
+        <span class="kw">yield return</span> i;  <span class="cmt">// lazy — computes next item only when asked</span>
+}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 7 ===================== -->
+  <section class="section" id="s7">
+    <div class="section-title"><span class="num">07</span> Delegates, Events & LINQ</div>
+    <div class="section-desc">Function pointers done right, event-driven programming, and querying data like SQL in C#.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Delegates · Multicast · Action · Func · Predicate</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>A delegate is a type-safe function pointer. It holds a reference to a method with a specific signature.</p>
+          <div class="code-block">
+<span class="cmt">// Declare</span>
+<span class="kw">delegate int</span> <span class="cls">MathOp</span>(<span class="kw">int</span> a, <span class="kw">int</span> b);
+
+<span class="cmt">// Assign and invoke</span>
+<span class="cls">MathOp</span> add = (a, b) => a + b;
+Console.<span class="fn">WriteLine</span>(add(<span class="num">3</span>, <span class="num">4</span>));  <span class="cmt">// 7</span>
+
+<span class="cmt">// Multicast — multiple methods on one delegate</span>
+<span class="cls">Action</span> greet = () => Console.<span class="fn">WriteLine</span>(<span class="str">"Hello"</span>);
+greet += () => Console.<span class="fn">WriteLine</span>(<span class="str">"Hi"</span>);
+greet();  <span class="cmt">// prints both</span>
+          </div>
+          <h4>Built-in generic delegates</h4>
+          <ul>
+            <li><strong>Action&lt;T&gt;</strong> — takes params, returns void: <code>Action&lt;string&gt; print = Console.WriteLine;</code></li>
+            <li><strong>Func&lt;T, TResult&gt;</strong> — takes params, returns value: <code>Func&lt;int,int,int&gt; add = (a,b) => a+b;</code></li>
+            <li><strong>Predicate&lt;T&gt;</strong> — takes T, returns bool: <code>Predicate&lt;int&gt; isEven = x => x%2==0;</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Events in C#</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>Events are a wrapper around delegates that enforce the publisher-subscriber pattern. Subscribers can only += or -= — they can't invoke the event directly.</p>
+          <div class="code-block">
+<span class="kw">class</span> <span class="cls">Button</span> {
+    <span class="kw">public event</span> <span class="cls">EventHandler</span> Clicked;  <span class="cmt">// declare event</span>
+    <span class="kw">public void</span> <span class="fn">Click</span>() => Clicked?.<span class="fn">Invoke</span>(<span class="kw">this</span>, <span class="cls">EventArgs</span>.Empty);
+}
+
+<span class="kw">var</span> btn = <span class="kw">new</span> <span class="cls">Button</span>();
+btn.Clicked += (s, e) => Console.<span class="fn">WriteLine</span>(<span class="str">"Button clicked!"</span>);
+btn.<span class="fn">Click</span>();
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">LINQ — Query Syntax · Lambda · Operators</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>LINQ (Language Integrated Query) lets you query any IEnumerable&lt;T&gt; or IQueryable&lt;T&gt; using SQL-like syntax — in-memory collections, databases (via EF), XML, etc.</p>
+          <div class="code-block">
+<span class="kw">var</span> students = <span class="kw">new</span> <span class="cls">List</span>&lt;<span class="cls">Student</span>&gt;(...);
+
+<span class="cmt">// Method syntax (most common)</span>
+<span class="kw">var</span> topScorers = students
+    .<span class="fn">Where</span>(s => s.Score > <span class="num">80</span>)
+    .<span class="fn">OrderByDescending</span>(s => s.Score)
+    .<span class="fn">Select</span>(s => <span class="kw">new</span> { s.Name, s.Score })  <span class="cmt">// projection</span>
+    .<span class="fn">Take</span>(<span class="num">5</span>)
+    .<span class="fn">ToList</span>();
+
+<span class="cmt">// Query syntax (more readable for joins)</span>
+<span class="kw">var</span> result = <span class="kw">from</span> s <span class="kw">in</span> students
+             <span class="kw">where</span> s.Score > <span class="num">80</span>
+             <span class="kw">orderby</span> s.Score <span class="kw">descending</span>
+             <span class="kw">select</span> s;
+          </div>
+          <h4>Key operators</h4>
+          <ul>
+            <li><strong>Where</strong> — filter, <strong>Select</strong> — transform/project, <strong>SelectMany</strong> — flatten nested</li>
+            <li><strong>GroupBy</strong> — group, <strong>Join/GroupJoin</strong> — join collections</li>
+            <li><strong>Any/All</strong> — existential checks, <strong>Count/Sum/Avg/Min/Max</strong> — aggregates</li>
+            <li><strong>FirstOrDefault/SingleOrDefault</strong> — retrieve elements safely</li>
+            <li><strong>ToList/ToArray/ToDictionary</strong> — materialize (force evaluation)</li>
+          </ul>
+          <div class="note-box"><strong>Lazy evaluation:</strong> LINQ queries don't run until you iterate or call ToList(). This is called deferred execution. Be aware — calling ToList() inside a loop is a common performance mistake.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 8 ===================== -->
+  <section class="section" id="s8">
+    <div class="section-title"><span class="num">08</span> File I/O & Serialization</div>
+    <div class="section-desc">Reading and writing files, and converting objects to/from text formats.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">File I/O Classes · Serialization Modes</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <h4>Quick reference — when to use what</h4>
+          <table class="compare-table">
+            <tr><th>Class</th><th>Use for</th></tr>
+            <tr><td>File / FileInfo</td><td>One-liners — File.ReadAllText(), File.WriteAllText()</td></tr>
+            <tr><td>Directory / DirectoryInfo</td><td>Create/list/delete folders</td></tr>
+            <tr><td>StreamReader / StreamWriter</td><td>Text files — line by line</td></tr>
+            <tr><td>BinaryReader / BinaryWriter</td><td>Binary data — precise byte reading</td></tr>
+            <tr><td>FileStream</td><td>Low-level, underlies everything</td></tr>
+          </table>
+          <div class="code-block">
+<span class="cmt">// Reading a text file</span>
+<span class="kw">using var</span> reader = <span class="kw">new</span> <span class="cls">StreamReader</span>(<span class="str">"data.txt"</span>);
+<span class="kw">while</span> (!reader.<span class="fn">EndOfStream</span>)
+    Console.<span class="fn">WriteLine</span>(reader.<span class="fn">ReadLine</span>());
+
+<span class="cmt">// JSON serialization (.NET 6+)</span>
+<span class="kw">string</span> json = <span class="cls">JsonSerializer</span>.<span class="fn">Serialize</span>(myObject);
+<span class="cls">MyClass</span> obj = <span class="cls">JsonSerializer</span>.<span class="fn">Deserialize</span>&lt;<span class="cls">MyClass</span>&gt;(json);
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 9 ===================== -->
+  <section class="section" id="s9">
+    <div class="section-title"><span class="num">09</span> Threading & Async Programming</div>
+    <div class="section-desc">Concurrent execution, the Task Parallel Library, and async/await.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Process vs Thread vs Task · Thread Pool</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <table class="compare-table">
+            <tr><th>Concept</th><th>What it is</th><th>Memory</th></tr>
+            <tr><td>Process</td><td>Running application — isolated memory space</td><td>Heavy</td></tr>
+            <tr><td>Thread</td><td>Unit of execution within a process — shared memory</td><td>~1MB stack per thread</td></tr>
+            <tr><td>Task</td><td>Higher-level abstraction over thread pool threads</td><td>Lightweight</td></tr>
+          </table>
+          <div class="note-box"><strong>AppDomain</strong> = isolation boundary within a process (less relevant in .NET Core — processes are used instead).</div>
+          <h4>Thread vs Task</h4>
+          <ul>
+            <li>Thread: manual, you control start/stop, 1:1 with OS thread</li>
+            <li>Task: uses thread pool, supports async/await, cancelation, continuations — prefer Task over Thread in modern code</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">async / await · Task Parallel Library · Locks</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p><code>async/await</code> lets you write asynchronous code that looks synchronous. The method returns a Task but doesn't block the thread while waiting for I/O.</p>
+          <div class="code-block">
+<span class="cmt">// Without async — BLOCKS the thread for 2 seconds</span>
+<span class="kw">string</span> data = client.<span class="fn">GetStringAsync</span>(url).<span class="fn">Result</span>;  <span class="cmt">// DEADLOCK RISK</span>
+
+<span class="cmt">// WITH async — thread is free while waiting</span>
+<span class="kw">public async</span> Task&lt;<span class="kw">string</span>&gt; <span class="fn">GetDataAsync</span>() {
+    <span class="kw">string</span> data = <span class="kw">await</span> client.<span class="fn">GetStringAsync</span>(url);
+    <span class="kw">return</span> data.<span class="fn">ToUpper</span>();
+}
+          </div>
+          <h4>Parallel programming</h4>
+          <div class="code-block">
+<span class="cmt">// Parallel.For — run loop iterations in parallel</span>
+<span class="cls">Parallel</span>.<span class="fn">For</span>(<span class="num">0</span>, <span class="num">100</span>, i => <span class="fn">ProcessItem</span>(i));
+
+<span class="cmt">// Parallel.ForEach</span>
+<span class="cls">Parallel</span>.<span class="fn">ForEach</span>(items, item => <span class="fn">Process</span>(item));
+
+<span class="cmt">// Task.WhenAll — run multiple tasks concurrently, await all</span>
+<span class="kw">var</span> results = <span class="kw">await</span> Task.<span class="fn">WhenAll</span>(<span class="fn">FetchA</span>(), <span class="fn">FetchB</span>(), <span class="fn">FetchC</span>());
+          </div>
+          <h4>Locking — prevent race conditions</h4>
+          <div class="code-block">
+<span class="kw">private readonly object</span> _lock = <span class="kw">new</span>();
+<span class="kw">private int</span> _counter = <span class="num">0</span>;
+
+<span class="kw">void</span> <span class="fn">Increment</span>() {
+    <span class="kw">lock</span> (_lock) { _counter++; }  <span class="cmt">// only one thread at a time</span>
+}
+          </div>
+          <div class="warn-box"><strong>⚠ Deadlock:</strong> Never lock on <code>this</code> or public objects. Never hold two locks simultaneously without consistent ordering.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 10 ===================== -->
+  <section class="section" id="s10">
+    <div class="section-title"><span class="num">10</span> C# 8 / 10 / 12 New Features</div>
+    <div class="section-desc">Language evolution — features that make code shorter, safer, and more expressive.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">C# 8 — Nullable Reference Types · Async Streams · Using Declarations</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Nullable reference types — opt-in, enable in .csproj</span>
+<span class="kw">string</span>? name = <span class="kw">null</span>;   <span class="cmt">// explicitly nullable</span>
+<span class="kw">string</span> name2 = <span class="kw">null</span>;   <span class="cmt">// compiler WARNING — shouldn't be null</span>
+
+<span class="cmt">// using declaration — no braces needed</span>
+<span class="kw">using var</span> file = <span class="kw">new</span> <span class="cls">StreamWriter</span>(<span class="str">"log.txt"</span>);
+<span class="cmt">// disposed when variable goes out of scope</span>
+
+<span class="cmt">// Async streams — yield return inside async method</span>
+<span class="kw">async</span> IAsyncEnumerable&lt;<span class="kw">int</span>&gt; <span class="fn">GetNumbersAsync</span>() {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">10</span>; i++) {
+        <span class="kw">await</span> Task.<span class="fn">Delay</span>(<span class="num">100</span>);
+        <span class="kw">yield return</span> i;
+    }
+}
+<span class="kw">await foreach</span> (<span class="kw">var</span> n <span class="kw">in</span> <span class="fn">GetNumbersAsync</span>()) Console.<span class="fn">WriteLine</span>(n);
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">C# 10 — Records · Global Usings · File-scoped Namespaces</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// global using — applies to whole project, put in GlobalUsings.cs</span>
+<span class="kw">global using</span> System.Text.Json;
+
+<span class="cmt">// File-scoped namespace — less indentation</span>
+<span class="kw">namespace</span> MyApp.Models;
+<span class="kw">public class</span> <span class="cls">Product</span> { ... }
+
+<span class="cmt">// Record struct (value type record)</span>
+<span class="kw">public record struct</span> <span class="cls">Point</span>(<span class="kw">double</span> X, <span class="kw">double</span> Y);
+
+<span class="cmt">// Extended property patterns</span>
+<span class="kw">if</span> (order <span class="kw">is</span> { Customer.Address.Country: <span class="str">"India"</span> }) { ... }
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">C# 12 — Primary Constructors · Collection Expressions</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Primary constructors (C# 12)</span>
+<span class="kw">public class</span> <span class="cls">OrderService</span>(<span class="cls">IOrderRepo</span> repo, <span class="cls">ILogger</span> logger) {
+    <span class="cmt">// repo and logger are in scope for whole class</span>
+    <span class="kw">public void</span> <span class="fn">Process</span>() => repo.<span class="fn">Save</span>(...);
+}
+
+<span class="cmt">// Collection expressions — unified syntax</span>
+<span class="kw">int</span>[] nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="cls">List</span>&lt;<span class="kw">string</span>&gt; names = [<span class="str">"Alice"</span>, <span class="str">"Bob"</span>];
+<span class="kw">int</span>[] combined = [..nums, <span class="num">4</span>, <span class="num">5</span>];   <span class="cmt">// spread operator</span>
+
+<span class="cmt">// Optional params in lambdas</span>
+<span class="kw">var</span> greet = (<span class="kw">string</span> name = <span class="str">"World"</span>) => <span class="str">$"Hello, {name}"</span>;
+greet();           <span class="cmt">// "Hello, World"</span>
+greet(<span class="str">"Anuska"</span>);  <span class="cmt">// "Hello, Anuska"</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 11 ===================== -->
+  <section class="section" id="s11">
+    <div class="section-title"><span class="num">11</span> SQL & MySQL Fundamentals</div>
+    <div class="section-desc">Relational databases — the foundation every backend developer needs.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">RDBMS vs NoSQL · DDL · DML · DQL · TCL</span>
+          <div class="topic-tags"><span class="tag db">database</span></div>
+        </div>
+        <div class="topic-body">
+          <table class="compare-table">
+            <tr><th>Category</th><th>Commands</th><th>What it does</th></tr>
+            <tr><td>DDL — Data Definition</td><td>CREATE, ALTER, DROP, TRUNCATE</td><td>Schema structure</td></tr>
+            <tr><td>DML — Data Manipulation</td><td>INSERT, UPDATE, DELETE</td><td>Row data changes</td></tr>
+            <tr><td>DQL — Data Query</td><td>SELECT</td><td>Retrieve data</td></tr>
+            <tr><td>DCL — Data Control</td><td>GRANT, REVOKE</td><td>Permissions</td></tr>
+            <tr><td>TCL — Transaction Control</td><td>COMMIT, ROLLBACK, SAVEPOINT</td><td>Transaction boundaries</td></tr>
+          </table>
+          <h4>ACID Properties</h4>
+          <ul>
+            <li><strong>Atomicity</strong> — transaction is all-or-nothing</li>
+            <li><strong>Consistency</strong> — DB goes from valid state to valid state</li>
+            <li><strong>Isolation</strong> — concurrent transactions don't interfere</li>
+            <li><strong>Durability</strong> — committed data survives crashes</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">JOINs · Subqueries · GROUP BY · HAVING</span>
+          <div class="topic-tags"><span class="tag db">database</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">-- INNER JOIN — only matching rows</span>
+<span class="kw">SELECT</span> o.id, c.name
+<span class="kw">FROM</span> orders o
+<span class="kw">INNER JOIN</span> customers c <span class="kw">ON</span> o.customer_id = c.id;
+
+<span class="cmt">-- LEFT JOIN — all left rows + matched right (NULL if no match)</span>
+<span class="kw">SELECT</span> c.name, o.id
+<span class="kw">FROM</span> customers c
+<span class="kw">LEFT JOIN</span> orders o <span class="kw">ON</span> c.id = o.customer_id;
+
+<span class="cmt">-- GROUP BY + HAVING (filter on aggregates)</span>
+<span class="kw">SELECT</span> dept, <span class="fn">COUNT</span>(*) total, <span class="fn">AVG</span>(salary) avg_sal
+<span class="kw">FROM</span> employees
+<span class="kw">GROUP BY</span> dept
+<span class="kw">HAVING</span> <span class="fn">AVG</span>(salary) > <span class="num">50000</span>;   <span class="cmt">-- WHERE filters rows, HAVING filters groups</span>
+
+<span class="cmt">-- Correlated subquery</span>
+<span class="kw">SELECT</span> name <span class="kw">FROM</span> employees e
+<span class="kw">WHERE</span> salary > (<span class="kw">SELECT</span> <span class="fn">AVG</span>(salary) <span class="kw">FROM</span> employees <span class="kw">WHERE</span> dept = e.dept);
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Normalization — 1NF, 2NF, 3NF, BCNF</span>
+          <div class="topic-tags"><span class="tag db">database</span></div>
+        </div>
+        <div class="topic-body">
+          <ul>
+            <li><strong>1NF</strong> — atomic values only, no repeating groups, primary key exists</li>
+            <li><strong>2NF</strong> — 1NF + no partial dependency (non-key columns depend on WHOLE primary key)</li>
+            <li><strong>3NF</strong> — 2NF + no transitive dependency (non-key columns depend only on PK, not other non-key columns)</li>
+            <li><strong>BCNF</strong> — 3NF + every determinant is a candidate key (stricter 3NF)</li>
+          </ul>
+          <div class="note-box"><strong>Practical rule:</strong> Normalize to 3NF for OLTP. For OLAP/reporting (star schema), intentional denormalization is fine — query speed matters more than write efficiency.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 12 ===================== -->
+  <section class="section" id="s12">
+    <div class="section-title"><span class="num">12</span> Advanced SQL — Views, Indexes, Stored Procedures</span></div>
+    <div class="section-desc">Features that move logic closer to the database.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Views · Indexes · Stored Procedures · Triggers · Transactions</span>
+          <div class="topic-tags"><span class="tag db">database</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">-- View — named saved query, acts like a table</span>
+<span class="kw">CREATE VIEW</span> active_customers <span class="kw">AS</span>
+  <span class="kw">SELECT</span> * <span class="kw">FROM</span> customers <span class="kw">WHERE</span> status = <span class="str">'active'</span>;
+
+<span class="cmt">-- Index — speeds up lookups (B-tree under the hood)</span>
+<span class="kw">CREATE INDEX</span> idx_email <span class="kw">ON</span> users(email);
+
+<span class="cmt">-- Stored Procedure</span>
+<span class="kw">DELIMITER</span> //
+<span class="kw">CREATE PROCEDURE</span> <span class="fn">GetOrdersByCustomer</span>(IN custId INT)
+<span class="kw">BEGIN</span>
+  <span class="kw">SELECT</span> * <span class="kw">FROM</span> orders <span class="kw">WHERE</span> customer_id = custId;
+<span class="kw">END</span> //
+
+<span class="cmt">-- BEFORE INSERT Trigger</span>
+<span class="kw">CREATE TRIGGER</span> before_order_insert
+<span class="kw">BEFORE INSERT ON</span> orders
+<span class="kw">FOR EACH ROW</span>
+  <span class="kw">SET</span> NEW.created_at = <span class="fn">NOW</span>();
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 13 ===================== -->
+  <section class="section" id="s13">
+    <div class="section-title"><span class="num">13</span> ADO.NET</div>
+    <div class="section-desc">Low-level database access in .NET — direct SQL, before ORMs.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Connected vs Disconnected Architecture · SqlConnection · DataReader · DataSet</span>
+          <div class="topic-tags"><span class="tag db">database</span></div>
+        </div>
+        <div class="topic-body">
+          <table class="compare-table">
+            <tr><th>Connected</th><th>Disconnected</th></tr>
+            <tr><td>Connection stays open while reading</td><td>Data loaded into memory, connection closed</td></tr>
+            <tr><td>SqlDataReader — forward-only, fast</td><td>DataSet / DataAdapter</td></tr>
+            <tr><td>Low memory, high connection usage</td><td>Higher memory, low connection usage</td></tr>
+          </table>
+          <div class="code-block">
+<span class="cmt">// Connected — SqlDataReader</span>
+<span class="kw">using var</span> conn = <span class="kw">new</span> <span class="cls">SqlConnection</span>(connStr);
+conn.<span class="fn">Open</span>();
+<span class="kw">using var</span> cmd = <span class="kw">new</span> <span class="cls">SqlCommand</span>(<span class="str">"SELECT * FROM Orders WHERE Id=@id"</span>, conn);
+cmd.Parameters.<span class="fn">AddWithValue</span>(<span class="str">"@id"</span>, orderId);   <span class="cmt">// ALWAYS parameterize — prevents SQL injection</span>
+<span class="kw">using var</span> reader = cmd.<span class="fn">ExecuteReader</span>();
+<span class="kw">while</span> (reader.<span class="fn">Read</span>())
+    Console.<span class="fn">WriteLine</span>(reader[<span class="str">"CustomerName"</span>]);
+          </div>
+          <div class="warn-box"><strong>SQL Injection:</strong> NEVER concatenate user input into SQL strings. Always use parameterized queries or stored procedures.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 14 ===================== -->
+  <section class="section" id="s14">
+    <div class="section-title"><span class="num">14</span> Entity Framework</div>
+    <div class="section-desc">The ORM that maps your C# classes to database tables — write C#, not SQL.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Code First vs DB First vs Model First · DbContext · Migrations</span>
+          <div class="topic-tags"><span class="tag db">database</span></div>
+        </div>
+        <div class="topic-body">
+          <table class="compare-table">
+            <tr><th>Approach</th><th>Start from</th><th>Use when</th></tr>
+            <tr><td>Code First</td><td>C# classes</td><td>New projects — most common, recommended</td></tr>
+            <tr><td>Database First</td><td>Existing DB</td><td>Legacy database you can't change</td></tr>
+            <tr><td>Model First</td><td>EF Designer</td><td>Visual modeling (less used today)</td></tr>
+          </table>
+          <div class="code-block">
+<span class="cmt">// Model class</span>
+<span class="kw">public class</span> <span class="cls">Product</span> {
+    <span class="kw">public int</span> Id { <span class="kw">get</span>; <span class="kw">set</span>; }
+    [<span class="cls">Required</span>, <span class="cls">MaxLength</span>(<span class="num">100</span>)]
+    <span class="kw">public string</span> Name { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">public decimal</span> Price { <span class="kw">get</span>; <span class="kw">set</span>; }
+}
+
+<span class="cmt">// DbContext</span>
+<span class="kw">public class</span> <span class="cls">AppDbContext</span> : <span class="cls">DbContext</span> {
+    <span class="kw">public</span> DbSet&lt;<span class="cls">Product</span>&gt; Products { <span class="kw">get</span>; <span class="kw">set</span>; }
+    <span class="kw">protected override void</span> <span class="fn">OnConfiguring</span>(<span class="cls">DbContextOptionsBuilder</span> o)
+        => o.<span class="fn">UseSqlServer</span>(connStr);
+}
+
+<span class="cmt">// Migrations</span>
+<span class="cmt">// dotnet ef migrations add InitialCreate</span>
+<span class="cmt">// dotnet ef database update</span>
+
+<span class="cmt">// Querying</span>
+<span class="kw">var</span> expensive = <span class="kw">await</span> db.Products
+    .<span class="fn">Where</span>(p => p.Price > <span class="num">100</span>)
+    .<span class="fn">OrderBy</span>(p => p.Name)
+    .<span class="fn">ToListAsync</span>();
+          </div>
+          <h4>Loading strategies</h4>
+          <ul>
+            <li><strong>Eager Loading</strong> — <code>.Include()</code> loads related data in same query</li>
+            <li><strong>Lazy Loading</strong> — loads related data on first access (can cause N+1 problem)</li>
+            <li><strong>Explicit Loading</strong> — you manually call <code>db.Entry(x).Collection(c).LoadAsync()</code></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 15 ===================== -->
+  <section class="section" id="s15">
+    <div class="section-title"><span class="num">15</span> ASP.NET MVC</div>
+    <div class="section-desc">Model-View-Controller — the web framework pattern for server-rendered apps.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">MVC Pattern · Routing · ActionResult · Razor · Model Binding</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p><strong>Model</strong> = data/business logic. <strong>View</strong> = HTML template (Razor). <strong>Controller</strong> = handles request, calls model, returns view.</p>
+          <div class="code-block">
+<span class="cmt">// Controller</span>
+<span class="kw">public class</span> <span class="cls">ProductsController</span> : <span class="cls">Controller</span> {
+
+    [<span class="cls">HttpGet</span>]
+    <span class="kw">public</span> <span class="cls">IActionResult</span> <span class="fn">Index</span>() {
+        <span class="kw">var</span> products = _service.<span class="fn">GetAll</span>();
+        <span class="kw">return</span> <span class="fn">View</span>(products);              <span class="cmt">// passes model to View</span>
+    }
+
+    [<span class="cls">HttpPost</span>]
+    <span class="kw">public</span> <span class="cls">IActionResult</span> <span class="fn">Create</span>(<span class="cls">Product</span> model) {  <span class="cmt">// model binding from form</span>
+        <span class="kw">if</span> (!ModelState.IsValid) <span class="kw">return</span> <span class="fn">View</span>(model);
+        _service.<span class="fn">Add</span>(model);
+        <span class="kw">return</span> <span class="fn">RedirectToAction</span>(<span class="str">"Index"</span>);
+    }
+}
+          </div>
+          <h4>Routing</h4>
+          <div class="code-block">
+<span class="cmt">// Convention routing in Program.cs</span>
+app.<span class="fn">MapControllerRoute</span>(name: <span class="str">"default"</span>,
+    pattern: <span class="str">"{controller=Home}/{action=Index}/{id?}"</span>);
+
+<span class="cmt">// Attribute routing on controller/action</span>
+[<span class="cls">Route</span>(<span class="str">"api/products/{id:int}"</span>)]
+<span class="kw">public</span> <span class="cls">IActionResult</span> <span class="fn">GetById</span>(<span class="kw">int</span> id) { ... }
+          </div>
+          <h4>Filters (cross-cutting concerns)</h4>
+          <ul>
+            <li><strong>Authorization filters</strong> — run first, [Authorize]</li>
+            <li><strong>Action filters</strong> — before/after action execution, logging, validation</li>
+            <li><strong>Exception filters</strong> — handle unhandled exceptions</li>
+            <li><strong>Result filters</strong> — before/after result execution</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Repository Pattern · Service Pattern · State Management</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>These patterns separate concerns and make code testable.</p>
+          <ul>
+            <li><strong>Repository</strong> — abstracts data access. Controller/Service doesn't know if data comes from SQL, MongoDB, or a file.</li>
+            <li><strong>Service</strong> — contains business logic. Sits between Controller and Repository.</li>
+          </ul>
+          <div class="code-block">
+Controller → Service → Repository → DbContext
+          </div>
+          <h4>State Management options in MVC</h4>
+          <ul>
+            <li><strong>ViewBag / ViewData</strong> — pass data from controller to view (one request only)</li>
+            <li><strong>TempData</strong> — survives one redirect (backed by session or cookies)</li>
+            <li><strong>Session</strong> — stored server-side per user, needs configuration</li>
+            <li><strong>Cookies</strong> — stored client-side, sent on every request</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 16 ===================== -->
+  <section class="section" id="s16">
+    <div class="section-title"><span class="num">16</span> Web APIs — REST</div>
+    <div class="section-desc">Building HTTP APIs with ASP.NET Core — the backbone of modern backends.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">REST Principles · HTTP Methods · Status Codes · CRUD with EF</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <table class="compare-table">
+            <tr><th>HTTP Method</th><th>CRUD</th><th>Idempotent</th><th>Example</th></tr>
+            <tr><td>GET</td><td>Read</td><td>Yes</td><td>GET /products</td></tr>
+            <tr><td>POST</td><td>Create</td><td>No</td><td>POST /products</td></tr>
+            <tr><td>PUT</td><td>Replace</td><td>Yes</td><td>PUT /products/5</td></tr>
+            <tr><td>PATCH</td><td>Partial Update</td><td>No</td><td>PATCH /products/5</td></tr>
+            <tr><td>DELETE</td><td>Delete</td><td>Yes</td><td>DELETE /products/5</td></tr>
+          </table>
+          <h4>Common status codes</h4>
+          <ul>
+            <li>200 OK, 201 Created, 204 No Content</li>
+            <li>400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict</li>
+            <li>500 Internal Server Error</li>
+          </ul>
+          <div class="code-block">
+[<span class="cls">ApiController</span>]
+[<span class="cls">Route</span>(<span class="str">"api/[controller]"</span>)]
+<span class="kw">public class</span> <span class="cls">ProductsController</span> : <span class="cls">ControllerBase</span> {
+
+    [<span class="cls">HttpGet</span>(<span class="str">"{id}"</span>)]
+    <span class="kw">public async</span> Task&lt;<span class="cls">ActionResult</span>&lt;<span class="cls">Product</span>&gt;&gt; <span class="fn">Get</span>(<span class="kw">int</span> id) {
+        <span class="kw">var</span> p = <span class="kw">await</span> _repo.<span class="fn">GetByIdAsync</span>(id);
+        <span class="kw">return</span> p <span class="kw">is null</span> ? <span class="fn">NotFound</span>() : <span class="fn">Ok</span>(p);
+    }
+
+    [<span class="cls">HttpPost</span>]
+    <span class="kw">public async</span> Task&lt;<span class="cls">ActionResult</span>&lt;<span class="cls">Product</span>&gt;&gt; <span class="fn">Create</span>(<span class="cls">ProductDto</span> dto) {
+        <span class="kw">var</span> product = _mapper.<span class="fn">Map</span>&lt;<span class="cls">Product</span>&gt;(dto);
+        <span class="kw">await</span> _repo.<span class="fn">AddAsync</span>(product);
+        <span class="kw">return</span> <span class="fn">CreatedAtAction</span>(<span class="kw">nameof</span>(Get), <span class="kw">new</span> { id = product.Id }, product);
+    }
+}
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Pagination, Sorting, Filtering · Caching · API Deployment</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Pagination + Sorting + Filtering via query params</span>
+<span class="cmt">// GET /api/products?page=2&pageSize=10&sort=price&filter=laptop</span>
+[<span class="cls">HttpGet</span>]
+<span class="kw">public async</span> Task&lt;<span class="cls">IActionResult</span>&gt; <span class="fn">GetAll</span>(
+    [<span class="cls">FromQuery</span>] <span class="kw">int</span> page = <span class="num">1</span>,
+    [<span class="cls">FromQuery</span>] <span class="kw">int</span> pageSize = <span class="num">10</span>,
+    [<span class="cls">FromQuery</span>] <span class="kw">string</span>? filter = <span class="kw">null</span>) {
+
+    <span class="kw">var</span> query = _db.Products.<span class="fn">AsQueryable</span>();
+    <span class="kw">if</span> (filter != <span class="kw">null</span>) query = query.<span class="fn">Where</span>(p => p.Name.<span class="fn">Contains</span>(filter));
+    <span class="kw">var</span> total = <span class="kw">await</span> query.<span class="fn">CountAsync</span>();
+    <span class="kw">var</span> items = <span class="kw">await</span> query.<span class="fn">Skip</span>((page-<span class="num">1</span>)*pageSize).<span class="fn">Take</span>(pageSize).<span class="fn">ToListAsync</span>();
+    <span class="kw">return</span> <span class="fn">Ok</span>(<span class="kw">new</span> { total, page, pageSize, items });
+}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 17 ===================== -->
+  <section class="section" id="s17">
+    <div class="section-title"><span class="num">17</span> Authentication & JWT</div>
+    <div class="section-desc">Securing your APIs — who you are (authentication) vs what you can do (authorization).</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">JWT Structure · Auth Flow · Token Validation · Role/Policy Auth</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <p>A JWT (JSON Web Token) = Header.Payload.Signature — a self-contained, signed token the client sends on every request.</p>
+          <div class="code-block">
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9   ← Header (base64)
+.eyJzdWIiOiIxMjM0IiwicmxlIjoiQWRtaW4ifQ   ← Payload (claims)
+.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c  ← Signature (HMAC/RSA)
+          </div>
+          <div class="code-block">
+<span class="cmt">// Configure JWT in Program.cs</span>
+builder.Services.<span class="fn">AddAuthentication</span>(<span class="cls">JwtBearerDefaults</span>.AuthenticationScheme)
+    .<span class="fn">AddJwtBearer</span>(o => {
+        o.TokenValidationParameters = <span class="kw">new</span> <span class="cls">TokenValidationParameters</span> {
+            ValidateIssuer = <span class="kw">true</span>,
+            ValidateAudience = <span class="kw">true</span>,
+            ValidateLifetime = <span class="kw">true</span>,
+            ValidateIssuerSigningKey = <span class="kw">true</span>,
+            IssuerSigningKey = <span class="kw">new</span> <span class="cls">SymmetricSecurityKey</span>(
+                <span class="cls">Encoding</span>.UTF8.<span class="fn">GetBytes</span>(config[<span class="str">"Jwt:Key"</span>]))
+        };
+    });
+
+<span class="cmt">// Protect endpoint</span>
+[<span class="cls">Authorize</span>]                        <span class="cmt">// any authenticated user</span>
+[<span class="cls">Authorize</span>(Roles = <span class="str">"Admin"</span>)]     <span class="cmt">// role-based</span>
+[<span class="cls">Authorize</span>(Policy = <span class="str">"CanEdit"</span>)]  <span class="cmt">// policy-based</span>
+          </div>
+          <h4>Flow</h4>
+          <ul>
+            <li>User POSTs credentials → server validates → generates JWT → returns to client</li>
+            <li>Client stores JWT (localStorage or cookie) → sends in Authorization: Bearer {token} header</li>
+            <li>Server validates signature on every request — no session lookup needed</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 18 ===================== -->
+  <section class="section" id="s18">
+    <div class="section-title"><span class="num">18</span> HTML, CSS & JavaScript Basics</div>
+    <div class="section-desc">The three layers of the web — structure, style, behavior.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">HTML Structure · Semantic HTML · CSS Box Model · Flexbox</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <p>Semantic HTML uses meaningful tags so browsers and screen readers understand content structure.</p>
+          <div class="code-block">
+&lt;header&gt;, &lt;nav&gt;, &lt;main&gt;, &lt;article&gt;, &lt;section&gt;, &lt;aside&gt;, &lt;footer&gt;
+&lt;!-- vs meaningless --&gt;
+&lt;div class="header"&gt; ← tells nothing to the browser
+          </div>
+          <h4>CSS Box Model</h4>
+          <div class="code-block">
+┌──────────────── margin ────────────────┐
+│  ┌─────────────border──────────────┐  │
+│  │  ┌──────── padding ──────────┐  │  │
+│  │  │         content           │  │  │
+│  │  └───────────────────────────┘  │  │
+│  └─────────────────────────────────┘  │
+└────────────────────────────────────────┘
+box-sizing: border-box  ← width includes padding+border (recommended)
+          </div>
+          <h4>Flexbox quick reference</h4>
+          <div class="code-block">
+.container {
+  display: flex;
+  flex-direction: row | column;
+  justify-content: flex-start | center | space-between | space-around;
+  align-items: stretch | center | flex-start | flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.child { flex: 1; }  /* grow and fill equally */
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">JavaScript — Scope · Closures · DOM · Events · Promises</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// let/const block-scoped, var function-scoped</span>
+<span class="kw">const</span> name = <span class="str">"Anuska"</span>;
+<span class="kw">let</span> age = <span class="num">24</span>;
+
+<span class="cmt">// Closure — function remembers outer scope</span>
+<span class="kw">function</span> <span class="fn">counter</span>() {
+    <span class="kw">let</span> count = <span class="num">0</span>;
+    <span class="kw">return</span> () => ++count;  <span class="cmt">// inner fn closes over count</span>
+}
+<span class="kw">const</span> inc = <span class="fn">counter</span>();
+<span class="fn">inc</span>(); <span class="fn">inc</span>(); <span class="cmt">// count is 2</span>
+
+<span class="cmt">// DOM manipulation</span>
+<span class="kw">const</span> el = document.<span class="fn">querySelector</span>(<span class="str">'#myId'</span>);
+el.textContent = <span class="str">"Hello"</span>;
+el.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, e => console.<span class="fn">log</span>(e.target));
+
+<span class="cmt">// Fetch (Promises)</span>
+<span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/products'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>());
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 19 ===================== -->
+  <section class="section" id="s19">
+    <div class="section-title"><span class="num">19</span> TypeScript</div>
+    <div class="section-desc">JavaScript with static types — catch errors before they reach production.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Types · Interfaces · Unions · Generics · TSConfig</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Basic types</span>
+<span class="kw">let</span> name: <span class="kw">string</span> = <span class="str">"Anuska"</span>;
+<span class="kw">let</span> age: <span class="kw">number</span> = <span class="num">24</span>;
+<span class="kw">let</span> active: <span class="kw">boolean</span> = <span class="kw">true</span>;
+<span class="kw">let</span> scores: <span class="kw">number</span>[] = [<span class="num">90</span>, <span class="num">85</span>];
+
+<span class="cmt">// Interface</span>
+<span class="kw">interface</span> <span class="cls">User</span> {
+    id: <span class="kw">number</span>;
+    name: <span class="kw">string</span>;
+    email?: <span class="kw">string</span>;  <span class="cmt">// optional</span>
+}
+
+<span class="cmt">// Union type</span>
+<span class="kw">type</span> <span class="cls">Status</span> = <span class="str">"pending"</span> | <span class="str">"active"</span> | <span class="str">"inactive"</span>;
+
+<span class="cmt">// Generic function</span>
+<span class="kw">function</span> <span class="fn">first</span>&lt;T&gt;(arr: T[]): T | <span class="kw">undefined</span> {
+    <span class="kw">return</span> arr[<span class="num">0</span>];
+}
+
+<span class="cmt">// Type narrowing</span>
+<span class="kw">function</span> <span class="fn">process</span>(val: <span class="kw">string</span> | <span class="kw">number</span>) {
+    <span class="kw">if</span> (<span class="kw">typeof</span> val === <span class="str">"string"</span>) val.<span class="fn">toUpperCase</span>();  <span class="cmt">// TS knows it's string here</span>
+    <span class="kw">else</span> val.<span class="fn">toFixed</span>(<span class="num">2</span>);
+}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 20 ===================== -->
+  <section class="section" id="s20">
+    <div class="section-title"><span class="num">20</span> Angular</div>
+    <div class="section-desc">The full-featured TypeScript frontend framework — components, routing, HTTP, forms.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Components · Lifecycle · Data Binding · Directives</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Component</span>
+@<span class="cls">Component</span>({
+  selector: <span class="str">'app-product'</span>,
+  template: `
+    &lt;h2&gt;{{ product.name }}&lt;/h2&gt;         &lt;!-- interpolation --&gt;
+    &lt;img [src]="product.imageUrl"&gt;    &lt;!-- property binding --&gt;
+    &lt;button (click)="addToCart()"&gt;    &lt;!-- event binding --&gt;
+    &lt;input [(ngModel)]="searchTerm"&gt; &lt;!-- two-way binding --&gt;
+  `
+})
+<span class="kw">export class</span> <span class="cls">ProductComponent</span> <span class="kw">implements</span> <span class="cls">OnInit</span> {
+  @<span class="cls">Input</span>() product!: <span class="cls">Product</span>;       <span class="cmt">// receive from parent</span>
+  @<span class="cls">Output</span>() added = <span class="kw">new</span> <span class="cls">EventEmitter</span>&lt;<span class="cls">Product</span>&gt;();  <span class="cmt">// emit to parent</span>
+
+  <span class="fn">ngOnInit</span>() { <span class="cmt">/* called once on init */</span> }
+  <span class="fn">addToCart</span>() { <span class="kw">this</span>.added.<span class="fn">emit</span>(<span class="kw">this</span>.product); }
+}
+          </div>
+          <h4>Structural Directives</h4>
+          <div class="code-block">
+&lt;div *ngIf="isLoggedIn; else loginBlock"&gt;Welcome!&lt;/div&gt;
+&lt;ng-template #loginBlock&gt;&lt;a&gt;Login&lt;/a&gt;&lt;/ng-template&gt;
+
+&lt;li *ngFor="let item of items; let i = index; trackBy: trackById"&gt;
+    {{ i }}: {{ item.name }}
+&lt;/li&gt;
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Services & DI · HTTP Client · RxJS Observables</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Service</span>
+@<span class="cls">Injectable</span>({ providedIn: <span class="str">'root'</span> })
+<span class="kw">export class</span> <span class="cls">ProductService</span> {
+  <span class="kw">constructor</span>(<span class="kw">private</span> http: <span class="cls">HttpClient</span>) {}
+
+  <span class="fn">getAll</span>(): <span class="cls">Observable</span>&lt;<span class="cls">Product</span>[]&gt; {
+    <span class="kw">return this</span>.http.<span class="fn">get</span>&lt;<span class="cls">Product</span>[]&gt;(<span class="str">'/api/products'</span>).<span class="fn">pipe</span>(
+      <span class="fn">map</span>(products => products.<span class="fn">filter</span>(p => p.active)),
+      <span class="fn">catchError</span>(err => { console.<span class="fn">error</span>(err); <span class="kw">return</span> <span class="fn">of</span>([]); })
+    );
+  }
+}
+
+<span class="cmt">// In component</span>
+<span class="fn">ngOnInit</span>() {
+  <span class="kw">this</span>.productService.<span class="fn">getAll</span>().<span class="fn">subscribe</span>(products => <span class="kw">this</span>.products = products);
+}
+          </div>
+        </div>
+      </div>
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Routing · Route Guards · JWT Interceptors</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Route config</span>
+<span class="kw">const</span> routes: <span class="cls">Routes</span> = [
+  { path: <span class="str">''</span>, component: <span class="cls">HomeComponent</span> },
+  { path: <span class="str">'products/:id'</span>, component: <span class="cls">ProductDetailComponent</span> },
+  { path: <span class="str">'admin'</span>, component: <span class="cls">AdminComponent</span>, canActivate: [<span class="cls">AuthGuard</span>] }
+];
+
+<span class="cmt">// HTTP Interceptor — attach JWT to every request</span>
+@<span class="cls">Injectable</span>()
+<span class="kw">export class</span> <span class="cls">AuthInterceptor</span> <span class="kw">implements</span> <span class="cls">HttpInterceptor</span> {
+  <span class="fn">intercept</span>(req: <span class="cls">HttpRequest</span>&lt;<span class="kw">any</span>&gt;, next: <span class="cls">HttpHandler</span>) {
+    <span class="kw">const</span> token = localStorage.<span class="fn">getItem</span>(<span class="str">'jwt'</span>);
+    <span class="kw">const</span> cloned = req.<span class="fn">clone</span>({
+      setHeaders: { Authorization: <span class="str">`Bearer ${token}`</span> }
+    });
+    <span class="kw">return</span> next.<span class="fn">handle</span>(cloned);
+  }
+}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 21 ===================== -->
+  <section class="section" id="s21">
+    <div class="section-title"><span class="num">21</span> Git & Azure Repos</div>
+    <div class="section-desc">Version control — the daily workflow every developer lives in.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Core Git Commands · Branches · Merge Conflicts · Pull Requests</span>
+          <div class="topic-tags"><span class="tag core">core</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt"># Daily workflow</span>
+git status                        <span class="cmt"># what changed?</span>
+git add .                         <span class="cmt"># stage all changes</span>
+git commit -m "feat: add login"   <span class="cmt"># conventional commits</span>
+git push origin feature/login     <span class="cmt"># push branch</span>
+
+<span class="cmt"># Branching</span>
+git checkout -b feature/my-feature   <span class="cmt"># create + switch</span>
+git merge main                        <span class="cmt"># merge main into current</span>
+git rebase main                       <span class="cmt"># cleaner history — replays commits</span>
+
+<span class="cmt"># Fix last commit message</span>
+git commit --amend -m "better message"
+
+<span class="cmt"># Stash work in progress</span>
+git stash push -m "wip: half-done feature"
+git stash pop
+
+<span class="cmt"># Cherry-pick a specific commit to current branch</span>
+git cherry-pick a1b2c3d
+          </div>
+          <h4>Resolving merge conflicts</h4>
+          <ul>
+            <li>Git marks conflicts with &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD / ======= / &gt;&gt;&gt;&gt;&gt;&gt;&gt;</li>
+            <li>Edit the file to keep what you want, remove the markers</li>
+            <li><code>git add .</code> then <code>git commit</code> to complete the merge</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== SECTION 22 ===================== -->
+  <section class="section" id="s22">
+    <div class="section-title"><span class="num">22</span> Selenium Testing</div>
+    <div class="section-desc">Automating browser interactions for UI regression testing.</div>
+    <div class="topics-grid">
+
+      <div class="topic">
+        <div class="topic-header" onclick="toggle(this)">
+          <span class="topic-arrow">▶</span>
+          <span class="topic-name">Selenium WebDriver · Locators · POM · NUnit</span>
+          <div class="topic-tags"><span class="tag advanced">advanced</span></div>
+        </div>
+        <div class="topic-body">
+          <div class="code-block">
+<span class="cmt">// Basic Selenium C#</span>
+<span class="cls">IWebDriver</span> driver = <span class="kw">new</span> <span class="cls">ChromeDriver</span>();
+driver.<span class="fn">Navigate</span>().<span class="fn">GoToUrl</span>(<span class="str">"https://example.com"</span>);
+
+<span class="cmt">// Locators (prefer ID > Name > CSS > XPath)</span>
+<span class="kw">var</span> el = driver.<span class="fn">FindElement</span>(<span class="cls">By</span>.<span class="fn">Id</span>(<span class="str">"username"</span>));
+<span class="kw">var</span> btn = driver.<span class="fn">FindElement</span>(<span class="cls">By</span>.<span class="fn">CssSelector</span>(<span class="str">".btn-primary"</span>));
+<span class="kw">var</span> row = driver.<span class="fn">FindElement</span>(<span class="cls">By</span>.<span class="fn">XPath</span>(<span class="str">"//table/tr[2]/td[1]"</span>));
+
+el.<span class="fn">SendKeys</span>(<span class="str">"anuska"</span>);
+btn.<span class="fn">Click</span>();
+          </div>
+          <h4>Page Object Model (POM)</h4>
+          <p>Each page = one class. Locators and actions live in the class. Tests just call methods — no raw Selenium in test code. Makes tests maintainable.</p>
+          <div class="code-block">
+<span class="kw">public class</span> <span class="cls">LoginPage</span> {
+    <span class="kw">private readonly</span> <span class="cls">IWebDriver</span> _driver;
+    <span class="kw">private</span> <span class="cls">IWebElement</span> UserField => _driver.<span class="fn">FindElement</span>(<span class="cls">By</span>.<span class="fn">Id</span>(<span class="str">"user"</span>));
+
+    <span class="kw">public void</span> <span class="fn">Login</span>(<span class="kw">string</span> user, <span class="kw">string</span> pass) {
+        UserField.<span class="fn">SendKeys</span>(user);
+        _driver.<span class="fn">FindElement</span>(<span class="cls">By</span>.<span class="fn">Id</span>(<span class="str">"pass"</span>)).<span class="fn">SendKeys</span>(pass);
+        _driver.<span class="fn">FindElement</span>(<span class="cls">By</span>.<span class="fn">Id</span>(<span class="str">"submit"</span>)).<span class="fn">Click</span>();
+    }
+}
+
+<span class="cmt">// NUnit test</span>
+[<span class="cls">TestFixture</span>]
+<span class="kw">public class</span> <span class="cls">LoginTests</span> {
+    [<span class="cls">Test</span>]
+    <span class="kw">public void</span> <span class="fn">ValidLogin_RedirectsToDashboard</span>() {
+        <span class="kw">var</span> page = <span class="kw">new</span> <span class="cls">LoginPage</span>(driver);
+        page.<span class="fn">Login</span>(<span class="str">"admin"</span>, <span class="str">"pass123"</span>);
+        Assert.<span class="fn">That</span>(driver.Url, Does.<span class="fn">Contain</span>(<span class="str">"dashboard"</span>));
+    }
+}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<button id="btt" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  function toggle(header) {
+    const topic = header.parentElement;
+    const wasOpen = topic.classList.contains('open');
+    topic.classList.toggle('open', !wasOpen);
+  }
+
+  // Progress bar
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const pct = (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+    document.getElementById('btt').classList.toggle('visible', el.scrollTop > 300);
+  });
+
+  // Active nav link
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (link) {
+          link.classList.add('active');
+          link.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    navLinks.forEach(l => {
+      l.style.display = l.textContent.toLowerCase().includes(q) ? 'block' : 'none';
+    });
+    document.querySelectorAll('.nav-cat').forEach(c => c.style.display = q ? 'none' : '');
+  });
+</script>
+</body>
+</html>

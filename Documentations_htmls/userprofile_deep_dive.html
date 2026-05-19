@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UserProfile Service — Deep Dive</title>
+<style>
+  :root {
+    --bg:#f8f9fa;--card:#fff;--border:#e2e8f0;
+    --primary:#065f46;--accent:#10b981;--green:#16a34a;
+    --red:#dc2626;--orange:#d97706;--blue:#2563eb;--purple:#7c3aed;
+    --text:#1e293b;--muted:#64748b;--code-bg:#1e293b;--code-text:#e2e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+  nav{background:var(--primary);color:white;padding:16px 32px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+  nav .logo{font-size:1.1rem;font-weight:700;}
+  nav .sub{font-size:0.8rem;opacity:.7;}
+  .layout{display:flex;min-height:100vh;}
+  aside{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;flex-shrink:0;}
+  aside a{display:block;padding:8px 20px;font-size:0.82rem;color:var(--muted);text-decoration:none;border-left:3px solid transparent;transition:all .2s;}
+  aside a:hover,aside a.active{color:var(--accent);border-left-color:var(--accent);background:#ecfdf5;}
+  aside .section-label{padding:12px 20px 4px;font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#94a3b8;letter-spacing:.08em;}
+  main{flex:1;padding:32px;max-width:960px;}
+  .section{margin-bottom:48px;scroll-margin-top:80px;}
+  h2{font-size:1.4rem;font-weight:700;color:var(--primary);padding-bottom:10px;border-bottom:2px solid var(--accent);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+  h2 .num{background:var(--accent);color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+  h3{font-size:1rem;font-weight:700;color:var(--text);margin:20px 0 10px;}
+  p{margin-bottom:12px;font-size:0.93rem;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+  .card-title{font-weight:700;font-size:0.9rem;margin-bottom:10px;color:var(--primary);}
+  .badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;}
+  .badge-green{background:#dcfce7;color:var(--green);}
+  .badge-red{background:#fee2e2;color:var(--red);}
+  .badge-blue{background:#dbeafe;color:var(--blue);}
+  .badge-orange{background:#fef3c7;color:var(--orange);}
+  .badge-purple{background:#ede9fe;color:var(--purple);}
+  pre{background:var(--code-bg);color:var(--code-text);border-radius:8px;padding:16px;font-size:0.82rem;overflow-x:auto;margin:12px 0;line-height:1.7;}
+  code{font-family:'Consolas','Cascadia Code',monospace;}
+  .ic{background:#f1f5f9;color:var(--primary);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:.85em;}
+  .callout{border-left:4px solid;border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:.88rem;}
+  .callout-green{border-color:var(--green);background:#f0fdf4;}
+  .callout-red{border-color:var(--red);background:#fef2f2;}
+  .callout-orange{border-color:var(--orange);background:#fffbeb;}
+  .callout-blue{border-color:var(--blue);background:#eff6ff;}
+  .callout strong{display:block;margin-bottom:4px;}
+  table{width:100%;border-collapse:collapse;font-size:.86rem;margin:12px 0;}
+  th{background:#f1f5f9;font-weight:700;padding:10px 12px;text-align:left;border:1px solid var(--border);}
+  td{padding:9px 12px;border:1px solid var(--border);}
+  tr:nth-child(even) td{background:#f8fafc;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .flow-step{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+  .flow-num{background:var(--accent);color:white;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:2px;}
+  .flow-text{font-size:.88rem;line-height:1.6;}
+  .qa-item{border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden;}
+  .qa-q{background:#f1f5f9;padding:12px 16px;font-weight:700;font-size:.88rem;cursor:pointer;display:flex;justify-content:space-between;}
+  .qa-a{padding:14px 16px;font-size:.87rem;display:none;border-top:1px solid var(--border);line-height:1.7;}
+  .qa-a.open{display:block;}
+  .summary-box{background:linear-gradient(135deg,#065f46 0%,#10b981 100%);color:white;border-radius:12px;padding:24px;margin-bottom:32px;}
+  .summary-box h1{font-size:1.5rem;margin-bottom:6px;}
+  .summary-box p{opacity:.9;font-size:.9rem;margin:0;}
+  .stat-row{display:flex;gap:24px;margin-top:16px;flex-wrap:wrap;}
+  .stat .val{font-size:1.6rem;font-weight:800;}
+  .stat .lbl{font-size:.72rem;opacity:.8;text-transform:uppercase;letter-spacing:.05em;}
+  /* state machine */
+  .state-machine{display:flex;flex-direction:column;gap:0;align-items:flex-start;padding:20px;background:#f8fafc;border-radius:10px;border:1px solid var(--border);}
+  .state-node{display:flex;align-items:center;gap:12px;}
+  .state-circle{width:110px;text-align:center;padding:8px 12px;border-radius:20px;font-weight:700;font-size:.82rem;}
+  .s-pending{background:#fef3c7;color:#92400e;border:2px solid #f59e0b;}
+  .s-submitted{background:#dbeafe;color:#1e40af;border:2px solid #3b82f6;}
+  .s-approved{background:#dcfce7;color:#166534;border:2px solid #22c55e;}
+  .s-rejected{background:#fee2e2;color:#991b1b;border:2px solid #ef4444;}
+  .state-arrow{display:flex;flex-direction:column;align-items:flex-start;padding-left:55px;gap:4px;margin:4px 0;}
+  .arrow-line{font-size:.78rem;color:var(--muted);}
+  @media(max-width:700px){.grid2{grid-template-columns:1fr;}aside{display:none;}main{padding:16px;}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">👤 UserProfile Service — Deep Dive</div>
+  <div class="sub">WalletPlatform · Port 5002 · Senior Architect Analysis</div>
+</nav>
+<div class="layout">
+<aside>
+  <div class="section-label">Sections</div>
+  <a href="#s1">1. Service Context</a>
+  <a href="#s2">2. Clean Architecture</a>
+  <a href="#s3">3. File-by-File Review</a>
+  <a href="#s4">4. Execution Trace</a>
+  <a href="#s5">5. Distributed Systems</a>
+  <a href="#s6">6. Performance</a>
+  <a href="#s7">7. Security</a>
+  <a href="#s8">8. Design Trade-offs</a>
+  <a href="#s9">9. Edge Cases</a>
+  <a href="#s10">10. Interview Q&A</a>
+  <a href="#s11">11. 30s + 2min Pitch</a>
+</aside>
+<main>
+
+<div class="summary-box">
+  <h1>UserProfile Service</h1>
+  <p>Identity enrichment & KYC workflow — who the user is beyond their credentials</p>
+  <div class="stat-row">
+    <div class="stat"><div class="val">4</div><div class="lbl">Endpoints</div></div>
+    <div class="stat"><div class="val">2</div><div class="lbl">DB Tables</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Consumed</div></div>
+    <div class="stat"><div class="val">1</div><div class="lbl">Event Published</div></div>
+    <div class="stat"><div class="val">4</div><div class="lbl">KYC States</div></div>
+    <div class="stat"><div class="val">5002</div><div class="lbl">Port</div></div>
+  </div>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <h2><span class="num">1</span> Service Context — System View</h2>
+
+  <div class="card">
+    <div class="card-title">Exact Responsibility</div>
+    <p><strong>Auth</strong> says "you exist and here's your token." <strong>UserProfile</strong> says "here's who you are." It owns all identity data beyond credentials — name, address, date of birth, and critically, the <strong>KYC (Know Your Customer) lifecycle</strong>.</p>
+    <p>In fintech, KYC is a legal and regulatory requirement. A user cannot move money until their identity is verified by a human admin. UserProfile owns this entire workflow: document submission → admin review → approval/rejection → event notification.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">✅ Invariants It Must Always Maintain</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li>Every user has <strong>exactly one profile</strong> — no duplicates (idempotent consumer)</li>
+        <li><strong>KycStatus starts as Pending</strong> — always, no exceptions</li>
+        <li><strong>Only Admin can change KycStatus</strong> — user can never self-approve</li>
+        <li>Profile is created <strong>event-driven</strong> — never by user's first API call</li>
+        <li>UserId in all operations always comes from <strong>JWT, never from request body</strong></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">💥 What Breaks If UserProfile Goes Down</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li><strong>New users register fine</strong> — Auth is independent</li>
+        <li><strong>Profile auto-creation fails</strong> — UserRegistered events queue up in RabbitMQ</li>
+        <li><strong>KYC submission blocked</strong> — users can't progress to Approved</li>
+        <li><strong>Wallet operations not directly blocked</strong> — Wallet checks KYC by calling its own DB (or gateway)</li>
+        <li>Events replay when service recovers (RabbitMQ queues persist)</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Service Interactions</h3>
+  <table>
+    <tr><th>Direction</th><th>Partner</th><th>Method</th><th>What</th></tr>
+    <tr><td><span class="badge badge-blue">IN async</span></td><td>Auth Service</td><td>RabbitMQ</td><td>UserRegisteredEvent → auto-create profile row</td></tr>
+    <tr><td><span class="badge badge-green">OUT async</span></td><td>Notification Service</td><td>RabbitMQ</td><td>KycStatusUpdatedEvent → sends email to user</td></tr>
+    <tr><td><span class="badge badge-orange">NONE</span></td><td>Any service</td><td>Sync HTTP</td><td>No synchronous calls made or received from peers</td></tr>
+  </table>
+  <div class="callout callout-blue"><strong>Architecture insight:</strong> UserProfile is both a consumer AND a producer. It sits in the middle of the event chain: Auth → UserProfile → Notification. This is the event-driven pipeline pattern — each service reacts to upstream events and optionally fires downstream ones.</div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <h2><span class="num">2</span> Clean Architecture Analysis</h2>
+
+  <pre><code>UserProfileService.Core/               ← Domain layer — zero framework deps
+  Entities/
+    UserProfile.cs                     ← Profile aggregate root
+    KycDocument.cs                     ← KYC document entity
+  Enums/
+    KycStatus.cs                       ← Pending | Submitted | Approved | Rejected
+  Interfaces/
+    IProfileService.cs                 ← What the service CAN do
+    IKycService.cs                     ← KYC-specific operations
+    IProfileRepository.cs              ← How profiles are persisted
+    IKycRepository.cs                  ← How documents are persisted
+  Services/
+    ProfileService.cs                  ← Get + Update profile logic
+    KycService.cs                      ← Submit + Review KYC logic
+  DTOs/
+    ProfileDto.cs / UpdateProfileDto.cs
+    KycSubmitDto.cs / KycReviewDto.cs
+
+UserProfileService.Infrastructure/     ← EF Core implementations
+  Data/
+    UserProfileDbContext.cs
+  Repositories/
+    ProfileRepository.cs
+    KycRepository.cs
+  Consumers/
+    UserRegisteredConsumer.cs          ← Inherits BaseConsumer&lt;UserRegisteredEvent&gt;
+
+UserProfileService.API/                ← HTTP delivery layer
+  Controllers/
+    ProfileController.cs               ← GET /me, PUT /me
+    KycController.cs                   ← POST /submit, PUT /review
+  Program.cs                           ← DI wiring + middleware</code></pre>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <div class="card-title">Why Two Services in Core (ProfileService + KycService)?</div>
+      <p>Profile management (name, address) and KYC workflow (document review, status transitions, event publishing) are two different bounded contexts that happen to share a database. Splitting them into two services keeps each class small and focused. <strong>Single Responsibility at the service level.</strong></p>
+      <p>Trade-off: Two service interfaces injected into two controllers. Slightly more DI wiring, but each service is independently testable and understandable.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Why Consumer Lives in Infrastructure?</div>
+      <p>The <span class="ic">UserRegisteredConsumer</span> is an infrastructure detail — it depends on RabbitMQ, which is an external technology. Core defines the <span class="ic">IProfileRepository</span> interface. Infrastructure provides both the EF implementation AND the RabbitMQ consumer that uses it.</p>
+      <p>Core never knows RabbitMQ exists. If you replaced RabbitMQ with Azure Service Bus, only Infrastructure changes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <h2><span class="num">3</span> Deep File-by-File Code Review</h2>
+
+  <!-- Consumer -->
+  <div class="card">
+    <div class="card-title">📄 UserRegisteredConsumer.cs — The Most Important File in This Service</div>
+    <pre><code>public class UserRegisteredConsumer : BaseConsumer&lt;UserRegisteredEvent&gt;
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    // Queue binding — this is how the consumer knows WHERE to listen
+    protected override string QueueName    =&gt; "userprofile.user.queue";
+    protected override string ExchangeName =&gt; "user.exchange";
+    protected override string RoutingKey   =&gt; "user.registered";
+
+    protected override async Task HandleAsync(UserRegisteredEvent message, CancellationToken ct)
+    {
+        // CRITICAL: IServiceScopeFactory — not constructor injection
+        // BaseConsumer is a Singleton (long-lived)
+        // EF Core DbContext is Scoped (per-request)
+        // You CANNOT inject Scoped into Singleton directly — it causes scope violation
+        // Solution: create a new scope manually per message
+        using var scope = _scopeFactory.CreateScope();
+        var repo = scope.ServiceProvider.GetRequiredService&lt;IProfileRepository&gt;();
+
+        // IDEMPOTENCY CHECK — most critical line in the consumer
+        // RabbitMQ can deliver the same message more than once (at-least-once delivery)
+        // Without this check, one user could get duplicate profile rows
+        if (await repo.ExistsByUserIdAsync(message.UserId))
+            return;  // already processed, BasicAck will still be sent by BaseConsumer
+
+        await repo.AddAsync(new UserProfile
+        {
+            UserId    = message.UserId,
+            Email     = message.Email,
+            FullName  = message.FullName,
+            Phone     = message.Phone,
+            KycStatus = KycStatus.Pending  // ALWAYS Pending — never set by user
+        });
+
+        await repo.SaveChangesAsync();
+        // BaseConsumer calls BasicAck() after HandleAsync returns successfully
+        // If HandleAsync throws, BaseConsumer calls BasicNack(requeue: true)
+    }
+}</code></pre>
+    <div class="callout callout-red"><strong>The IServiceScopeFactory pattern is critical to understand.</strong> BaseConsumer is registered as a Singleton because it holds a long-lived RabbitMQ connection. EF Core's DbContext is Scoped — it lives only for a single request. If you inject DbContext directly into the Singleton, the Scoped service gets "captured" and lives as long as the Singleton — it never gets disposed. This causes memory leaks and stale data. The fix: create a fresh scope per message and resolve DbContext from it.</div>
+  </div>
+
+  <!-- ProfileService -->
+  <div class="card">
+    <div class="card-title">📄 ProfileService.cs — Get & Update Logic</div>
+    <pre><code>public async Task&lt;Result&lt;ProfileDto&gt;&gt; GetByUserIdAsync(Guid userId)
+{
+    var profile = await _profiles.GetByUserIdAsync(userId);
+    if (profile is null)
+        return Result&lt;ProfileDto&gt;.Failure("Profile not found.");
+
+    return Result&lt;ProfileDto&gt;.Success(MapToDto(profile));
+}
+
+public async Task&lt;Result&lt;ProfileDto&gt;&gt; UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
+{
+    var profile = await _profiles.GetByUserIdAsync(userId);
+    if (profile is null)
+        return Result&lt;ProfileDto&gt;.Failure("Profile not found.");
+
+    // PATCH semantics — only update fields that were provided
+    // If client sends null for a field, we DON'T overwrite with null
+    if (!string.IsNullOrWhiteSpace(dto.Phone))       profile.Phone       = dto.Phone;
+    if (!string.IsNullOrWhiteSpace(dto.Address))     profile.Address     = dto.Address;
+    if (!string.IsNullOrWhiteSpace(dto.DateOfBirth)) profile.DateOfBirth = dto.DateOfBirth;
+    if (!string.IsNullOrWhiteSpace(dto.FullName))    profile.FullName    = dto.FullName;
+    profile.UpdatedAt = DateTime.UtcNow;
+
+    // EF change tracking detects modified properties — no explicit UPDATE needed
+    await _profiles.SaveChangesAsync();
+    return Result&lt;ProfileDto&gt;.Success(MapToDto(profile));
+}
+
+// Entity → DTO mapping — strips internal fields, exposes only safe data
+private static ProfileDto MapToDto(UserProfile p) =&gt; new()
+{
+    UserId     = p.UserId,
+    Email      = p.Email,
+    FullName   = p.FullName,
+    Phone      = p.Phone,
+    Address    = p.Address,
+    KycStatus  = p.KycDocument?.Status  // null-safe: Pending profiles have no document yet
+};</code></pre>
+    <p><strong>Patch semantics vs PUT:</strong> A true HTTP PUT would replace the entire resource. Here we behave more like PATCH — only update fields that were actually sent. This is safer UX (user can update just their phone without sending all other fields) but slightly misuses the PUT verb. A strict REST API would use PATCH for this.</p>
+  </div>
+
+  <!-- KycService -->
+  <div class="card">
+    <div class="card-title">📄 KycService.cs — KYC Business Logic</div>
+    <pre><code>public async Task&lt;Result&lt;string&gt;&gt; SubmitKycAsync(Guid userId, KycSubmitDto dto)
+{
+    var profile = await _profiles.GetByUserIdAsync(userId);
+    if (profile is null)
+        return Result&lt;string&gt;.Failure("Profile not found.");
+
+    // Guard: only one KYC document per user at a time
+    if (profile.KycDocument is not null)
+        return Result&lt;string&gt;.Failure("KYC already submitted.");
+
+    var doc = new KycDocument
+    {
+        UserProfileId  = profile.Id,   // FK to UserProfiles, not UserId directly
+        DocumentType   = dto.DocumentType,    // "Aadhaar", "PAN", "Passport"
+        DocumentNumber = dto.DocumentNumber,
+        Status         = KycStatus.Pending    // always starts Pending
+    };
+
+    await _kyc.AddAsync(doc);
+    await _kyc.SaveChangesAsync();
+    return Result&lt;string&gt;.Success("KYC submitted successfully. Pending review.");
+}
+
+public async Task&lt;Result&lt;string&gt;&gt; ReviewKycAsync(Guid userId, KycReviewDto dto, string reviewedBy)
+{
+    var profile = await _profiles.GetByUserIdAsync(userId);
+    if (profile is null) return Result&lt;string&gt;.Failure("Profile not found.");
+
+    // State machine guard — can only review Submitted documents
+    if (profile.KycDocument is null)
+        return Result&lt;string&gt;.Failure("No KYC document submitted.");
+
+    if (profile.KycDocument.Status == KycStatus.Approved)
+        return Result&lt;string&gt;.Failure("KYC already approved.");
+
+    // Atomic update — both profile status + document status change together
+    profile.KycStatus             = dto.Status;   // Approved or Rejected
+    profile.KycDocument.Status    = dto.Status;
+    profile.KycDocument.ReviewedBy = reviewedBy;  // audit trail — who approved it
+
+    await _profiles.SaveChangesAsync();  // one SaveChanges covers both entities (EF tracks both)
+
+    // Publish event AFTER save — notification sent only if DB committed
+    await _publisher.PublishAsync("user.exchange", "kyc.status.updated",
+        new KycStatusUpdatedEvent {
+            UserId    = userId,
+            Status    = dto.Status.ToString(),
+            Remarks   = dto.Remarks,
+            Timestamp = DateTime.UtcNow
+        });
+
+    return Result&lt;string&gt;.Success($"KYC {dto.Status} successfully.");
+}</code></pre>
+    <div class="callout callout-orange"><strong>Atomic update across two entities:</strong> When an admin approves KYC, both <span class="ic">UserProfile.KycStatus</span> and <span class="ic">KycDocument.Status</span> must change together. Because EF Core's change tracker tracks both objects within the same DbContext scope, a single <span class="ic">SaveChangesAsync()</span> wraps both updates in one database transaction. They either both commit or both roll back.</div>
+  </div>
+
+  <!-- Repositories -->
+  <div class="card">
+    <div class="card-title">📄 ProfileRepository.cs — Key Query Pattern</div>
+    <pre><code>public async Task&lt;UserProfile?&gt; GetByUserIdAsync(Guid userId) =&gt;
+    await _db.UserProfiles
+        .Include(p =&gt; p.KycDocument)   // ← EAGER loading — always loads document with profile
+        .FirstOrDefaultAsync(p =&gt; p.UserId == userId);
+
+public async Task&lt;bool&gt; ExistsByUserIdAsync(Guid userId) =&gt;
+    await _db.UserProfiles
+        .AnyAsync(p =&gt; p.UserId == userId);  // ← no AsNoTracking needed — AnyAsync never tracks</code></pre>
+    <p><strong>Why <span class="ic">.Include(p =&gt; p.KycDocument)</span> everywhere?</strong> The KYC status is displayed on every profile GET. Without Include, <span class="ic">p.KycDocument</span> would be null even if a document exists (EF doesn't load navigation properties by default — it's called lazy loading and is disabled in EF Core by default). Eager loading with Include ensures one SQL JOIN instead of two separate queries.</p>
+    <p><strong>Trade-off:</strong> Even for a simple "does this profile exist?" check, you could accidentally use <span class="ic">GetByUserIdAsync</span> which also loads the KycDocument. The <span class="ic">ExistsByUserIdAsync</span> method exists precisely to avoid this — it compiles to <span class="ic">SELECT CASE WHEN EXISTS(...)</span> with no JOIN, far cheaper.</p>
+  </div>
+
+  <!-- Entities -->
+  <div class="card">
+    <div class="card-title">📄 Entities — Domain Modeling Decisions</div>
+    <pre><code>public class UserProfile : BaseEntity
+{
+    public Guid    UserId    { get; set; }   // ← NOT a real FK — AuthDb is a different DB
+    public string  Email     { get; set; } = string.Empty;
+    public string? FullName  { get; set; }  // nullable — filled later by user
+    public string? Phone     { get; set; }
+    public string? Address   { get; set; }
+    public string? DateOfBirth { get; set; }
+    public KycStatus KycStatus { get; set; } = KycStatus.Pending;
+
+    // Navigation property — one-to-one with KycDocument
+    public KycDocument? KycDocument { get; set; }
+}
+
+public class KycDocument : BaseEntity
+{
+    public Guid      UserProfileId  { get; set; }  // FK to UserProfiles.Id (same DB)
+    public string    DocumentType   { get; set; } = string.Empty;
+    public string    DocumentNumber { get; set; } = string.Empty;
+    public KycStatus Status         { get; set; } = KycStatus.Pending;
+    public string?   ReviewedBy     { get; set; }  // admin email — audit trail
+    public DateTime  SubmittedAt    { get; set; }
+
+    public UserProfile UserProfile  { get; set; } = null!;  // back-reference
+}
+
+public enum KycStatus { Pending, Submitted, Approved, Rejected }</code></pre>
+    <p><strong>Why is UserId not a real FK?</strong> <span class="ic">UserProfile.UserId</span> is a Guid that <em>logically</em> references <span class="ic">AuthDb.Users.Id</span>, but there is no database-level foreign key constraint between them — they're in different databases. This is the database-per-service trade-off: you lose referential integrity across service boundaries. The application layer must maintain this consistency through events and validation.</p>
+  </div>
+
+  <!-- Controllers -->
+  <div class="card">
+    <div class="card-title">📄 ProfileController.cs + KycController.cs — Authorization Patterns</div>
+    <pre><code>[ApiController]
+[Route("api/profile")]
+[Authorize]                    // ← ALL endpoints require JWT — class-level attribute
+public class ProfileController : ControllerBase
+{
+    // UserId ALWAYS extracted from JWT — never from URL or body
+    // This prevents user A from reading user B's profile
+    private Guid CurrentUserId =&gt;
+        Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub")!);
+
+    [HttpGet("me")]
+    public async Task&lt;IActionResult&gt; GetProfile()
+    {
+        var result = await _profileService.GetByUserIdAsync(CurrentUserId);
+        return result.IsSuccess ? Ok(result.Data) : NotFound(new { error = result.Error });
+    }
+}
+
+[ApiController]
+[Route("api/kyc")]
+public class KycController : ControllerBase
+{
+    [Authorize]                          // any authenticated user
+    [HttpPost("submit")]
+    public async Task&lt;IActionResult&gt; Submit([FromBody] KycSubmitDto dto) { ... }
+
+    [Authorize(Roles = "Admin")]         // ← ONLY Admin role — enforced by ASP.NET Core policy
+    [HttpPut("review/{userId}")]
+    public async Task&lt;IActionResult&gt; Review(Guid userId, [FromBody] KycReviewDto dto)
+    {
+        var reviewedBy = User.FindFirstValue(ClaimTypes.Email)!;  // who clicked Approve
+        var result = await _kycService.ReviewKycAsync(userId, dto, reviewedBy);
+        return result.IsSuccess ? Ok(result.Data) : BadRequest(new { error = result.Error });
+    }
+}</code></pre>
+    <div class="callout callout-green"><strong>Security pattern — userId from JWT, not URL:</strong> For <span class="ic">GET /me</span> and <span class="ic">PUT /me</span>, the userId comes from the JWT claim, not the URL. This means a user cannot request <span class="ic">/profile/other-user-id</span>. They can only ever operate on their own profile. The Admin review endpoint accepts a <span class="ic">userId</span> in the URL because admins need to review specific users — but that endpoint requires the Admin role.</div>
+  </div>
+
+  <!-- DbContext -->
+  <div class="card">
+    <div class="card-title">📄 UserProfileDbContext.cs — Schema Configuration</div>
+    <pre><code>protected override void OnModelCreating(ModelBuilder mb)
+{
+    // One-to-one: each profile has at most one KYC document
+    mb.Entity&lt;UserProfile&gt;()
+      .HasOne(p =&gt; p.KycDocument)
+      .WithOne(d =&gt; d.UserProfile)
+      .HasForeignKey&lt;KycDocument&gt;(d =&gt; d.UserProfileId)
+      .OnDelete(DeleteBehavior.Cascade);  // delete profile → delete document too
+
+    // Unique constraint on UserId — enforced at DB level
+    mb.Entity&lt;UserProfile&gt;()
+      .HasIndex(p =&gt; p.UserId)
+      .IsUnique();
+
+    // Store enum as string — readable in DB, not magic numbers
+    mb.Entity&lt;UserProfile&gt;()
+      .Property(p =&gt; p.KycStatus)
+      .HasConversion&lt;string&gt;();
+
+    mb.Entity&lt;KycDocument&gt;()
+      .Property(d =&gt; d.Status)
+      .HasConversion&lt;string&gt;();
+}</code></pre>
+    <p><strong>Why store enum as string?</strong> Without <span class="ic">HasConversion&lt;string&gt;()</span>, EF stores the enum as an integer (0, 1, 2, 3). If you look at the DB directly you see "0" instead of "Pending". String storage makes the DB human-readable and survives reordering of enum values without corrupt data.</p>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <h2><span class="num">4</span> Execution Trace — KYC Approval Flow</h2>
+
+  <div class="card">
+    <div class="card-title">Scenario: Admin approves a user's KYC → user gets email notification</div>
+
+    <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><strong>Ocelot Gateway (5000)</strong> receives <span class="ic">PUT /gateway/kyc/review/{userId}</span>. Validates JWT — checks <span class="ic">Role = "Admin"</span> claim. If role is "User" → 403 returned at gateway, request never reaches UserProfile service.</div></div>
+    <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><strong>KycController.Review()</strong> — model binding reads <span class="ic">userId</span> from route, <span class="ic">KycReviewDto</span> from body. Extracts reviewer's email from JWT claims for audit.</div></div>
+    <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><strong>KycService.ReviewKycAsync()</strong> — calls <span class="ic">_profiles.GetByUserIdAsync(userId)</span>. EF issues: <span class="ic">SELECT * FROM UserProfiles INNER JOIN KycDocuments WHERE UserId = ?</span>. If profile or document null → 400/404.</div></div>
+    <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><strong>State validation</strong> — checks document status is not already Approved. Guards against double-approval.</div></div>
+    <div class="flow-step"><div class="flow-num">5</div><div class="flow-text"><strong>Atomic update</strong> — sets <span class="ic">profile.KycStatus = Approved</span> AND <span class="ic">document.Status = Approved</span>. EF change tracker marks both dirty.</div></div>
+    <div class="flow-step"><div class="flow-num">6</div><div class="flow-text"><strong>SaveChangesAsync()</strong> — EF wraps both UPDATEs in a single SQL transaction. Both succeed or both roll back.</div></div>
+    <div class="flow-step"><div class="flow-num">7</div><div class="flow-text"><strong>Event published</strong> — <span class="ic">KycStatusUpdatedEvent</span> sent to RabbitMQ <span class="ic">user.exchange</span> with routing key <span class="ic">kyc.status.updated</span>. Notification service receives it and sends approval email via MailKit/Gmail.</div></div>
+    <div class="flow-step"><div class="flow-num">8</div><div class="flow-text"><strong>200 OK</strong> returned to admin. User's wallet is now usable — Wallet service reads KycStatus (via JWT or its own DB) when processing transactions.</div></div>
+
+    <h3 style="margin-top:20px">Failure Scenarios at Each Step</h3>
+    <table>
+      <tr><th>Step</th><th>Failure</th><th>Outcome</th></tr>
+      <tr><td>1</td><td>Non-admin JWT</td><td>403 at gateway — never hits service</td></tr>
+      <tr><td>3</td><td>UserId not found</td><td>404 — "Profile not found"</td></tr>
+      <tr><td>4</td><td>Already approved</td><td>400 — idempotency guard</td></tr>
+      <tr><td>6</td><td>DB write fails</td><td>500 — GlobalExceptionMiddleware, no event published</td></tr>
+      <tr><td>7</td><td>RabbitMQ down after DB save</td><td>Status updated in DB but user never gets email. No outbox pattern — known gap.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <h2><span class="num">5</span> Distributed Systems Concerns</h2>
+
+  <h3>KYC State Machine</h3>
+  <div class="state-machine">
+    <div class="state-node"><div class="state-circle s-pending">⏳ Pending</div><span style="margin-left:12px;font-size:.82rem;color:var(--muted)">← Created by UserRegisteredConsumer. No documents yet.</span></div>
+    <div class="state-arrow"><div class="arrow-line">↓ user calls POST /kyc/submit</div></div>
+    <div class="state-node"><div class="state-circle s-submitted">📋 Submitted</div><span style="margin-left:12px;font-size:.82rem;color:var(--muted)">← KycDocument created. Waiting for Admin review.</span></div>
+    <div class="state-arrow"><div class="arrow-line">↓ Admin calls PUT /kyc/review → Approved / Rejected</div></div>
+    <div style="display:flex;gap:16px;margin-top:4px">
+      <div class="state-node"><div class="state-circle s-approved">✅ Approved</div></div>
+      <div class="state-node"><div class="state-circle s-rejected">❌ Rejected</div><span style="margin-left:12px;font-size:.82rem;color:var(--muted)">← User can resubmit → back to Submitted</span></div>
+    </div>
+    <div style="font-size:.78rem;color:var(--muted);margin-top:12px">After each Admin action → KycStatusUpdatedEvent published → Notification service sends email</div>
+  </div>
+
+  <div class="grid2" style="margin-top:20px">
+    <div class="card">
+      <div class="card-title">Idempotency in the Consumer</div>
+      <p>RabbitMQ guarantees <strong>at-least-once delivery</strong> — the same message may arrive multiple times (network hiccup, service restart). The consumer handles this with a check:</p>
+      <pre><code>if (await repo.ExistsByUserIdAsync(message.UserId))
+    return;  // already processed — skip</code></pre>
+      <p>This makes the consumer <strong>idempotent</strong> — processing the same event 10 times produces the same result as processing it once. The unique index on <span class="ic">UserId</span> in the DB also provides a second layer of defence.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Eventual Consistency Window</div>
+      <p>When a user registers in Auth, their profile in UserProfileDb is created <strong>milliseconds later</strong> via RabbitMQ — not atomically. During that window:</p>
+      <ul style="font-size:.85rem;padding-left:16px;line-height:1.8">
+        <li>Auth returns 200 (user exists in AuthDb)</li>
+        <li>Profile doesn't exist in UserProfileDb yet</li>
+        <li>If user calls <span class="ic">GET /profile/me</span> immediately → 404</li>
+      </ul>
+      <p>This is acceptable for a non-critical read. The window is typically &lt;100ms. The real problem is if RabbitMQ drops the event entirely — then the profile is never created.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">The Outbox Pattern Gap</div>
+    <p>In <span class="ic">ReviewKycAsync()</span>, the flow is:</p>
+    <pre><code>await _profiles.SaveChangesAsync();   // ← DB committed here
+await _publisher.PublishAsync(...);   // ← RabbitMQ publish here
+// If RabbitMQ is down or publish throws after DB commit:
+// → Status is Approved in DB
+// → Notification email NEVER sent
+// → User is approved but doesn't know it</code></pre>
+    <div class="callout callout-red"><strong>Fix — Outbox Pattern:</strong> Write the KycStatusUpdatedEvent to an <span class="ic">OutboxEvents</span> table in the same DB transaction as the KYC update. A background job polls the outbox and publishes to RabbitMQ. This guarantees exactly-once delivery. Not implemented in this project — but this is the production-grade answer.</div>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <h2><span class="num">6</span> Performance & Scalability</h2>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">⚠️ Bottlenecks</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li><strong>Eager loading KycDocument on every profile query</strong> — even for exists checks. The <span class="ic">ExistsByUserIdAsync</span> method exists to avoid this but all other reads always JOIN.</li>
+        <li><strong>N+1 risk if listing profiles</strong> — no list endpoint now, but if added without Include, EF would query KycDocument for each profile separately.</li>
+        <li><strong>No caching on profile reads</strong> — <span class="ic">GET /me</span> hits DB on every call. Profile data rarely changes — Redis with a 5-minute TTL would dramatically reduce DB load.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 Scaling Considerations</div>
+      <ul style="font-size:.88rem;padding-left:18px;line-height:2">
+        <li><strong>Horizontal scaling works cleanly</strong> — no local state, all state in SQL Server</li>
+        <li><strong>Consumer concurrency</strong> — if multiple UserProfile instances run, multiple consumers may try to create the same profile simultaneously. The unique index on UserId + the idempotency check handle this race condition.</li>
+        <li><strong>KYC is admin-driven and low volume</strong> — not a scaling concern in practice</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <h2><span class="num">7</span> Security Analysis</h2>
+  <table>
+    <tr><th>Attack Vector</th><th>Mitigation</th><th>Gap</th></tr>
+    <tr><td>User reads another user's profile</td><td>UserId always from JWT claim, never from URL for /me endpoints</td><td>✅ Correctly implemented</td></tr>
+    <tr><td>User self-approves KYC</td><td><span class="ic">[Authorize(Roles = "Admin")]</span> on review endpoint</td><td>✅ Correctly implemented</td></tr>
+    <tr><td>User submits KYC twice</td><td>Guard: <span class="ic">if (profile.KycDocument is not null) return Failure</span></td><td>✅ Handled</td></tr>
+    <tr><td>Admin reviews already-approved KYC</td><td>Guard: <span class="ic">if (Status == Approved) return Failure</span></td><td>✅ Handled</td></tr>
+    <tr><td>Document number exposure</td><td>Only returned in KYC-specific responses, not on every profile GET</td><td>Consider masking (e.g. XXXX-XXXX-1234) in responses</td></tr>
+    <tr><td>Forged userId in review URL</td><td>Requires Admin JWT — attacker must first compromise an Admin account</td><td>Rate limiting on review endpoint would help</td></tr>
+    <tr><td>Who approved KYC? (audit)</td><td><span class="ic">ReviewedBy</span> field stores admin email from JWT</td><td>✅ Audit trail implemented</td></tr>
+  </table>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <h2><span class="num">8</span> Design Trade-offs</h2>
+
+  <div class="card">
+    <div class="card-title">Why Event-Driven Profile Creation Instead of API Call?</div>
+    <p><strong>Option A (what you built):</strong> Auth publishes UserRegisteredEvent → UserProfile consumer creates profile asynchronously.</p>
+    <p><strong>Option B:</strong> After register, Auth calls <span class="ic">POST /profile/create</span> synchronously.</p>
+    <p><strong>Why A wins:</strong> Option B creates a synchronous coupling — Auth's register endpoint is now only as fast and reliable as UserProfile service. If UserProfile is slow or down, registration fails or is slow. With event-driven, registration always returns fast. UserProfile catches up when it can. Loose coupling at the cost of eventual consistency.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">One DB for Profile + KYC vs Two DBs</div>
+      <p><strong>What you built:</strong> Both UserProfiles and KycDocuments are in the same <span class="ic">UserProfileDb</span>, owned by the same service.</p>
+      <p><strong>Why correct:</strong> Profile and KYC are tightly coupled — you almost always need both together. Same service, same DB = single transaction for atomic updates. If they were in separate databases (separate services), you'd need a distributed transaction (2-phase commit) to update both atomically. Not worth the complexity.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Cross-DB Relationship (No Real FK)</div>
+      <p><span class="ic">UserProfile.UserId</span> references <span class="ic">AuthDb.Users.Id</span> logically but there's no DB-level FK constraint. This means you could have orphaned profiles if a user is deleted from AuthDb without the event reaching UserProfileDb.</p>
+      <p>This is the fundamental trade-off of database-per-service: you trade referential integrity for service autonomy. The application logic (event-driven creation + existence checks) must substitute for what the DB would normally guarantee.</p>
+    </div>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section" id="s9">
+  <h2><span class="num">9</span> Edge Cases & Failure Scenarios</h2>
+  <table>
+    <tr><th>Scenario</th><th>What Happens</th><th>Handled?</th></tr>
+    <tr><td>UserRegisteredEvent delivered twice</td><td>First delivery creates profile. Second delivery: ExistsByUserIdAsync = true → early return. DB unique index also blocks duplicate insert.</td><td>✅ Yes — idempotent consumer</td></tr>
+    <tr><td>User calls GET /me before event processed</td><td>Profile doesn't exist yet → 404. User sees error briefly (milliseconds normally)</td><td>⚠️ Acceptable — eventual consistency window</td></tr>
+    <tr><td>Admin approves, RabbitMQ publish fails</td><td>KYC approved in DB, email never sent. User is approved but not notified.</td><td>❌ No — Outbox pattern needed</td></tr>
+    <tr><td>User submits KYC twice</td><td>Second call: <span class="ic">profile.KycDocument is not null</span> → 400 "KYC already submitted"</td><td>✅ Yes — guard clause</td></tr>
+    <tr><td>Admin tries to re-approve already approved KYC</td><td>Guard: <span class="ic">Status == Approved</span> → 400 — idempotency</td><td>✅ Yes — state machine guard</td></tr>
+    <tr><td>UserProfile service crashes mid-KYC-review (after DB save, before publish)</td><td>KYC status saved, event never published, email never sent</td><td>❌ No — same outbox gap</td></tr>
+    <tr><td>Two UserProfile instances process same event simultaneously</td><td>Both pass ExistsByUserIdAsync (race), both try INSERT. DB unique index rejects second insert → exception → BaseConsumer Nacks second message, retries → now passes ExistsByUserIdAsync check → gracefully skipped</td><td>✅ Yes — DB constraint as final safety net</td></tr>
+  </table>
+</div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <h2><span class="num">10</span> Interview-Level Q&A</h2>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q1: Why do you use IServiceScopeFactory in the consumer instead of constructor injection for the repository? <span>▼</span></div>
+    <div class="qa-a">BaseConsumer is registered as a Singleton because it holds a long-lived RabbitMQ channel connection. EF Core's DbContext is registered as Scoped — meaning it's created per HTTP request and disposed after. If you inject a Scoped service into a Singleton, the Scoped service gets "captured" — it lives as long as the Singleton and never gets disposed. This is called a captive dependency and causes memory leaks and stale EF tracking state.<br><br>The fix: inject IServiceScopeFactory (which is itself Singleton-safe), and inside HandleAsync, create a new scope with CreateScope(). This gives you a fresh DbContext per message — same lifetime as if it were a real HTTP request. Dispose the scope when done.</div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q2: How do you prevent duplicate profile creation if the UserRegisteredEvent is delivered twice? <span>▼</span></div>
+    <div class="qa-a">Two layers of defence. First, the application check: <span class="ic">if (await repo.ExistsByUserIdAsync(message.UserId)) return;</span> — if the profile already exists, skip processing and BasicAck the message (it was already handled).<br><br>Second, the database unique index on UserId. Even if two concurrent instances of the consumer pass the application check simultaneously (race condition), only one INSERT will succeed. The other will throw a unique constraint violation, which causes BaseConsumer to Nack and retry — and on retry, the application check catches it. Defense in depth: application layer + database layer.</div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q3: How does EF Core update both UserProfile and KycDocument atomically in one call? <span>▼</span></div>
+    <div class="qa-a">EF Core's DbContext maintains a change tracker. When you load a UserProfile with .Include(p => p.KycDocument), both the profile and its document are tracked within the same DbContext instance. When you modify properties on both objects, the change tracker marks both as modified. When SaveChangesAsync() is called, EF wraps all pending changes — including both UPDATE statements — in a single database transaction. Either both commit or both roll back. You never have to manually open a SqlTransaction.</div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q4: Why is the KYC state machine important in a fintech context? <span>▼</span></div>
+    <div class="qa-a">KYC (Know Your Customer) is a regulatory requirement — financial institutions are legally required to verify customer identity before allowing money movement. The state machine enforces the legal workflow: Pending (registered but unverified) → Submitted (documents provided) → Approved (verified, full access) / Rejected (failed, must resubmit).<br><br>The guards on state transitions (can't review what hasn't been submitted, can't re-approve already approved) prevent both user errors and potential manipulation. In production, KYC approval would also trigger a JWT refresh so the new status propagates immediately to the access token.</div>
+  </div>
+
+  <div class="qa-item">
+    <div class="qa-q" onclick="toggle(this)">Q5: There's no real FK between UserProfile.UserId and AuthDb — how do you maintain consistency? <span>▼</span></div>
+    <div class="qa-a">This is the fundamental database-per-service trade-off. Without cross-DB FK constraints, consistency is maintained through: (1) Event-driven creation — profile is only created when UserRegisteredEvent is received, meaning the user must exist in AuthDb for the event to have been published. (2) Application-level validation — every operation checks that the profile exists before proceeding. (3) No delete operation — we never delete users, so there's no orphan problem.<br><br>The gap: if Auth deletes a user (not implemented), we'd need a UserDeletedEvent that triggers profile deletion. This is the compensation pattern for cross-service consistency.</div>
+  </div>
+</div>
+
+<!-- S11 -->
+<div class="section" id="s11">
+  <h2><span class="num">11</span> 30-Second & 2-Minute Explanation</h2>
+
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="card-title">⚡ 30-Second Answer</div>
+    <p>UserProfile Service owns user identity data and the KYC workflow. It's event-driven at its core — a UserRegisteredConsumer auto-creates a profile row when Auth publishes the UserRegistered event, so users never need to explicitly create their profile. The KYC state machine moves through Pending → Submitted → Approved/Rejected. Only Admins can change KycStatus. On approval, a KycStatusUpdatedEvent fires so Notification sends an email. The tricky engineering detail is that the consumer uses IServiceScopeFactory to avoid injecting a Scoped DbContext into a Singleton consumer.</p>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--accent)">
+    <div class="card-title">🎯 2-Minute Deep Dive</div>
+    <p>UserProfile Service has two main concerns: profile management and KYC workflow. These are split into two services (ProfileService and KycService) within the same bounded context, keeping each class focused on one thing.</p>
+    <p>The most architecturally interesting part is the UserRegisteredConsumer. It inherits from BaseConsumer&lt;T&gt;, which handles the RabbitMQ connection, acknowledgements, and dead-letter routing. The consumer creates a profile automatically when Auth publishes UserRegisteredEvent — the user never needs to call a "create profile" endpoint. Making the consumer idempotent is critical because RabbitMQ guarantees at-least-once delivery. The application check plus the database unique index form two layers of duplicate protection.</p>
+    <p>For KYC, when an admin approves, EF Core updates both UserProfile.KycStatus and KycDocument.Status in a single database transaction — the change tracker handles this automatically since both entities are loaded within the same DbContext scope. The KycStatusUpdatedEvent is then published so the user gets notified by email.</p>
+    <p>The main production gap is the Outbox Pattern. If RabbitMQ goes down after the DB save but before the event publish, the user's KYC is approved but they never get the email. The fix is to write the event into an OutboxEvents table in the same transaction, with a background job guaranteeing delivery to RabbitMQ independently.</p>
+  </div>
+</div>
+
+</main>
+</div>
+<script>
+function toggle(el){
+  const a=el.nextElementSibling;
+  a.classList.toggle('open');
+  el.querySelector('span').textContent=a.classList.contains('open')?'▲':'▼';
+}
+const links=document.querySelectorAll('aside a');
+const sections=document.querySelectorAll('.section');
+window.addEventListener('scroll',()=>{
+  let cur='';
+  sections.forEach(s=>{if(window.scrollY>=s.offsetTop-100)cur=s.id;});
+  links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+cur));
+});
+</script>
+</body>
+</html>

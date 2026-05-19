@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOP Mastery: Overloading vs Overriding | Freshers Interview Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fc 0%, #e9eef5 100%);
+            color: #1e2a3e;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            padding: 2rem 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.3rem;
+            background: linear-gradient(120deg, #0f2b3d, #1b4f6e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            border-left: 6px solid #2c7da0;
+            padding-left: 1.2rem;
+        }
+
+        .subhead {
+            color: #2c5f7a;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 0.75rem;
+        }
+
+        .badge {
+            background: #eef2ff;
+            color: #1e4a76;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .concept-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+            border: 1px solid #e2edf2;
+        }
+
+        .concept-header {
+            padding: 1.2rem 1.8rem;
+            background: #f8fafc;
+            border-bottom: 2px solid #dce7ed;
+            border-radius: 1.5rem 1.5rem 0 0;
+        }
+
+        .concept-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .concept-header .define {
+            color: #2c7da0;
+            font-weight: 500;
+            margin-top: 0.3rem;
+        }
+
+        .concept-body {
+            padding: 1.5rem 1.8rem;
+        }
+
+        .code-block {
+            background: #0e1e2a;
+            color: #e2f0fa;
+            padding: 1.2rem;
+            border-radius: 1rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+            margin: 1.2rem 0;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .explanation {
+            background: #eef6fb;
+            padding: 1rem 1.3rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #2c7da0;
+        }
+
+        .qa-section {
+            margin-top: 3rem;
+            background: #fefdf7;
+            border-radius: 1.5rem;
+            padding: 0.5rem 0 1.8rem 0;
+        }
+
+        .qa-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 1rem 0 1rem 0;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qa-item {
+            margin: 1.5rem 0;
+            border-bottom: 1px solid #e0e7ed;
+            padding-bottom: 1.2rem;
+        }
+
+        .question {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #0c4a6e;
+            background: #f1f5f9;
+            padding: 0.7rem 1rem;
+            border-radius: 0.9rem;
+            margin-bottom: 0.7rem;
+        }
+
+        .answer {
+            padding-left: 1rem;
+            border-left: 3px solid #6c9ebf;
+            margin-top: 0.5rem;
+        }
+
+        .answer p {
+            margin: 0.6rem 0;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: 0;
+            height: 1px;
+            background: #cbd5e1;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            color: #5b7a97;
+            border-top: 1px solid #dce5ec;
+            padding-top: 1.5rem;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 1rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            .concept-header h2 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>⚡ OOP Core Concepts: Overloading vs Overriding</h1>
+    <div class="subhead">Fresher’s deep dive — compile-time polymorphism vs runtime polymorphism with real Java-style examples</div>
+
+    <!-- ==================== FUNCTION OVERLOADING SECTION ==================== -->
+    <div class="concept-card">
+        <div class="concept-header">
+            <span class="badge">🔁 Compile-time Polymorphism</span>
+            <h2>📌 Function Overloading</h2>
+            <div class="define">Same name, different parameters — within the same class</div>
+        </div>
+        <div class="concept-body">
+            <p><strong>Definition:</strong> Function overloading allows a class to have multiple methods with the <strong>same name</strong> but different parameter lists (type, number, or order). The compiler decides which method to call at <strong>compile time</strong>.</p>
+            <div class="code-block">
+                <pre>// Java example: Calculator class demonstrates overloading
+class Calculator {
+    // add() with two int parameters
+    public int add(int a, int b) {
+        return a + b;
+    }
+    
+    // overloaded: three int parameters
+    public int add(int a, int b, int c) {
+        return a + b + c;
+    }
+    
+    // overloaded: two double parameters
+    public double add(double a, double b) {
+        return a + b;
+    }
+    
+    // overloaded: different order (String concatenation demo)
+    public String add(String text, int number) {
+        return text + number;
+    }
+}
+
+public class MainOverload {
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
+        System.out.println("add(5,10) = " + calc.add(5,10));          // calls int,int
+        System.out.println("add(2,3,4) = " + calc.add(2,3,4));        // calls int,int,int
+        System.out.println("add(2.5,3.7) = " + calc.add(2.5,3.7));    // calls double,double
+        System.out.println("add(\"Score: \", 99) = " + calc.add("Score: ", 99));
+    }
+}</pre>
+            </div>
+            <div class="explanation">
+                <strong>🧠 Explanation:</strong> The <code>add</code> method appears 4 times with different signatures. The compiler matches the method call based on argument count & type. Overloading improves readability & provides flexibility. It is <strong>NOT</strong> affected by return type — return type alone cannot distinguish overloads. Overloading works across different access modifiers. This is <strong>static/compile-time polymorphism</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FUNCTION OVERRIDING SECTION ==================== -->
+    <div class="concept-card">
+        <div class="concept-header">
+            <span class="badge">🔄 Runtime Polymorphism</span>
+            <h2>🎯 Function Overriding</h2>
+            <div class="define">Re-defining a parent class method in child class — same signature</div>
+        </div>
+        <div class="concept-body">
+            <p><strong>Definition:</strong> When a subclass provides a <strong>specific implementation</strong> of a method already defined in its superclass, it's called overriding. The method signature (name + parameters) must remain identical. Overriding enables <strong>runtime polymorphism</strong> (dynamic method dispatch).</p>
+            <div class="code-block">
+                <pre>// Java example: Animal hierarchy
+class Animal {
+    public void sound() {
+        System.out.println("Animal makes a generic sound");
+    }
+    
+    public void eat() {
+        System.out.println("Animal eats food");
+    }
+}
+
+class Dog extends Animal {
+    @Override   // good practice: annotation ensures overriding
+    public void sound() {
+        System.out.println("Dog barks: Woof Woof!");
+    }
+    
+    // optional: adding specialized behavior
+    public void wagTail() {
+        System.out.println("Dog wags tail happily");
+    }
+}
+
+class Cat extends Animal {
+    @Override
+    public void sound() {
+        System.out.println("Cat meows: Meow Meow");
+    }
+}
+
+public class MainOverride {
+    public static void main(String[] args) {
+        Animal myAnimal = new Animal();
+        Animal myDog = new Dog();      // upcasting
+        Animal myCat = new Cat();
+        
+        myAnimal.sound();   // Animal version
+        myDog.sound();      // Dog's overridden version -> runtime decision
+        myCat.sound();      // Cat's version
+        
+        // myDog.wagTail();  // not allowed (reference type Animal)
+        // to access specific methods, downcast if needed
+        if(myDog instanceof Dog) {
+            ((Dog) myDog).wagTail();
+        }
+    }
+}</pre>
+            </div>
+            <div class="explanation">
+                <strong>🧠 Explanation:</strong> The <code>sound()</code> method is overridden in <code>Dog</code> and <code>Cat</code>. At runtime, the JVM invokes the actual object's method, not the reference type's method. Overriding requires same method name, parameters, and return type (covariant return types allowed). You cannot override <code>private</code> or <code>final</code> methods. <code>@Override</code> annotation helps catch errors. This is core to achieving <strong>polymorphism & dynamic behavior</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick comparison summary table -->
+    <div style="background: #eef2fa; border-radius: 1.2rem; padding: 1rem 1.8rem; margin: 1rem 0;">
+        <h3 style="margin-bottom: 0.5rem;">📊 Overloading vs Overriding — Quick Glance</h3>
+        <table style="width:100%; border-collapse: collapse; font-size:0.9rem;">
+            <tr style="background:#d9e6f2;"><th style="padding:8px; text-align:left;">Feature</th><th style="padding:8px; text-align:left;">Overloading</th><th style="padding:8px; text-align:left;">Overriding</th></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Polymorphism type</td><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Compile-time (static)</td><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Runtime (dynamic)</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Method name</td><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Same</td><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Same</td></tr>
+            <tr><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Parameters</td><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Must differ (type, count, order)</td><td style="padding:8px; border-bottom:1px solid #cbdbe6;">Must be identical</td></tr>
+            <tr><td style="padding:8px;">Return type</td><td style="padding:8px;">Can be different (no overload criteria)</td><td style="padding:8px;">Must be same or covariant</td></tr>
+        </table>
+    </div>
+
+    <!-- ==================== OOP INTERVIEW QUESTIONS & ANSWERS ==================== -->
+    <div class="qa-section">
+        <div class="qa-title">
+            🧠📘 OOP Interview Questions (Fresher friendly) with Code Examples
+        </div>
+        <p style="margin-bottom: 1.2rem; color: #2c5f7a;">Most commonly asked OOP concepts in tech interviews — inheritance, encapsulation, abstraction, polymorphism, and more.</p>
+
+        <!-- Q1 -->
+        <div class="qa-item">
+            <div class="question">🔹 1. What are the four pillars of OOP? Explain with real-life analogy.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> The four pillars are <strong>Encapsulation, Inheritance, Polymorphism, and Abstraction</strong>.</p>
+                <ul style="margin-left: 1.5rem; margin-bottom: 0.5rem;">
+                    <li><strong>Encapsulation:</strong> Binding data & methods together, hiding internal state (e.g., a capsule).</li>
+                    <li><strong>Inheritance:</strong> Child class acquires properties of parent (e.g., Son inherits traits from Father).</li>
+                    <li><strong>Polymorphism:</strong> One entity many forms (e.g., a person behaves as student, employee).</li>
+                    <li><strong>Abstraction:</strong> Hiding implementation details & showing only essential features (e.g., driving a car without knowing engine mechanism).</li>
+                </ul>
+                <div class="code-block"><pre>// Encapsulation example
+class BankAccount {
+    private double balance;   // hidden data
+    public void deposit(double amt) { if(amt>0) balance+=amt; }
+    public double getBalance() { return balance; }
+}</pre></div>
+            </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="qa-item">
+            <div class="question">🔹 2. Explain constructor overloading with code example.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Multiple constructors in a class with different parameter lists — used to initialize objects in various ways.</p>
+                <div class="code-block"><pre>class Employee {
+    String name;
+    int id;
+    // no-arg constructor
+    Employee() {
+        name = "Unknown";
+        id = 0;
+    }
+    // parameterized constructor
+    Employee(String name, int id) {
+        this.name = name;
+        this.id = id;
+    }
+    // overloaded with only name
+    Employee(String name) {
+        this(name, -1);
+    }
+    public void display() {
+        System.out.println(name + " , ID: " + id);
+    }
+}</pre></div>
+                <p>Constructor overloading offers flexibility to create objects with default or custom values.</p>
+            </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="qa-item">
+            <div class="question">🔹 3. Can we override static methods in Java? Why?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> No, static methods cannot be overridden because they belong to the class, not the instance. Method overriding is based on runtime object type, while static methods are resolved at compile time. However, you can "hide" a static method in subclass.</p>
+                <div class="code-block"><pre>class Parent {
+    static void show() { System.out.println("Parent static"); }
+}
+class Child extends Parent {
+    static void show() { System.out.println("Child static"); }  // hiding, not overriding
+}
+// Parent p = new Child(); p.show(); → calls Parent's version</pre></div>
+            </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="qa-item">
+            <div class="question">🔹 4. What is the difference between abstract class and interface?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Abstract class can have both abstract & concrete methods, instance variables, constructors. Interface (prior to Java 8) had only abstract methods; from Java 8+, default & static methods allowed. A class can extend only one abstract class but implement multiple interfaces.</p>
+                <div class="code-block"><pre>abstract class Vehicle {
+    abstract void start();
+    void fuel() { System.out.println("Filling fuel"); }
+}
+interface Electric {
+    void chargeBattery();
+}
+class Tesla extends Vehicle implements Electric {
+    void start() { System.out.println("Tesla silent start"); }
+    public void chargeBattery() { System.out.println("Charging..."); }
+}</pre></div>
+            </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="qa-item">
+            <div class="question">🔹 5. What is the "diamond problem" in multiple inheritance? How does Java resolve it?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Diamond problem occurs when a class inherits from two classes that have a method with same signature, causing ambiguity. Java doesn't support multiple inheritance with classes, but supports multiple inheritance via interfaces. Since Java 8, if two interfaces provide default methods with same signature, the implementing class must override the method or specify which super-interface to use.</p>
+                <div class="code-block"><pre>interface A { default void show() { System.out.println("A"); } }
+interface B { default void show() { System.out.println("B"); } }
+class C implements A, B {
+    // must override to resolve conflict
+    public void show() { A.super.show(); }   // choose A's version
+}</pre></div>
+            </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="qa-item">
+            <div class="question">🔹 6. Demonstrate method overriding with 'super' keyword usage.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> 'super' is used to invoke parent class method from overridden method in child, allowing reuse of parent logic.</p>
+                <div class="code-block"><pre>class Vehicle {
+    void run() { System.out.println("Vehicle is moving"); }
+}
+class Bike extends Vehicle {
+    @Override
+    void run() {
+        super.run();   // calls parent method
+        System.out.println("Bike runs safely with 2 wheels");
+    }
+}
+// new Bike().run(); output both statements.</pre></div>
+            </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="qa-item">
+            <div class="question">🔹 7. What is the Liskov Substitution Principle (LSP) in SOLID?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> LSP states that objects of a superclass should be replaceable with objects of a subclass without affecting correctness. Overriding methods should not strengthen preconditions or weaken postconditions. Example: If <code>Rectangle</code> is parent and <code>Square</code> child, changing width independently breaks LSP.</p>
+                <div class="code-block"><pre>// Violation: Square changes behavior of setWidth/setHeight
+// Better to avoid such hierarchy. Always follow "is-a" properly</pre></div>
+            </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="qa-item">
+            <div class="question">🔹 8. Can we overload or override the main() method in Java?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Yes, we can overload <code>main()</code> but JVM always calls the standard <code>public static void main(String[] args)</code> as the entry point. Overloaded main methods act like normal methods. Overriding <code>main()</code> is not possible because it's static.</p>
+                <div class="code-block"><pre>public class Test {
+    public static void main(String[] args) { 
+        System.out.println("Standard main");
+        main(10);
+    }
+    public static void main(int x) { 
+        System.out.println("Overloaded main: " + x);
+    }
+}</pre></div>
+            </div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="qa-item">
+            <div class="question">🔹 9. What is the difference between compile-time polymorphism and runtime polymorphism?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Compile-time polymorphism (method overloading) resolves method calls at compile time based on reference type. Runtime polymorphism (method overriding) decides method execution at runtime based on actual object type. Overloading is faster but overriding provides flexibility.</p>
+                <div class="code-block"><pre>// Overloading (compile time): 
+MathOperation.add(2,3); // resolved early
+// Overriding (runtime):
+Animal a = new Dog(); a.sound(); // which sound()? determined at runtime.</pre></div>
+            </div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="qa-item">
+            <div class="question">🔹 10. Explain encapsulation with a real-world banking code example.</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> Encapsulation hides data (balance) and exposes controlled access via public methods, protecting integrity.</p>
+                <div class="code-block"><pre>class Account {
+    private double balance;
+    private String accountNumber;
+    
+    public Account(String accNo, double initBal) {
+        this.accountNumber = accNo;
+        if(initBal >= 0) this.balance = initBal;
+    }
+    public void withdraw(double amount) {
+        if(amount > 0 && amount <= balance) {
+            balance -= amount;
+            System.out.println("Withdrawn: " + amount);
+        } else {
+            System.out.println("Insufficient balance");
+        }
+    }
+    public double getBalance() { return balance; }
+}
+// external code can't modify balance directly, enforces rules</pre></div>
+            </div>
+        </div>
+
+        <!-- Q11: Additional commonly asked -->
+        <div class="qa-item">
+            <div class="question">🔹 11. Can we have a private method overridden in Java?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> No. Private methods are not visible in subclasses, so they cannot be overridden. However, a subclass can declare a method with same name — it's a new method, not an override.</p>
+            </div>
+        </div>
+
+        <!-- Q12 -->
+        <div class="qa-item">
+            <div class="question">🔹 12. What is covariant return type in method overriding?</div>
+            <div class="answer">
+                <p><strong>Answer:</strong> From Java 5+, an overriding method can return a subclass (more specific type) of the return type declared in parent method. This is called covariant return type.</p>
+                <div class="code-block"><pre>class X { }
+class Y extends X { }
+class Parent { X getObject() { return new X(); } }
+class Child extends Parent { 
+    @Override 
+    Y getObject() { return new Y(); }  // allowed: Y is subclass of X
+}</pre></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        ⚡ Perfect for freshers — Overloading (compile-time) vs Overriding (runtime) explained with executable concepts. <br>
+        📚 Master OOP interviews with clarity & hands-on code.
+    </footer>
+</div>
+</body>
+</html>

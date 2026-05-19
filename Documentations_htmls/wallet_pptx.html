@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WalletPlatform – Technical Presentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; color: #1e293b; }
+  .shell { display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 190px; background: #1e3a5f; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; }
+  .sb-head { padding: 12px 14px; background: #0f2540; color: #93c5fd; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-bottom: 1px solid #163354; }
+  .sb-item { padding: 8px 12px; cursor: pointer; border-left: 3px solid transparent; }
+  .sb-item:hover { background: #163354; }
+  .sb-item.active { border-left-color: #60a5fa; background: #163354; }
+  .sb-num { font-size: 9px; color: #60a5fa; font-weight: 700; margin-bottom: 2px; }
+  .sb-title { font-size: 10px; color: #94a3b8; line-height: 1.3; }
+  .sb-item.active .sb-title { color: #bfdbfe; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 20px; background: #fff; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+  .prog-wrap { flex: 1; max-width: 260px; margin: 0 20px; height: 3px; background: #e2e8f0; border-radius: 2px; }
+  .prog-bar { height: 3px; background: #3b82f6; border-radius: 2px; transition: width .25s; }
+  .t-label { font-size: 11px; color: #64748b; font-weight: 600; }
+  .nav-btn { padding: 5px 14px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: #374151; font-size: 12px; cursor: pointer; }
+  .nav-btn:hover { background: #f8fafc; }
+  .nav-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  /* CANVAS */
+  .canvas { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .slide { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 26px 30px; box-shadow: 0 1px 4px rgba(0,0,0,.06); display: none; }
+  .slide.active { display: block; }
+
+  /* SLIDE HEADER */
+  .slide-hdr { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0; }
+  .tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .slide-num-lbl { font-size: 11px; color: #94a3b8; font-weight: 700; font-family: monospace; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 10px; font-weight: 700; }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-green  { background: #dcfce7; color: #15803d; }
+  .badge-red    { background: #fee2e2; color: #b91c1c; }
+  .badge-amber  { background: #fef9c3; color: #92400e; }
+  .badge-purple { background: #ede9fe; color: #6d28d9; }
+  .badge-teal   { background: #ccfbf1; color: #0f766e; }
+  .slide-title { font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.25; }
+  .slide-sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+  /* CONTENT HELPERS */
+  .sec { font-size: 10px; font-weight: 700; color: #3b82f6; letter-spacing: .07em; text-transform: uppercase; margin: 16px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; }
+  .card-title { font-size: 11px; font-weight: 700; color: #1e40af; margin-bottom: 7px; }
+  .blist { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .blist li { display: flex; gap: 7px; font-size: 12px; color: #374151; line-height: 1.5; }
+  .blist li::before { content: ""; width: 5px; height: 5px; min-width: 5px; border-radius: 50%; background: #3b82f6; margin-top: 6px; }
+  pre.cb { background: #0f172a; border: 1px solid #1e293b; border-radius: 6px; padding: 11px 13px; font-size: 11px; line-height: 1.8; color: #e2e8f0; overflow-x: auto; margin: 5px 0; font-family: 'Cascadia Code','Fira Code',Consolas,monospace; white-space: pre; }
+  .kw { color: #c084fc; } .fn { color: #67e8f9; } .st { color: #86efac; }
+  .cm { color: #475569; } .ty { color: #fde68a; } .nu { color: #fb923c; } .pr { color: #a78bfa; }
+  table.mt { width: 100%; border-collapse: collapse; font-size: 11px; margin: 5px 0; }
+  table.mt th { background: #eff6ff; color: #1d4ed8; font-weight: 700; padding: 6px 9px; text-align: left; border-bottom: 2px solid #bfdbfe; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+  table.mt td { padding: 6px 9px; border-bottom: 1px solid #f1f5f9; color: #374151; font-size: 11px; vertical-align: top; }
+  table.mt tr:hover td { background: #f8fafc; }
+  table.mt td:first-child { color: #1d4ed8; font-family: monospace; }
+  .hbox { background: #eff6ff; border-left: 3px solid #3b82f6; padding: 9px 13px; margin: 8px 0; font-size: 12px; color: #1e40af; border-radius: 0 6px 6px 0; }
+  .hbox.green  { background: #f0fdf4; border-color: #16a34a; color: #14532d; }
+  .hbox.amber  { background: #fffbeb; border-color: #d97706; color: #78350f; }
+  .hbox.red    { background: #fef2f2; border-color: #dc2626; color: #7f1d1d; }
+  .hbox.purple { background: #faf5ff; border-color: #7c3aed; color: #4c1d95; }
+  .flow { display: flex; align-items: center; gap: 0; margin: 10px 0; }
+  .fbox { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; font-size: 11px; flex: 1; text-align: center; }
+  .fbox strong { display: block; font-size: 11px; color: #1e293b; }
+  .fbox span { font-size: 10px; color: #64748b; }
+  .farr { font-size: 18px; color: #3b82f6; padding: 0 6px; flex-shrink: 0; }
+  .arch { display: grid; grid-template-columns: repeat(5,1fr); gap: 7px; margin: 8px 0; }
+  .svc { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 9px 6px; text-align: center; }
+  .svc strong { display: block; font-size: 10.5px; color: #1e293b; }
+  .svc span { font-size: 9.5px; font-family: monospace; }
+  .chain { display: flex; flex-direction: column; gap: 6px; margin: 7px 0; }
+  .citem { display: flex; gap: 9px; align-items: flex-start; }
+  .cdot { width: 9px; height: 9px; min-width: 9px; border-radius: 50%; margin-top: 3px; }
+  .clabel { font-size: 11.5px; color: #374151; line-height: 1.5; }
+  code.ic { font-family: monospace; font-size: 10.5px; color: #1d4ed8; background: #eff6ff; padding: 0 3px; border-radius: 3px; }
+  table.lt { width: 100%; border-collapse: collapse; font-size: 11px; margin: 5px 0; }
+  table.lt th { background: #f0f9ff; color: #0369a1; font-weight: 700; padding: 6px 9px; border: 1px solid #bae6fd; font-size: 10px; text-transform: uppercase; }
+  table.lt td { padding: 6px 9px; border: 1px solid #f1f5f9; color: #374151; }
+  .dr { color: #b91c1c; font-weight: 700; } .cr { color: #15803d; font-weight: 700; }
+
+  /* NOTES */
+  .notes-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-top: 16px; }
+  .notes-btn { font-size: 11px; color: #3b82f6; cursor: pointer; border: none; background: none; font-weight: 700; font-family: inherit; }
+  .notes-body { font-size: 12px; color: #475569; line-height: 1.7; margin-top: 8px; display: none; }
+  .notes-body.open { display: block; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-head">WalletPlatform</div>
+  <div id="sb"></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <span class="t-label" id="tlabel">Slide 1 / 15</span>
+    <div class="prog-wrap"><div class="prog-bar" id="prog" style="width:7%"></div></div>
+    <div style="display:flex;gap:8px">
+      <button class="nav-btn" id="pbtn" onclick="go(-1)">&#8592; Prev</button>
+      <button class="nav-btn" onclick="toggleNotes()">Notes</button>
+      <button class="nav-btn" id="nbtn" onclick="go(1)">Next &#8594;</button>
+    </div>
+  </div>
+  <div class="canvas" id="canvas">
+
+<!-- ============================================================ SLIDE 1 -->
+<div class="slide active" data-tag="Title">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">01</span><span class="badge badge-blue">Title</span></div>
+    <div class="slide-title">Wallet &amp; Payment Platform</div>
+    <div class="slide-sub">.NET 10 Microservices FinTech System &mdash; Production Architecture</div>
+  </div>
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title">Tech Stack</div>
+      <ul class="blist"><li>.NET 10 &amp; C# 13</li><li>Entity Framework Core 10</li><li>Ocelot 23.x API Gateway</li><li>RabbitMQ.Client 6.x</li><li>FastAPI + Python 3.12 (Chatbot)</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-title">10 Microservices</div>
+      <ul class="blist"><li>Auth &middot; UserProfile &middot; Wallet &middot; Ledger</li><li>Rewards &middot; Catalog &middot; Notification</li><li>Receipts &middot; Admin &middot; Chatbot</li><li>Ports: 5000&ndash;5010</li><li>DB: SQL Server POLLY\SQLEXPRESS</li></ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Patterns</div>
+      <ul class="blist"><li>Clean Architecture (Core/Infra/API)</li><li>Result&lt;T&gt; discriminated union</li><li>Double-entry ledger accounting</li><li>Idempotency keys on all writes</li><li>BaseConsumer&lt;T&gt; event abstraction</li></ul>
+    </div>
+  </div>
+  <div class="sec">System Topology</div>
+  <div class="flow">
+    <div class="fbox"><strong>Angular SPA</strong><span>Frontend (upcoming)</span></div>
+    <div class="farr">&#8594;</div>
+    <div class="fbox" style="border:2px solid #3b82f6"><strong>Ocelot Gateway :5000</strong><span>JWT validate &middot; route &middot; rate-limit</span></div>
+    <div class="farr">&#8594;</div>
+    <div class="fbox"><strong>10 Microservices</strong><span>DB-per-service &middot; SQL Server</span></div>
+    <div class="farr">&#8658;</div>
+    <div class="fbox"><strong>RabbitMQ Bus</strong><span>3 exchanges + DLQ</span></div>
+  </div>
+  <div class="hbox">Inspired by Paytm &amp; PhonePe &mdash; every decision driven by production constraints: distributed consistency, financial auditability, fault tolerance, and horizontal scale.</div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">This is a production-grade fintech platform. Three pillars: Clean Architecture for maintainability, event-driven communication for resilience, and double-entry accounting for financial correctness. Every service boundary and async event has a documented reason.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 2 -->
+<div class="slide" data-tag="Problem">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">02</span><span class="badge badge-red">Problem</span></div>
+    <div class="slide-title">Real-World FinTech Challenges</div>
+    <div class="slide-sub">Why distributed money movement is genuinely hard</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Core Distributed Problem</div>
+      <div class="hbox red">&#8377;500 transfer: DEBIT User A &rarr; CREDIT User B &rarr; RECORD Ledger &rarr; NOTIFY &rarr; REWARD. In a monolith: one ACID transaction. Distributed: partial failure = ghost money.</div>
+      <div class="sec">Failure Scenarios</div>
+      <div class="chain">
+        <div class="citem"><div class="cdot" style="background:#dc2626"></div><div class="clabel"><code class="ic">DebitWallet()</code> succeeds &rarr; network drops &rarr; <code class="ic">CreditWallet()</code> never called &rarr; &#8377;500 vanishes</div></div>
+        <div class="citem"><div class="cdot" style="background:#d97706"></div><div class="clabel">Client timeout on POST /transfer &rarr; retry &rarr; <code class="ic">ProcessTransfer()</code> called twice &rarr; double debit without idempotency</div></div>
+        <div class="citem"><div class="cdot" style="background:#dc2626"></div><div class="clabel">JWT stolen &rarr; replay attack on <code class="ic">/wallet/credit</code> &rarr; unauthorized balance injection</div></div>
+        <div class="citem"><div class="cdot" style="background:#d97706"></div><div class="clabel">RabbitMQ consumer crash &rarr; <code class="ic">NotificationConsumer</code> misses message &rarr; user never notified</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec">Monolith vs Microservices</div>
+      <table class="mt"><thead><tr><th>Challenge</th><th>Monolith</th><th>Our Solution</th></tr></thead><tbody>
+        <tr><td>Scale payment spike</td><td><span class="badge badge-red">Full app redeploy</span></td><td><span class="badge badge-green">Scale Wallet only</span></td></tr>
+        <tr><td>DB bottleneck</td><td><span class="badge badge-red">Shared schema lock</span></td><td><span class="badge badge-green">DB-per-service</span></td></tr>
+        <tr><td>Partial failure</td><td><span class="badge badge-red">Rollback or corrupt</span></td><td><span class="badge badge-green">Compensation pattern</span></td></tr>
+        <tr><td>Audit trail</td><td><span class="badge badge-amber">Manual log parsing</span></td><td><span class="badge badge-green">Ledger append-only</span></td></tr>
+        <tr><td>Auth changes</td><td><span class="badge badge-red">Redeploy entire app</span></td><td><span class="badge badge-green">Auth Service isolated</span></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">Once you move from monolith to distributed, you lose ACID guarantees. The double-entry ledger and idempotency keys are the engineering response to that loss. Every failure scenario listed here was a real design decision point.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 3 -->
+<div class="slide" data-tag="Architecture">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">03</span><span class="badge badge-blue">Architecture</span></div>
+    <div class="slide-title">System Architecture &mdash; Full Technical Map</div>
+    <div class="slide-sub">Service topology, communication patterns, and data boundaries</div>
+  </div>
+  <div class="sec">Service Registry</div>
+  <div class="arch">
+    <div class="svc" style="border-color:#bfdbfe"><strong>Auth Svc</strong><span style="color:#3b82f6">:5001</span></div>
+    <div class="svc" style="border-color:#99f6e4"><strong>UserProfile</strong><span style="color:#0f766e">:5002</span></div>
+    <div class="svc" style="border-color:#bbf7d0"><strong>Wallet Svc</strong><span style="color:#15803d">:5003</span></div>
+    <div class="svc" style="border-color:#bfdbfe"><strong>Ledger Svc</strong><span style="color:#3b82f6">:5004</span></div>
+    <div class="svc" style="border-color:#ddd6fe"><strong>Rewards Svc</strong><span style="color:#6d28d9">:5005</span></div>
+    <div class="svc" style="border-color:#99f6e4"><strong>Catalog Svc</strong><span style="color:#0f766e">:5006</span></div>
+    <div class="svc" style="border-color:#fef08a"><strong>Notif Svc</strong><span style="color:#92400e">:5007</span></div>
+    <div class="svc" style="border-color:#bfdbfe"><strong>Receipts Svc</strong><span style="color:#3b82f6">:5008</span></div>
+    <div class="svc" style="border-color:#fecaca"><strong>Admin Svc</strong><span style="color:#b91c1c">:5009</span></div>
+    <div class="svc" style="border-color:#ddd6fe"><strong>Chatbot Svc</strong><span style="color:#6d28d9">:5010</span></div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Communication Patterns</div>
+      <table class="mt"><thead><tr><th>Route</th><th>Pattern</th><th>Why</th></tr></thead><tbody>
+        <tr><td>Client &rarr; Gateway</td><td><span class="badge badge-blue">HTTPS REST</span></td><td>Single ingress, JWT validated</td></tr>
+        <tr><td>Wallet &rarr; Ledger</td><td><span class="badge badge-green">Sync HTTP</span></td><td>Confirmation before 200 OK</td></tr>
+        <tr><td>Wallet &rarr; Notif/Rewards</td><td><span class="badge badge-amber">Async Event</span></td><td>Non-blocking side effects</td></tr>
+        <tr><td>Failed messages</td><td><span class="badge badge-red">DLQ replay</span></td><td>No message loss</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <div class="sec">Ocelot Route Config Sample</div>
+<pre class="cb"><span class="cm">// ocelot.json</span>
+{
+  <span class="st">"UpstreamPathTemplate"</span>: <span class="st">"/wallet/{everything}"</span>,
+  <span class="st">"DownstreamHostAndPorts"</span>: [{
+    <span class="st">"Host"</span>: <span class="st">"localhost"</span>, <span class="st">"Port"</span>: <span class="nu">5003</span>
+  }],
+  <span class="st">"AuthenticationOptions"</span>: {
+    <span class="st">"AuthenticationProviderKey"</span>: <span class="st">"Bearer"</span>
+  }
+}</pre>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">Key insight: separate the consistency boundary (Wallet+Ledger via sync HTTP) from the eventual consistency boundary (side effects via async events). The payment API returns in ~30ms. Email/receipts/rewards happen asynchronously after the 200 OK.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 4 -->
+<div class="slide" data-tag="Gateway">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">04</span><span class="badge badge-purple">Gateway</span></div>
+    <div class="slide-title">Ocelot API Gateway &mdash; JWT Delegation</div>
+    <div class="slide-sub">Routing, JWT validation, and claim forwarding to downstream services</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Program.cs Registration</div>
+<pre class="cb"><span class="kw">var</span> builder = WebApplication.<span class="fn">CreateBuilder</span>(args);
+
+builder.Services
+  .<span class="fn">AddOcelot</span>()
+  .<span class="fn">AddAuthentication</span>()
+  .<span class="fn">AddJwtBearer</span>(<span class="st">"Bearer"</span>, opts =&gt; {
+    opts.TokenValidationParameters = <span class="kw">new</span>() {
+      <span class="pr">ValidateIssuerSigningKey</span> = <span class="kw">true</span>,
+      <span class="pr">IssuerSigningKey</span> = <span class="kw">new</span> <span class="ty">SymmetricSecurityKey</span>(
+        Encoding.UTF8.<span class="fn">GetBytes</span>(config[<span class="st">"Jwt:Key"</span>]!)),
+      <span class="pr">ValidateIssuer</span>   = <span class="kw">true</span>,
+      <span class="pr">ValidateLifetime</span> = <span class="kw">true</span>
+    };
+  });
+
+<span class="kw">await</span> app.<span class="fn">UseOcelot</span>();</pre>
+      <div class="sec">JWT Claims Flow</div>
+      <div class="flow">
+        <div class="fbox" style="flex:none;width:80px"><strong>Client</strong><span>Bearer token</span></div>
+        <div class="farr">&#8594;</div>
+        <div class="fbox" style="border:2px solid #3b82f6"><strong>Gateway</strong><span>Validate + extract</span></div>
+        <div class="farr">&#8594;</div>
+        <div class="fbox" style="flex:none;width:110px"><strong>Service</strong><span>User.FindFirst("sub")</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="sec">Route Table</div>
+      <table class="mt"><thead><tr><th>Upstream</th><th>Port</th><th>Auth</th></tr></thead><tbody>
+        <tr><td>/auth/{everything}</td><td>:5001</td><td><span class="badge badge-green">Anonymous</span></td></tr>
+        <tr><td>/profile/{everything}</td><td>:5002</td><td><span class="badge badge-blue">Bearer+User</span></td></tr>
+        <tr><td>/wallet/{everything}</td><td>:5003</td><td><span class="badge badge-blue">Bearer+User</span></td></tr>
+        <tr><td>/ledger/{everything}</td><td>:5004</td><td><span class="badge badge-blue">Bearer internal</span></td></tr>
+        <tr><td>/admin/{everything}</td><td>:5009</td><td><span class="badge badge-purple">Bearer+Admin</span></td></tr>
+        <tr><td>/chatbot/{everything}</td><td>:5010</td><td><span class="badge badge-blue">Bearer+User</span></td></tr>
+      </tbody></table>
+      <div class="hbox purple" style="margin-top:10px">Services never hold JWT secrets. They receive pre-validated claims via forwarded headers. Changing auth providers requires only a Gateway config change.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">The gateway is the only service that knows the JWT signing key. All backend services are auth-ignorant. This is a critical security boundary and a massive simplification — rotate the signing key in one place only.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 5 -->
+<div class="slide" data-tag="Security">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">05</span><span class="badge badge-amber">Security</span></div>
+    <div class="slide-title">Authentication &amp; Security &mdash; JWT + BCrypt + Rotation</div>
+    <div class="slide-sub">Access token lifecycle, refresh rotation, and token revocation</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">GenerateAccessToken()</div>
+<pre class="cb"><span class="kw">private string</span> <span class="fn">GenerateAccessToken</span>(<span class="ty">User</span> user) {
+  <span class="kw">var</span> claims = <span class="kw">new</span>[] {
+    <span class="kw">new</span> <span class="ty">Claim</span>(JwtRegisteredClaimNames.Sub,
+               user.Id.<span class="fn">ToString</span>()),
+    <span class="kw">new</span> <span class="ty">Claim</span>(ClaimTypes.Role, user.Role),
+    <span class="kw">new</span> <span class="ty">Claim</span>(JwtRegisteredClaimNames.Jti,
+               Guid.<span class="fn">NewGuid</span>().<span class="fn">ToString</span>())
+  };
+  <span class="kw">var</span> key = <span class="kw">new</span> <span class="ty">SymmetricSecurityKey</span>(
+    Encoding.UTF8.<span class="fn">GetBytes</span>(_config[<span class="st">"Jwt:Key"</span>]!));
+  <span class="kw">var</span> token = <span class="kw">new</span> <span class="ty">JwtSecurityToken</span>(
+    issuer: _issuer, audience: _audience,
+    claims: claims,
+    expires: DateTime.UtcNow.<span class="fn">AddMinutes</span>(<span class="nu">60</span>),
+    signingCredentials: <span class="kw">new</span>(key,
+      SecurityAlgorithms.HmacSha256));
+  <span class="kw">return new</span> <span class="ty">JwtSecurityTokenHandler</span>()
+    .<span class="fn">WriteToken</span>(token);
+}</pre>
+      <div class="sec">BCrypt Helpers</div>
+<pre class="cb"><span class="kw">public string</span> <span class="fn">HashPassword</span>(<span class="ty">string</span> pwd)
+  =&gt; BCrypt.Net.BCrypt.<span class="fn">HashPassword</span>(pwd, workFactor: <span class="nu">12</span>);
+
+<span class="kw">public bool</span> <span class="fn">VerifyPassword</span>(<span class="ty">string</span> pwd, <span class="ty">string</span> hash)
+  =&gt; BCrypt.Net.BCrypt.<span class="fn">Verify</span>(pwd, hash);</pre>
+    </div>
+    <div>
+      <div class="sec">Security Parameters</div>
+      <table class="mt"><thead><tr><th>Parameter</th><th>Value</th><th>Rationale</th></tr></thead><tbody>
+        <tr><td>Access token TTL</td><td><span class="badge badge-blue">60 min</span></td><td>Balance UX vs theft window</td></tr>
+        <tr><td>Refresh token TTL</td><td><span class="badge badge-blue">7 days</span></td><td>Sliding, single-use rotation</td></tr>
+        <tr><td>BCrypt work factor</td><td><span class="badge badge-amber">12</span></td><td>~250ms, brute-force resistant</td></tr>
+        <tr><td>Algorithm</td><td><span class="badge badge-green">HS256</span></td><td>Symmetric, shared with gateway</td></tr>
+        <tr><td>Refresh storage</td><td><span class="badge badge-purple">BCrypt hash</span></td><td>DB breach won't expose tokens</td></tr>
+        <tr><td>Roles</td><td><span class="badge badge-teal">User | Admin</span></td><td>RBAC at gateway + service</td></tr>
+      </tbody></table>
+      <div class="sec">RefreshTokenAsync() &mdash; Rotation</div>
+<pre class="cb"><span class="kw">var</span> stored = <span class="kw">await</span> _repo.<span class="fn">GetByHashAsync</span>(refreshToken);
+<span class="kw">if</span> (stored == <span class="kw">null</span> || stored.IsRevoked
+    || stored.ExpiresAt &lt; DateTime.UtcNow)
+  <span class="kw">return</span> Result.<span class="fn">Failure</span>(<span class="st">"Invalid token"</span>);
+
+stored.IsRevoked = <span class="kw">true</span>; <span class="cm">// revoke immediately</span>
+<span class="kw">var</span> newToken = <span class="fn">GenerateRefreshToken</span>();
+<span class="kw">await</span> _repo.<span class="fn">RevokeAndCreateAsync</span>(stored, newToken);
+<span class="kw">return</span> Result.<span class="fn">Success</span>(<span class="kw">new</span> <span class="ty">AuthResponse</span>(
+  <span class="fn">GenerateAccessToken</span>(stored.User), newToken));</pre>
+      <div class="hbox amber">Stolen refresh token becomes useless the moment the legitimate user makes their next refresh call. Old token revoked atomically before issuing new pair.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">Refresh token rotation is the critical security mechanism here. The IsRevoked flag is set to true inside the same DB transaction that creates the new token. A stolen refresh token can only be replayed once before detection.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 6 -->
+<div class="slide" data-tag="Events">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">06</span><span class="badge badge-amber">Events</span></div>
+    <div class="slide-title">Event-Driven Architecture &mdash; RabbitMQ Deep Dive</div>
+    <div class="slide-sub">Exchange topology, BaseConsumer&lt;T&gt;, and message contracts</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Exchange Topology</div>
+      <table class="mt"><thead><tr><th>Exchange</th><th>Type</th><th>Consumers</th></tr></thead><tbody>
+        <tr><td>user.exchange</td><td><span class="badge badge-blue">topic</span></td><td>Notification, Admin</td></tr>
+        <tr><td>transaction.exchange</td><td><span class="badge badge-blue">topic</span></td><td>Ledger, Receipts, Notif, Rewards</td></tr>
+        <tr><td>wallet.exchange</td><td><span class="badge badge-blue">topic</span></td><td>Admin, Rewards</td></tr>
+        <tr><td>dead.letter.exchange</td><td><span class="badge badge-red">fanout</span></td><td>DLQ monitor (Admin)</td></tr>
+      </tbody></table>
+      <div class="sec">Event Contracts</div>
+<pre class="cb"><span class="kw">public record</span> <span class="ty">WalletTransactionCompletedEvent</span>(
+  <span class="ty">Guid</span>     TransactionId,
+  <span class="ty">Guid</span>     SenderId,
+  <span class="ty">Guid</span>     ReceiverId,
+  <span class="ty">decimal</span>  Amount,
+  <span class="ty">string</span>   Type,
+  <span class="ty">DateTime</span> OccurredAt
+);
+<span class="kw">public record</span> <span class="ty">UserRegisteredEvent</span>(
+  <span class="ty">Guid</span> UserId, <span class="ty">string</span> Email, <span class="ty">string</span> Name);
+<span class="kw">public record</span> <span class="ty">KycStatusChangedEvent</span>(
+  <span class="ty">Guid</span> UserId, <span class="ty">string</span> NewStatus);</pre>
+    </div>
+    <div>
+      <div class="sec">BaseConsumer&lt;T&gt; &mdash; Shared.EventBus</div>
+<pre class="cb"><span class="kw">public abstract class</span> <span class="ty">BaseConsumer</span>&lt;<span class="ty">TMessage</span>&gt; {
+  <span class="kw">protected abstract</span> <span class="ty">Task</span>
+    <span class="fn">HandleMessageAsync</span>(<span class="ty">TMessage</span> msg);
+
+  <span class="kw">public void</span> <span class="fn">StartConsuming</span>(<span class="ty">string</span> queue) {
+    _ch.<span class="fn">BasicConsume</span>(queue, autoAck: <span class="kw">false</span>,
+      consumer: <span class="kw">new</span> <span class="ty">AsyncEventingBasicConsumer</span>(_ch) {
+        ReceivedAsync = <span class="kw">async</span> (_, ea) =&gt; {
+          <span class="kw">try</span> {
+            <span class="kw">var</span> msg = JsonSerializer
+              .<span class="fn">Deserialize</span>&lt;<span class="ty">TMessage</span>&gt;(ea.Body.Span);
+            <span class="kw">await</span> <span class="fn">HandleMessageAsync</span>(msg!);
+            _ch.<span class="fn">BasicAck</span>(ea.DeliveryTag, false);
+          } <span class="kw">catch</span> (<span class="ty">TransientException</span>) {
+            _ch.<span class="fn">BasicNack</span>(ea.DeliveryTag, false,
+              requeue: <span class="kw">true</span>);
+          } <span class="kw">catch</span> {
+            <span class="cm">// poison msg -&gt; dead.letter.exchange</span>
+            _ch.<span class="fn">BasicNack</span>(ea.DeliveryTag, false,
+              requeue: <span class="kw">false</span>);
+          }
+        }
+      });
+  }
+}</pre>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">BaseConsumer&lt;T&gt; handles all RabbitMQ ceremony — deserialization, ACK/NACK, dead-letter routing. Every consumer just overrides HandleMessageAsync. Error handling is consistent across all 8 consumers.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 7 -->
+<div class="slide" data-tag="Deep Dive">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">07</span><span class="badge badge-red">Deep Dive</span></div>
+    <div class="slide-title">Wallet Service &mdash; TransferAsync() Deep Dive</div>
+    <div class="slide-sub">Idempotency guard, optimistic concurrency, and event publish sequence</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Wallet Entity</div>
+<pre class="cb"><span class="kw">public class</span> <span class="ty">Wallet</span> {
+  <span class="kw">public</span> <span class="ty">Guid</span>    Id         { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">Guid</span>    UserId     { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">decimal</span> Balance    { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">string</span>  Currency   { <span class="kw">get</span>; <span class="kw">set</span>; } = <span class="st">"INR"</span>;
+  [<span class="ty">Timestamp</span>]
+  <span class="kw">public byte</span>[] RowVersion { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</pre>
+      <div class="sec">EF Core Config</div>
+<pre class="cb">mb.<span class="fn">Entity</span>&lt;<span class="ty">Wallet</span>&gt;(e =&gt; {
+  e.<span class="fn">Property</span>(w =&gt; w.Balance)
+   .<span class="fn">HasColumnType</span>(<span class="st">"decimal(18,4)"</span>)
+   .<span class="fn">IsRequired</span>();
+  e.<span class="fn">Property</span>(w =&gt; w.RowVersion).<span class="fn">IsRowVersion</span>();
+  e.<span class="fn">HasIndex</span>(w =&gt; w.UserId).<span class="fn">IsUnique</span>();
+});</pre>
+    </div>
+    <div>
+      <div class="sec">TransferAsync() &mdash; Full Flow</div>
+<pre class="cb"><span class="kw">public async</span> <span class="ty">Task</span>&lt;<span class="ty">Result</span>&lt;<span class="ty">TransferDto</span>&gt;&gt; <span class="fn">TransferAsync</span>(
+    <span class="ty">TransferRequest</span> req, <span class="ty">string</span> idempKey) {
+
+  <span class="cm">// 1. Idempotency guard</span>
+  <span class="kw">if</span> (<span class="kw">await</span> _idemp.<span class="fn">ExistsAsync</span>(idempKey, <span class="st">"WalletSvc"</span>))
+    <span class="kw">return await</span> _idemp.<span class="fn">GetCachedAsync</span>&lt;<span class="ty">TransferDto</span>&gt;(idempKey);
+
+  <span class="kw">await using var</span> tx = <span class="kw">await</span> _db.<span class="fn">BeginTransactionAsync</span>();
+  <span class="kw">try</span> {
+    <span class="kw">var</span> sender   = <span class="kw">await</span> _db.Wallets.<span class="fn">FindAsync</span>(req.SenderId);
+    <span class="kw">var</span> receiver = <span class="kw">await</span> _db.Wallets.<span class="fn">FindAsync</span>(req.ReceiverId);
+
+    <span class="kw">if</span> (sender!.Balance &lt; req.Amount)
+      <span class="kw">return</span> Result&lt;<span class="ty">TransferDto</span>&gt;.<span class="fn">Failure</span>(<span class="st">"Insufficient balance"</span>);
+
+    sender.Balance   -= req.Amount;
+    receiver!.Balance += req.Amount;
+    <span class="cm">// throws DbUpdateConcurrencyException on RowVersion mismatch</span>
+    <span class="kw">await</span> _db.<span class="fn">SaveChangesAsync</span>();
+    <span class="kw">await</span> _idemp.<span class="fn">StoreAsync</span>(idempKey, result);
+    <span class="kw">await</span> tx.<span class="fn">CommitAsync</span>();
+    <span class="kw">await</span> _bus.<span class="fn">PublishAsync</span>(<span class="kw">new</span> <span class="ty">WalletTransactionCompletedEvent</span>(...));
+    <span class="kw">return</span> Result&lt;<span class="ty">TransferDto</span>&gt;.<span class="fn">Success</span>(result);
+  } <span class="kw">catch</span> (<span class="ty">DbUpdateConcurrencyException</span>) {
+    <span class="kw">await</span> tx.<span class="fn">RollbackAsync</span>();
+    <span class="kw">return</span> Result&lt;<span class="ty">TransferDto</span>&gt;.<span class="fn">Failure</span>(<span class="st">"Concurrent modification"</span>);
+  }
+}</pre>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">Notice the event is published AFTER CommitAsync. A DB commit failure rolls back cleanly. A publish failure is handled by the DLQ. RowVersion provides optimistic concurrency — no pessimistic locks, no deadlocks.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 8 -->
+<div class="slide" data-tag="Deep Dive">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">08</span><span class="badge badge-red">Deep Dive</span></div>
+    <div class="slide-title">Ledger Service &mdash; Double-Entry Accounting</div>
+    <div class="slide-sub">Every transaction = exactly two entries. Their sum must always equal zero.</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Core Invariant</div>
+      <div class="hbox red" style="text-align:center;font-size:13px">
+        &forall; TransactionId: SUM(DEBIT) + SUM(CREDIT) = 0<br>
+        <span style="font-size:10px">If violated, money has been created or destroyed &mdash; that is always a bug.</span>
+      </div>
+      <div class="sec">LedgerEntry Entity</div>
+<pre class="cb"><span class="kw">public class</span> <span class="ty">LedgerEntry</span> {
+  <span class="kw">public</span> <span class="ty">Guid</span>      Id            { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">Guid</span>      TransactionId { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">Guid</span>      AccountId     { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">EntryType</span> Type          { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">decimal</span>   Amount        { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">DateTime</span>  CreatedAt     { <span class="kw">get</span>; <span class="kw">set</span>; }
+}</pre>
+      <div class="sec">CreateDoubleEntryAsync()</div>
+<pre class="cb">_db.LedgerEntries.<span class="fn">AddRange</span>(
+  <span class="kw">new</span> <span class="ty">LedgerEntry</span> {
+    TransactionId = txId, AccountId = debitAcc,
+    Type = <span class="ty">EntryType</span>.Debit,  Amount =  amount },
+  <span class="kw">new</span> <span class="ty">LedgerEntry</span> {
+    TransactionId = txId, AccountId = creditAcc,
+    Type = <span class="ty">EntryType</span>.Credit, Amount = -amount });
+<span class="kw">await</span> _db.<span class="fn">SaveChangesAsync</span>();</pre>
+    </div>
+    <div>
+      <div class="sec">Real Transaction: &#8377;500 User A &rarr; User B</div>
+      <table class="lt"><thead><tr><th>EntryId</th><th>TxId</th><th>Account</th><th>Type</th><th>Amount</th></tr></thead><tbody>
+        <tr><td>entry-001</td><td>tx-abc</td><td>UserA_Wallet</td><td class="dr">DEBIT</td><td style="color:#b91c1c">+500.00</td></tr>
+        <tr><td>entry-002</td><td>tx-abc</td><td>UserB_Wallet</td><td class="cr">CREDIT</td><td style="color:#15803d">-500.00</td></tr>
+        <tr style="background:#f0fdf4"><td colspan="4" style="color:#6b7280;font-style:italic">Sum for tx-abc:</td><td style="color:#15803d;font-weight:700">0.00 &#10003;</td></tr>
+      </tbody></table>
+      <div class="sec">Balance Reconciliation</div>
+<pre class="cb"><span class="kw">public async</span> <span class="ty">Task</span>&lt;<span class="ty">decimal</span>&gt; <span class="fn">GetNetBalanceAsync</span>(<span class="ty">Guid</span> accId)
+  =&gt; <span class="kw">await</span> _db.LedgerEntries
+    .<span class="fn">Where</span>(e =&gt; e.AccountId == accId)
+    .<span class="fn">SumAsync</span>(e =&gt; e.Type == <span class="ty">EntryType</span>.Debit
+      ? e.Amount : -e.Amount);</pre>
+      <div class="sec">Invariant Validation (Admin)</div>
+<pre class="cb"><span class="kw">var</span> broken = <span class="kw">await</span> _db.LedgerEntries
+  .<span class="fn">GroupBy</span>(e =&gt; e.TransactionId)
+  .<span class="fn">Where</span>(g =&gt; g.<span class="fn">Sum</span>(e =&gt; e.Amount) != <span class="nu">0</span>)
+  .<span class="fn">Select</span>(g =&gt; g.Key)
+  .<span class="fn">ToListAsync</span>();
+<span class="cm">// Any result here = financial data corruption alert</span></pre>
+      <div class="hbox green">Ledger is append-only. No UPDATE or DELETE ever executed. Any balance can be reconstructed by replaying all entries.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">The Credit amount is stored as -amount so the SUM invariant holds naturally. The Admin invariant validation query is run on a schedule — any non-zero sum is a data corruption alert that requires immediate investigation.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 9 -->
+<div class="slide" data-tag="Idempotency">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">09</span><span class="badge badge-green">Idempotency</span></div>
+    <div class="slide-title">Idempotency &mdash; Preventing Double-Charges</div>
+    <div class="slide-sub">UUID-keyed check-and-insert with unique constraint and 24h TTL</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">The Failure Scenario</div>
+      <div class="chain">
+        <div class="citem"><div class="cdot" style="background:#3b82f6"></div><div class="clabel">T+0ms: Client sends POST /wallet/transfer &middot; IdempKey: <code class="ic">UUID-123</code></div></div>
+        <div class="citem"><div class="cdot" style="background:#d97706"></div><div class="clabel">T+100ms: Server processes debit. Network drops before 200 OK arrives.</div></div>
+        <div class="citem"><div class="cdot" style="background:#dc2626"></div><div class="clabel">Client retries same request. Without idempotency: user debited &#8377;500 &times; 2. Lawsuit.</div></div>
+        <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel">With idempotency: server sees UUID-123 already stored &rarr; returns cached 200 OK. Debited once.</div></div>
+      </div>
+      <div class="sec">IdempotencyKey Entity</div>
+<pre class="cb"><span class="kw">public class</span> <span class="ty">IdempotencyKey</span> {
+  <span class="kw">public string</span>   Key          { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public string</span>   ServiceName  { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public string</span>   ResponseJson { <span class="kw">get</span>; <span class="kw">set</span>; }
+  <span class="kw">public</span> <span class="ty">DateTime</span> ExpiresAt    { <span class="kw">get</span>; <span class="kw">set</span>; }
+    = DateTime.UtcNow.<span class="fn">AddHours</span>(<span class="nu">24</span>);
+}</pre>
+    </div>
+    <div>
+      <div class="sec">GetOrExecuteAsync&lt;T&gt;()</div>
+<pre class="cb"><span class="kw">public async</span> <span class="ty">Task</span>&lt;<span class="ty">Result</span>&lt;<span class="ty">T</span>&gt;&gt; <span class="fn">GetOrExecuteAsync</span>&lt;<span class="ty">T</span>&gt;(
+    <span class="ty">string</span> key, <span class="ty">Func</span>&lt;<span class="ty">Task</span>&lt;<span class="ty">Result</span>&lt;<span class="ty">T</span>&gt;&gt;&gt; operation) {
+
+  <span class="kw">var</span> existing = <span class="kw">await</span> _db.IdempotencyKeys
+    .<span class="fn">FirstOrDefaultAsync</span>(k =&gt; k.Key == key
+      &amp;&amp; k.ExpiresAt &gt; DateTime.UtcNow);
+
+  <span class="kw">if</span> (existing != <span class="kw">null</span>)
+    <span class="kw">return</span> JsonSerializer
+      .<span class="fn">Deserialize</span>&lt;<span class="ty">Result</span>&lt;<span class="ty">T</span>&gt;&gt;(existing.ResponseJson)!;
+
+  <span class="kw">var</span> result = <span class="kw">await</span> operation();
+  _db.IdempotencyKeys.<span class="fn">Add</span>(<span class="kw">new</span>() {
+    Key = key,
+    ResponseJson = JsonSerializer.<span class="fn">Serialize</span>(result)
+  });
+  <span class="kw">await</span> _db.<span class="fn">SaveChangesAsync</span>();
+  <span class="kw">return</span> result;
+}</pre>
+      <div class="sec">Unique Index &mdash; Race Condition Safety</div>
+<pre class="cb">mb.<span class="fn">Entity</span>&lt;<span class="ty">IdempotencyKey</span>&gt;(e =&gt;
+  e.<span class="fn">HasIndex</span>(k =&gt; k.Key).<span class="fn">IsUnique</span>());
+
+<span class="cm">// Two concurrent retries: one INSERT wins.</span>
+<span class="cm">// Second gets DbUpdateException:</span>
+<span class="kw">catch</span> (<span class="ty">DbUpdateException</span> ex)
+    <span class="kw">when</span> (ex.<span class="fn">IsUniqueConstraintViolation</span>())
+  <span class="kw">return await</span> _idemp.<span class="fn">GetCachedAsync</span>&lt;<span class="ty">T</span>&gt;(key);</pre>
+      <div class="hbox amber">Without the unique index, two concurrent retries could both pass the existence check and both execute. The DB constraint makes check-and-insert atomic.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">The unique index on IdempotencyKey.Key is the critical implementation detail. It makes the check-and-insert operation atomic at the database level — the application-level check alone is not sufficient for concurrent requests.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 10 -->
+<div class="slide" data-tag="Failures">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">10</span><span class="badge badge-red">Failures</span></div>
+    <div class="slide-title">Failure Handling &mdash; DLQ and Resilience</div>
+    <div class="slide-sub">NACK routing, dead letter exchange, and transient vs persistent errors</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Message Lifecycle</div>
+      <div class="chain">
+        <div class="citem"><div class="cdot" style="background:#3b82f6"></div><div class="clabel"><code class="ic">PublishAsync()</code> &rarr; message arrives with delivery tag</div></div>
+        <div class="citem"><div class="cdot" style="background:#3b82f6"></div><div class="clabel"><code class="ic">BaseConsumer.HandleMessageAsync()</code> executes</div></div>
+        <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel">Success &rarr; <code class="ic">BasicAck(deliveryTag, false)</code> &rarr; removed from queue</div></div>
+        <div class="citem"><div class="cdot" style="background:#d97706"></div><div class="clabel">TransientException &rarr; <code class="ic">BasicNack(requeue:true)</code> &rarr; back to queue head</div></div>
+        <div class="citem"><div class="cdot" style="background:#dc2626"></div><div class="clabel">Persistent failure &rarr; <code class="ic">BasicNack(requeue:false)</code> &rarr; DLQ</div></div>
+        <div class="citem"><div class="cdot" style="background:#7c3aed"></div><div class="clabel">Admin monitors DLQ count &rarr; operator replays or discards</div></div>
+      </div>
+      <div class="sec">DLQ Queue Declaration</div>
+<pre class="cb">_ch.<span class="fn">QueueDeclare</span>(
+  queue: <span class="st">"transaction.completed.queue"</span>,
+  durable: <span class="kw">true</span>, exclusive: <span class="kw">false</span>,
+  autoDelete: <span class="kw">false</span>,
+  arguments: <span class="kw">new</span> <span class="ty">Dictionary</span>&lt;<span class="ty">string</span>, <span class="kw">object</span>&gt; {
+    { <span class="st">"x-dead-letter-exchange"</span>,
+      <span class="st">"dead.letter.exchange"</span> },
+    { <span class="st">"x-message-ttl"</span>, <span class="nu">86400000</span> }
+  });</pre>
+    </div>
+    <div>
+      <div class="sec">Exception Classification</div>
+      <table class="mt"><thead><tr><th>Exception</th><th>Strategy</th><th>Outcome</th></tr></thead><tbody>
+        <tr><td>SqlException (timeout)</td><td><span class="badge badge-amber">NACK + requeue</span></td><td>Retry &mdash; transient</td></tr>
+        <tr><td>HttpRequestException</td><td><span class="badge badge-amber">NACK + requeue</span></td><td>Upstream transient</td></tr>
+        <tr><td>JsonException</td><td><span class="badge badge-red">NACK &rarr; DLQ</span></td><td>Malformed, retry useless</td></tr>
+        <tr><td>BusinessRuleException</td><td><span class="badge badge-red">NACK &rarr; DLQ</span></td><td>Logic error, investigate</td></tr>
+        <tr><td>OperationCanceled</td><td><span class="badge badge-amber">NACK + requeue</span></td><td>Shutdown in progress</td></tr>
+      </tbody></table>
+      <div class="sec">MailKit SMTP (Notification)</div>
+<pre class="cb"><span class="cm">// System.Net.Mail fails Gmail auth (deprecated)</span>
+<span class="kw">using var</span> client = <span class="kw">new</span> SmtpClient();
+<span class="kw">await</span> client.<span class="fn">ConnectAsync</span>(<span class="st">"smtp.gmail.com"</span>,
+  <span class="nu">587</span>, SecureSocketOptions.StartTls);
+<span class="kw">await</span> client.<span class="fn">AuthenticateAsync</span>(user, appPassword);
+<span class="kw">await</span> client.<span class="fn">SendAsync</span>(message);
+<span class="kw">await</span> client.<span class="fn">DisconnectAsync</span>(<span class="kw">true</span>);</pre>
+      <div class="hbox red">Classify exceptions before NACK. A JSON parse failure will fail every retry &mdash; DLQ immediately. Retrying poison messages wastes resources and delays good messages behind them.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">The DLQ is not just a log — it is a recoverable buffer. Messages in the DLQ are not lost. An operator can inspect the payload, fix the root cause, and replay the message. This is the difference between an incident and a data loss event.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 11 -->
+<div class="slide" data-tag="Flow">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">11</span><span class="badge badge-green">Flow</span></div>
+    <div class="slide-title">End-to-End Transaction Flow &mdash; &#8377;500 Transfer</div>
+    <div class="slide-sub">Complete trace: HTTP call &rarr; DB commit &rarr; event publish &rarr; async delivery</div>
+  </div>
+  <div class="sec">Full Call Chain with Method Names</div>
+  <div class="chain">
+    <div class="citem"><div class="cdot" style="background:#3b82f6"></div><div class="clabel"><strong>T+0ms &mdash; Client:</strong> <code class="ic">POST /api/wallet/transfer</code> &middot; Headers: <code class="ic">Authorization: Bearer &lt;jwt&gt;</code>, <code class="ic">X-Idempotency-Key: UUID-123</code></div></div>
+    <div class="citem"><div class="cdot" style="background:#7c3aed"></div><div class="clabel"><strong>T+2ms &mdash; Ocelot Gateway:</strong> <code class="ic">JwtBearerHandler.ValidateToken()</code> &rarr; extract <code class="ic">sub</code> + <code class="ic">role</code> claims &rarr; forward to :5003</div></div>
+    <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel"><strong>T+5ms &mdash; WalletController:</strong> <code class="ic">TransferAsync(req, "UUID-123")</code> &middot; <code class="ic">User.FindFirst("sub")</code> extracts userId</div></div>
+    <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel"><strong>T+8ms &mdash; IdempotencyService:</strong> <code class="ic">GetOrExecuteAsync("UUID-123")</code> &rarr; DB check &rarr; not found &rarr; proceed</div></div>
+    <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel"><strong>T+12ms &mdash; WalletRepository:</strong> <code class="ic">BeginTransactionAsync()</code> &rarr; <code class="ic">FindAsync(senderId)</code> &rarr; <code class="ic">FindAsync(receiverId)</code></div></div>
+    <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel"><strong>T+15ms:</strong> Balance check passes &rarr; <code class="ic">sender.Balance -= 500</code> &rarr; <code class="ic">receiver.Balance += 500</code> &rarr; <code class="ic">SaveChangesAsync()</code> with RowVersion</div></div>
+    <div class="citem"><div class="cdot" style="background:#3b82f6"></div><div class="clabel"><strong>T+18ms &mdash; LedgerService (sync HTTP):</strong> <code class="ic">CreateDoubleEntryAsync(txId, senderWallet, receiverWallet, 500)</code> &rarr; 2 rows inserted</div></div>
+    <div class="citem"><div class="cdot" style="background:#16a34a"></div><div class="clabel"><strong>T+25ms:</strong> <code class="ic">IdempotencyRepo.StoreAsync()</code> &rarr; <code class="ic">CommitAsync()</code></div></div>
+    <div class="citem"><div class="cdot" style="background:#d97706"></div><div class="clabel"><strong>T+28ms:</strong> <code class="ic">EventBus.PublishAsync(WalletTransactionCompletedEvent)</code> to <code class="ic">transaction.exchange</code></div></div>
+    <div class="citem"><div class="cdot" style="background:#3b82f6"></div><div class="clabel"><strong>T+30ms &mdash; Client</strong> receives <code class="ic">200 OK</code> with TransferDto &middot; User sees success</div></div>
+  </div>
+  <div class="three-col" style="margin-top:10px">
+    <div class="card"><div class="card-title" style="color:#d97706">Notification ~T+200ms</div><div style="font-size:11px;color:#6b7280"><code class="ic">TxCompletedConsumer</code> &rarr; <code class="ic">SmtpClient.SendAsync()</code> via MailKit</div></div>
+    <div class="card"><div class="card-title" style="color:#16a34a">Receipts ~T+150ms</div><div style="font-size:11px;color:#6b7280"><code class="ic">ReceiptsConsumer</code> &rarr; <code class="ic">ReceiptsRepository.CreateAsync()</code> &rarr; CSV ready</div></div>
+    <div class="card"><div class="card-title" style="color:#7c3aed">Rewards ~T+180ms</div><div style="font-size:11px;color:#6b7280"><code class="ic">PointsConsumer</code> &rarr; <code class="ic">CalculatePoints(500, tier)</code> &rarr; <code class="ic">CreditPointsAsync()</code></div></div>
+  </div>
+  <div class="hbox green">Total latency to client: ~30ms. Async side-effects complete within 200ms. None of the downstream failures can affect the payment result.</div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">This is the full sequence diagram expressed in code. The key insight: the synchronous path (validate &rarr; debit &rarr; credit &rarr; ledger) takes ~30ms. Async side-effects add zero latency to the user because they happen after the 200 OK is sent.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 12 -->
+<div class="slide" data-tag="Database">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">12</span><span class="badge badge-blue">Database</span></div>
+    <div class="slide-title">Database Design &mdash; EF Core Code-First</div>
+    <div class="slide-sub">Migrations, DB-per-service isolation, decimal precision, and concurrency</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">DB-Per-Service Isolation</div>
+      <table class="mt"><thead><tr><th>Service</th><th>Database</th><th>Key Tables</th></tr></thead><tbody>
+        <tr><td>Auth</td><td>WalletAuth_DB</td><td>Users, RefreshTokens</td></tr>
+        <tr><td>Wallet</td><td>WalletService_DB</td><td>Wallets, Transactions, IdempotencyKeys</td></tr>
+        <tr><td>Ledger</td><td>LedgerService_DB</td><td>LedgerEntries</td></tr>
+        <tr><td>Rewards</td><td>RewardsService_DB</td><td>PointsAccounts, Tiers</td></tr>
+        <tr><td>Receipts</td><td>ReceiptsService_DB</td><td>Receipts, ReceiptLineItems</td></tr>
+      </tbody></table>
+      <div class="sec">EF Migration Commands</div>
+<pre class="cb"><span class="cm"># Requires connection string in appsettings.json</span>
+<span class="cm"># AND EF.Design in the .API project</span>
+dotnet ef migrations add InitialCreate \
+  --project WalletService.Infrastructure \
+  --startup-project WalletService.API
+
+dotnet ef database update \
+  --project WalletService.Infrastructure \
+  --startup-project WalletService.API</pre>
+    </div>
+    <div>
+      <div class="sec">Critical EF Configuration</div>
+<pre class="cb"><span class="cm">// ALL financial decimals must specify precision</span>
+entity.<span class="fn">Property</span>(e =&gt; e.Amount)
+  .<span class="fn">HasColumnType</span>(<span class="st">"decimal(18,4)"</span>)
+  .<span class="fn">IsRequired</span>();
+
+<span class="cm">// Optimistic concurrency on balance tables</span>
+entity.<span class="fn">Property</span>(e =&gt; e.RowVersion)
+  .<span class="fn">IsRowVersion</span>();
+
+<span class="cm">// Composite index for fast ledger queries</span>
+entity.<span class="fn">HasIndex</span>(e =&gt; <span class="kw">new</span> { e.AccountId, e.CreatedAt });
+
+<span class="cm">// DbContext registration with retry</span>
+builder.Services.<span class="fn">AddDbContext</span>&lt;<span class="ty">WalletDbContext</span>&gt;(opts =&gt;
+  opts.<span class="fn">UseSqlServer</span>(connStr,
+    sql =&gt; sql.<span class="fn">EnableRetryOnFailure</span>(maxRetry: <span class="nu">3</span>)));</pre>
+      <div class="sec">Required NuGet per .API Project</div>
+<pre class="cb"><span class="cm">&lt;!-- Design-time migrations --&gt;</span>
+&lt;PackageReference
+  Include=<span class="st">"Microsoft.EntityFrameworkCore.Design"</span>
+  Version=<span class="st">"10.x"</span> /&gt;
+<span class="cm">&lt;!-- ALWAYS Swashbuckle -- NEVER Microsoft.AspNetCore.OpenApi --&gt;</span>
+&lt;PackageReference
+  Include=<span class="st">"Swashbuckle.AspNetCore"</span>
+  Version=<span class="st">"6.9.0"</span> /&gt;</pre>
+      <div class="hbox amber">decimal(18,4) is mandatory. SQL Server default decimal loses sub-paise amounts. RowVersion auto-updates on every write and EF Core includes it in WHERE clauses on updates.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">No cross-service JOINs, no shared tables. If Receipts needs a user's display name, it calls GET /profile/{userId} via HTTP. The DB-per-service pattern is what enables independent schema evolution and independent scaling.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 13 -->
+<div class="slide" data-tag="Challenges">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">13</span><span class="badge badge-amber">Challenges</span></div>
+    <div class="slide-title">Real Engineering Challenges &mdash; Production Learnings</div>
+    <div class="slide-sub">Six problems encountered and solved during development</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">1 &mdash; RabbitMQ Consumers: 0</div>
+<pre class="cb"><span class="cm">// Symptom: published messages not consumed</span>
+<span class="cm">// Root cause: consumers register queue bindings</span>
+<span class="cm">// on startup. If publisher starts first, binding</span>
+<span class="cm">// missing -&gt; messages silently dropped.</span>
+<span class="cm">// Fix: start ALL services before publishing.</span>
+<span class="cm">// Prod fix: K8s readiness probes + startup order.</span></pre>
+      <div class="sec">2 &mdash; Windows Defender DLL Lock</div>
+<pre class="cb"><span class="cm">// Symptom: build fails -</span>
+<span class="cm">// "Cannot copy file ... used by another process"</span>
+<span class="cm">// Root cause: Defender scans new .dll on write.</span>
+<span class="cm">// Rapid rebuild cycles -&gt; scan overlaps copy.</span>
+<span class="cm">// Fix: add project folder to Defender exclusions.</span></pre>
+      <div class="sec">3 &mdash; EF Migration Failure</div>
+<pre class="cb"><span class="cm">// Error: "Unable to create DbContext object"</span>
+<span class="cm">// Root 1: no connection string in appsettings.json</span>
+<span class="cm">// Root 2: EF.Design not in .API project</span>
+<span class="cm">// Root 3: no IDesignTimeDbContextFactory</span>
+<span class="cm">// Fix: all three required simultaneously.</span></pre>
+    </div>
+    <div>
+      <div class="sec">4 &mdash; Swashbuckle vs OpenApi</div>
+<pre class="cb"><span class="cm">// Error: conflicting extension methods on build</span>
+<span class="cm">// Root: Microsoft.AspNetCore.OpenApi in .NET 10</span>
+<span class="cm">// has incompatible API with Swashbuckle.</span>
+<span class="cm">// Fix: remove Microsoft package. Always use:</span>
+&lt;PackageReference
+  Include=<span class="st">"Swashbuckle.AspNetCore"</span>
+  Version=<span class="st">"6.9.0"</span> /&gt;</pre>
+      <div class="sec">5 &mdash; Python Chatbot 502 Error</div>
+<pre class="cb"><span class="cm"># Symptom: POST /chatbot returns 502</span>
+<span class="cm"># Root: anthropic package dependency conflict</span>
+<span class="cm"># routing requests to Gemini API instead.</span>
+<span class="cm"># Fix: clean venv + pinned version:</span>
+pip uninstall anthropic -y
+pip install anthropic==0.28.0</pre>
+      <div class="sec">6 &mdash; Gmail SMTP Auth Failure</div>
+<pre class="cb"><span class="cm">// System.Net.Mail: 535 auth error on Gmail</span>
+<span class="cm">// Google deprecated basic auth in 2022.</span>
+<span class="cm">// Fix: MailKit + Gmail App Password (16-char)</span>
+<span class="cm">// Gmail -&gt; Account -&gt; Security -&gt; App Passwords</span></pre>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">These six challenges are what separate a tutorial project from a real system. Being able to articulate the root cause and fix for each one demonstrates genuine engineering depth that interviewers look for.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 14 -->
+<div class="slide" data-tag="Scale">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">14</span><span class="badge badge-teal">Scale</span></div>
+    <div class="slide-title">Scalability &amp; Performance Architecture</div>
+    <div class="slide-sub">Stateless services, async I/O, connection pooling, and Redis cache roadmap</div>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="sec">Stateless Design</div>
+<pre class="cb"><span class="cm">// JWT carries identity -&gt; no server-side sessions</span>
+<span class="cm">// Any replica can serve any request</span>
+<span class="cm">// All DB calls async -&gt; no thread blocking:</span>
+<span class="kw">public async</span> <span class="ty">Task</span>&lt;<span class="ty">Result</span>&lt;<span class="ty">WalletDto</span>&gt;&gt; <span class="fn">GetWalletAsync</span>(<span class="ty">Guid</span> id)
+  =&gt; Result&lt;<span class="ty">WalletDto</span>&gt;.<span class="fn">Success</span>(
+    <span class="kw">await</span> _repo.<span class="fn">GetByUserIdAsync</span>(id));</pre>
+      <div class="sec">RabbitMQ Consumer Tuning</div>
+<pre class="cb">_ch.<span class="fn">BasicQos</span>(
+  prefetchSize:  <span class="nu">0</span>,
+  prefetchCount: <span class="nu">10</span>, <span class="cm">// 10 messages concurrent</span>
+  global:        <span class="kw">false</span>);</pre>
+      <div class="sec">Future Redis Cache</div>
+<pre class="cb"><span class="cm">// Balance reads = highest-frequency query</span>
+<span class="kw">var</span> key = <span class="st">$"wallet:balance:{userId}"</span>;
+<span class="kw">var</span> cached = <span class="kw">await</span> _redis.<span class="fn">GetStringAsync</span>(key);
+<span class="kw">if</span> (cached != <span class="kw">null</span>)
+  <span class="kw">return</span> JsonSerializer.<span class="fn">Deserialize</span>&lt;<span class="ty">decimal</span>&gt;(cached);
+<span class="cm">// miss -&gt; DB read -&gt; cache with 5s TTL</span></pre>
+    </div>
+    <div>
+      <div class="sec">Performance Bottleneck Table</div>
+      <table class="mt"><thead><tr><th>Component</th><th>Bottleneck</th><th>Current</th><th>Future</th></tr></thead><tbody>
+        <tr><td>Balance reads</td><td>DB query each call</td><td>EF async + indexed</td><td><span class="badge badge-purple">Redis TTL=5s</span></td></tr>
+        <tr><td>JWT validation</td><td>Crypto per request</td><td>Gateway centralised</td><td><span class="badge badge-teal">Introspection cache</span></td></tr>
+        <tr><td>Ledger queries</td><td>Large table scan</td><td>Composite index</td><td><span class="badge badge-blue">Read replica</span></td></tr>
+        <tr><td>Email delivery</td><td>SMTP ~100ms</td><td>Async consumer</td><td><span class="badge badge-amber">SendGrid API</span></td></tr>
+      </tbody></table>
+      <div class="sec">DbContext Registration</div>
+<pre class="cb">builder.Services.<span class="fn">AddDbContext</span>&lt;<span class="ty">WalletDbContext</span>&gt;(
+  opts =&gt; opts.<span class="fn">UseSqlServer</span>(connStr, sql =&gt; {
+    sql.<span class="fn">EnableRetryOnFailure</span>(maxRetry: <span class="nu">3</span>);
+    sql.<span class="fn">CommandTimeout</span>(<span class="nu">30</span>);
+  }),
+  lifetime: ServiceLifetime.Scoped);</pre>
+      <div class="hbox">SQL Server native connection pooling handles ~100 concurrent connections per service instance. Scoped lifetime ensures DbContext is disposed after each request.</div>
+    </div>
+  </div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">Stateless design is what enables horizontal scaling. Redis on balance reads is the single highest-ROI addition — balance checks happen on every page load, and a 5-second TTL is invisible to users while absorbing 80%+ of DB read traffic.</div></div>
+</div>
+
+<!-- ============================================================ SLIDE 15 -->
+<div class="slide" data-tag="Conclusion">
+  <div class="slide-hdr">
+    <div class="tag-row"><span class="slide-num-lbl">15</span><span class="badge badge-teal">Conclusion</span></div>
+    <div class="slide-title">Conclusion &mdash; Technical Summary</div>
+    <div class="slide-sub">What this system demonstrates across 10 microservices</div>
+  </div>
+  <div class="three-col">
+    <div class="card">
+      <div class="card-title" style="color:#15803d">Financial Correctness</div>
+      <ul class="blist">
+        <li>Double-entry: DEBIT + CREDIT = 0 invariant</li>
+        <li>Idempotency keys on all write operations</li>
+        <li>Optimistic concurrency via RowVersion</li>
+        <li>decimal(18,4) on all financial columns</li>
+        <li>Append-only Ledger, no UPDATE/DELETE</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#1d4ed8">Architecture Quality</div>
+      <ul class="blist">
+        <li>Clean Architecture: Core has zero infra deps</li>
+        <li>Result&lt;T&gt;: explicit failure paths everywhere</li>
+        <li>BaseConsumer&lt;T&gt;: consistent event handling</li>
+        <li>Repository: domain isolated from EF Core</li>
+        <li>38 passing tests (xUnit + Moq + FluentAssertions)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#92400e">Operational Readiness</div>
+      <ul class="blist">
+        <li>DLQ: no message loss on consumer failure</li>
+        <li>Compensation: distributed failure reversal</li>
+        <li>JWT rotation: stolen token = one-use only</li>
+        <li>EnableRetryOnFailure: transient DB resilience</li>
+        <li>Swashbuckle 6.9.0 on all 10 services</li>
+      </ul>
+    </div>
+  </div>
+  <div class="sec">Complete Stack Reference</div>
+  <div class="two-col">
+    <table class="mt"><thead><tr><th>Component</th><th>Library / Version</th></tr></thead><tbody>
+      <tr><td>Runtime</td><td>.NET 10 &middot; C# 13</td></tr>
+      <tr><td>ORM</td><td>Entity Framework Core 10 (code-first)</td></tr>
+      <tr><td>API Gateway</td><td>Ocelot 23.x</td></tr>
+      <tr><td>Message Broker</td><td>RabbitMQ.Client 6.x</td></tr>
+      <tr><td>Auth</td><td>Microsoft.AspNetCore.Authentication.JwtBearer</td></tr>
+      <tr><td>Password Hash</td><td>BCrypt.Net-Next (work factor 12)</td></tr>
+    </tbody></table>
+    <table class="mt"><thead><tr><th>Component</th><th>Library / Version</th></tr></thead><tbody>
+      <tr><td>Swagger</td><td>Swashbuckle.AspNetCore 6.9.0</td></tr>
+      <tr><td>Email</td><td>MailKit 4.x (StartTls port 587)</td></tr>
+      <tr><td>Testing</td><td>xUnit + Moq + FluentAssertions</td></tr>
+      <tr><td>Database</td><td>SQL Server (POLLY\SQLEXPRESS)</td></tr>
+      <tr><td>Chatbot</td><td>FastAPI + anthropic==0.28.0 (Python 3.12)</td></tr>
+      <tr><td>Env secrets</td><td>dotenv.net + .gitignore on .env files</td></tr>
+    </tbody></table>
+  </div>
+  <div class="hbox green" style="text-align:center;font-size:13px;margin-top:8px">Every design decision has a documented reason. Not microservices for its own sake &mdash; every service boundary, every async event, every sync call is justified by real production constraints.</div>
+  <div class="notes-panel"><button class="notes-btn" onclick="toggleNotes()">Speaker Notes &#9662;</button><div class="notes-body">The closing message: this system demonstrates judgment about when and why to apply patterns. The double-entry ledger, idempotency keys, and DLQ are not added for complexity. They solve specific, real problems that arise in production fintech systems.</div></div>
+</div>
+
+  </div><!-- end canvas -->
+</div><!-- end main -->
+</div><!-- end shell -->
+
+<script>
+var cur = 0;
+var notesOpen = false;
+var slides = document.querySelectorAll('.slide');
+var total = slides.length;
+
+var tagColors = {
+  "Title":"badge-blue","Problem":"badge-red","Solution":"badge-green",
+  "Architecture":"badge-blue","Gateway":"badge-purple","Security":"badge-amber",
+  "Events":"badge-amber","Deep Dive":"badge-red","Idempotency":"badge-green",
+  "Failures":"badge-red","Flow":"badge-green","Database":"badge-blue",
+  "Challenges":"badge-amber","Scale":"badge-teal","Conclusion":"badge-teal"
+};
+
+function buildSidebar() {
+  var sb = document.getElementById('sb');
+  var html = '';
+  for (var i = 0; i < slides.length; i++) {
+    var tag = slides[i].getAttribute('data-tag');
+    var title = slides[i].querySelector('.slide-title').textContent;
+    html += '<div class="sb-item' + (i === 0 ? ' active' : '') + '" onclick="goTo(' + i + ')">';
+    html += '<div class="sb-num">0' + (i < 9 ? (i + 1) : '') + (i >= 9 ? (i + 1) : '') + '</div>';
+    html += '<div class="sb-title">' + title + '</div>';
+    html += '</div>';
+  }
+  sb.innerHTML = html;
+}
+
+function updateUI() {
+  document.getElementById('tlabel').textContent = 'Slide ' + (cur + 1) + ' / ' + total;
+  document.getElementById('prog').style.width = (((cur + 1) / total) * 100) + '%';
+  document.getElementById('pbtn').disabled = cur === 0;
+  document.getElementById('nbtn').disabled = cur === total - 1;
+  var items = document.querySelectorAll('.sb-item');
+  for (var i = 0; i < items.length; i++) {
+    items[i].classList.toggle('active', i === cur);
+  }
+}
+
+function showSlide(n) {
+  for (var i = 0; i < slides.length; i++) {
+    slides[i].classList.toggle('active', i === n);
+  }
+  document.querySelector('.canvas').scrollTop = 0;
+  updateUI();
+}
+
+function goTo(n) {
+  cur = n;
+  showSlide(cur);
+}
+
+function go(dir) {
+  cur = Math.max(0, Math.min(total - 1, cur + dir));
+  showSlide(cur);
+}
+
+function toggleNotes() {
+  notesOpen = !notesOpen;
+  var bodies = document.querySelectorAll('.notes-body');
+  var btns = document.querySelectorAll('.notes-btn');
+  for (var i = 0; i < bodies.length; i++) {
+    bodies[i].classList.toggle('open', notesOpen);
+  }
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].textContent = 'Speaker Notes ' + (notesOpen ? '\u25B2' : '\u25BC');
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+});
+
+buildSidebar();
+updateUI();
+</script>
+</body>
+</html>
